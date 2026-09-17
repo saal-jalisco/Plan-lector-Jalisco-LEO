@@ -425,29 +425,31 @@ const SECCION2 = (function() {
        VALIDAR SECCIÓN COMPLETA
        ======================================================== */
     function validar() {
-        const lb = ESTADO.obtenerSeccion('lineaBase');
-        const resumen = document.getElementById('resumen-seccion2');
+    const lb = ESTADO.obtenerSeccion('lineaBase');
+    const resumen = document.getElementById('resumen-seccion2');
 
-        if (!resumen) return false;
+    if (!resumen) return false;
 
-        const tieneGrupos = lb.datosEscuela && lb.datosEscuela.length > 0;
-        const gruposValidos = tieneGrupos && lb.datosEscuela.every(d => d.media && d.deseable && d.enProgreso && d.atencionPrioritaria);
+    const tieneGrupos = lb.datosEscuela && lb.datosEscuela.length > 0;
+    // Al menos UN grupo completo (no todos)
+    const alMenosUnGrupoValido = tieneGrupos && lb.datosEscuela.some(d =>
+        d.media && d.deseable && d.enProgreso && d.atencionPrioritaria
+    );
 
-        if (gruposValidos) {
-            resumen.className = 'caja-exito';
-            resumen.innerHTML = '<i class="fas fa-check-circle"></i> Sección completa. Puedes continuar.';
-        } else if (tieneGrupos) {
-            resumen.className = 'caja-info';
-            resumen.innerHTML = '<i class="fas fa-info-circle"></i> Completa todos los campos de cada grupo.';
-        } else {
-            resumen.className = 'caja-info';
-            resumen.innerHTML = '<i class="fas fa-info-circle"></i> Agrega al menos un grupo para continuar.';
-        }
-
-        ESTADO.notificar('seccion2Validada', { completa: gruposValidos });
-        return gruposValidos;
+    if (alMenosUnGrupoValido) {
+        resumen.className = 'caja-exito';
+        resumen.innerHTML = '<i class="fas fa-check-circle"></i> Sección completa. Puedes continuar.';
+    } else if (tieneGrupos) {
+        resumen.className = 'caja-info';
+        resumen.innerHTML = '<i class="fas fa-info-circle"></i> Completa al menos un grupo con todos sus campos.';
+    } else {
+        resumen.className = 'caja-info';
+        resumen.innerHTML = '<i class="fas fa-info-circle"></i> Agrega al menos un grupo para continuar.';
     }
 
+    ESTADO.notificar('seccion2Validada', { completa: alMenosUnGrupoValido });
+    return alMenosUnGrupoValido;
+}
     /* ========================================================
        SUSCRIBIR CAMBIOS EXTERNOS
        ======================================================== */
