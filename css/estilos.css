@@ -449,70 +449,75 @@ body {
 }
 
 .semaforo-punto {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
     display: inline-block;
     flex-shrink: 0;
+    border: 2px solid rgba(0, 0, 0, 0.08);
 }
 
-.semaforo-punto.verde { background: var(--verde); box-shadow: 0 0 0 3px var(--verde-claro); }
-.semaforo-punto.amarillo { background: var(--amarillo); box-shadow: 0 0 0 3px var(--amarillo-claro); }
-.semaforo-punto.rojo { background: var(--rojo); box-shadow: 0 0 0 3px var(--rojo-claro); }
-
-.semaforo-punto.gris { background: var(--gris-claro); box-shadow: 0 0 0 3px rgba(0,0,0,0.05); }
-
-/* ============================================================
-   TABLAS
-   ============================================================ */
-.tabla-wrapper {
-    overflow-x: auto;
-    margin: 1rem 0;
-    border-radius: var(--radio-md);
-    box-shadow: var(--sombra-suave);
+.semaforo-punto.verde {
+    background: var(--verde);
+    box-shadow: 0 0 0 3px var(--verde-claro);
 }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.9rem;
+.semaforo-punto.amarillo {
+    background: var(--amarillo);
+    box-shadow: 0 0 0 3px var(--amarillo-claro);
 }
 
-thead {
-    background: var(--carmesi);
-    color: var(--blanco);
+.semaforo-punto.rojo {
+    background: var(--rojo);
+    box-shadow: 0 0 0 3px var(--rojo-claro);
 }
 
-thead th {
-    padding: 0.8rem 1rem;
-    text-align: left;
-    font-weight: 700;
-    font-size: 0.85rem;
+.semaforo-punto.gris {
+    background: var(--gris-claro);
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
 }
 
-tbody tr {
-    background: var(--blanco);
+/* ===== SELECTOR DE SEMÁFORO (radios con punto) ===== */
+.selector-semaforo {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.semaforo-opcion {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0.3rem;
+    border-radius: 50%;
     transition: var(--transicion);
+    border: 2px solid transparent;
 }
 
-tbody tr:nth-child(even) {
-    background: var(--fila-alterna);
+.semaforo-opcion:hover {
+    background: rgba(0, 0, 0, 0.05);
 }
 
-tbody tr:hover {
-    background: rgba(240, 128, 19, 0.05);
+.semaforo-opcion.seleccionada {
+    border-color: var(--gris-oscuro);
+    background: rgba(0, 0, 0, 0.05);
 }
 
-tbody td {
-    padding: 0.7rem 1rem;
-    border-bottom: 1px solid rgba(161, 156, 149, 0.15);
-    font-size: 0.88rem;
+.semaforo-opcion input[type="radio"] {
+    display: none;
 }
 
-tbody tr:last-child td {
-    border-bottom: none;
+.semaforo-opcion .semaforo-punto {
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
 }
 
+.semaforo-opcion.seleccionada .semaforo-punto {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.1);
+}
 /* ============================================================
    FORMULARIOS
    ============================================================ */
