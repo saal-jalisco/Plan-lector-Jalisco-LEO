@@ -530,7 +530,7 @@ const ACTA = (function() {
     <style>
         :root {
             --carmesi: #E50746;
-            --naranja: #F08013;
+            --naranja: #D96F0A;
             --gris-medio: #A19C95;
             --gris-oscuro: #4A4A4A;
             --crema: #F5F0E6;
