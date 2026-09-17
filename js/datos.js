@@ -1,6 +1,6 @@
 /* ============================================================
-   TERMÓMETRO LECTOR · JALISCO LEO
-   datos.js — Datos precargados de Jalisco Avanza 2025
+   PLAN LECTOR JALISCO LEO
+   datos.js — Datos precargados
    ============================================================ */
 
 const DATOS = {
@@ -10,15 +10,110 @@ const DATOS = {
        ======================================================== */
     meta: {
         proyecto: 'Plan Lector Jalisco LEO',
-        modulo: 'Termómetro Lector',
-        fuente: 'Jalisco Avanza 2025',
-        version: '3.0',
+        modulo: 'Plan Lector',
+        fuente: 'Jalisco Avanza 2025 · Jalisco LEO',
+        version: '4.0',
         fechaActualizacion: '2026-09-17'
     },
 
     /* ========================================================
-       1. LÍNEA BASE · LECTURA · PRIMARIA
-       Media global, niveles de logro por grado
+       1. NIVELES EDUCATIVOS (6 niveles)
+       ======================================================== */
+    niveles: [
+        {
+            id: 'inicial',
+            nombre: 'Inicial',
+            rango: '0-2 años',
+            grados: ['Maternal 1', 'Maternal 2', 'Maternal 3'],
+            descripcion: 'Educación inicial, primera infancia.'
+        },
+        {
+            id: 'preescolar',
+            nombre: 'Preescolar',
+            rango: '3-5 años',
+            grados: ['1° Preescolar', '2° Preescolar', '3° Preescolar'],
+            descripcion: 'Educación preescolar.'
+        },
+        {
+            id: 'primaria-baja',
+            nombre: 'Primaria Baja',
+            rango: '6-8 años',
+            grados: ['1°', '2°', '3°'],
+            descripcion: 'Primaria, primeros tres grados.'
+        },
+        {
+            id: 'primaria-alta',
+            nombre: 'Primaria Alta',
+            rango: '9-11 años',
+            grados: ['4°', '5°', '6°'],
+            descripcion: 'Primaria, últimos tres grados.'
+        },
+        {
+            id: 'secundaria',
+            nombre: 'Secundaria',
+            rango: '12-14 años',
+            grados: ['1°', '2°', '3°'],
+            descripcion: 'Educación secundaria.'
+        },
+        {
+            id: 'bachillerato',
+            nombre: 'Bachillerato',
+            rango: '15-17 años',
+            grados: ['1°', '2°', '3°'],
+            descripcion: 'Educación media superior.'
+        }
+    ],
+
+    /* ========================================================
+       2. REGLAS DE FILTRADO POR NIVEL EDUCATIVO
+       ======================================================== */
+    reglasFiltradoNivel: {
+        'inicial': {
+            rutasSugeridas: ['ruta2', 'ruta5'],
+            rutasOpcionales: [],
+            minimoRutas: 2,
+            maximoRutas: 3,
+            nota: 'Para Inicial, se priorizan las rutas de imaginación y comunidad.'
+        },
+        'preescolar': {
+            rutasSugeridas: ['ruta1', 'ruta2', 'ruta5'],
+            rutasOpcionales: ['ruta4'],
+            minimoRutas: 2,
+            maximoRutas: 4,
+            nota: 'Para Preescolar, se priorizan las rutas de comprensión, imaginación y comunidad.'
+        },
+        'primaria-baja': {
+            rutasSugeridas: ['ruta1', 'ruta2', 'ruta4', 'ruta5'],
+            rutasOpcionales: ['ruta3'],
+            minimoRutas: 2,
+            maximoRutas: 5,
+            nota: 'Para Primaria Baja, se priorizan las rutas de comprensión, imaginación, creación y comunidad.'
+        },
+        'primaria-alta': {
+            rutasSugeridas: ['ruta1', 'ruta3', 'ruta4', 'ruta5'],
+            rutasOpcionales: ['ruta2'],
+            minimoRutas: 2,
+            maximoRutas: 5,
+            nota: 'Para Primaria Alta, se priorizan las rutas de comprensión, argumentación, creación y comunidad.'
+        },
+        'secundaria': {
+            rutasSugeridas: ['ruta1', 'ruta3', 'ruta4'],
+            rutasOpcionales: ['ruta2', 'ruta5'],
+            minimoRutas: 2,
+            maximoRutas: 5,
+            nota: 'Para Secundaria, se priorizan las rutas de comprensión, argumentación y creación.'
+        },
+        'bachillerato': {
+            rutasSugeridas: ['ruta3', 'ruta4'],
+            rutasOpcionales: ['ruta1', 'ruta2', 'ruta5'],
+            minimoRutas: 2,
+            maximoRutas: 5,
+            nota: 'Para Bachillerato, se priorizan las rutas de argumentación y creación.'
+        }
+    },
+
+    /* ========================================================
+       3. LÍNEA BASE · LECTURA · PRIMARIA
        ======================================================== */
     lineaBase: {
         primaria: {
@@ -100,8 +195,7 @@ const DATOS = {
     },
 
     /* ========================================================
-       2. UNIDADES DE ANÁLISIS (UA) DE LECTURA
-       Porcentaje de aciertos Jalisco por grado
+       4. UNIDADES DE ANÁLISIS (UA) DE LECTURA
        ======================================================== */
     unidadesAnalisis: {
         primaria: {
@@ -156,42 +250,6 @@ const DATOS = {
     },
 
     /* ========================================================
-       3. MATEMÁTICAS · REFERENCIA ESTATAL (por si se necesita)
-       ======================================================== */
-    matematicas: {
-        primaria: {
-            '2': { media: 59.5, deseable: 26.0, enProgreso: 63.3, atencionPrioritaria: 10.7 },
-            '3': { media: 59.4, deseable: 24.8, enProgreso: 69.6, atencionPrioritaria: 5.6 },
-            '4': { media: 47.8, deseable: 11.8, enProgreso: 73.4, atencionPrioritaria: 14.8 },
-            '5': { media: 39.3, deseable: 4.7, enProgreso: 72.8, atencionPrioritaria: 22.5 },
-            '6': { media: 44.7, deseable: 9.8, enProgreso: 72.0, atencionPrioritaria: 18.2 }
-        },
-        secundaria: {
-            '1': { media: 44.1, deseable: 8.8, enProgreso: 73.3, atencionPrioritaria: 17.9 },
-            '2': { media: 42.7, deseable: 7.0, enProgreso: 77.4, atencionPrioritaria: 15.6 },
-            '3': { media: 43.8, deseable: 5.7, enProgreso: 81.9, atencionPrioritaria: 12.4 }
-        }
-    },
-
-    /* ========================================================
-       4. FORMACIÓN CÍVICA Y ÉTICA · REFERENCIA ESTATAL
-       ======================================================== */
-    formacionCivica: {
-        primaria: {
-            '2': { media: 33.0, deseable: 33.0, enProgreso: 53.4, atencionPrioritaria: 13.7 },
-            '3': { media: 32.3, deseable: 32.3, enProgreso: 57.2, atencionPrioritaria: 10.5 },
-            '4': { media: 30.8, deseable: 30.8, enProgreso: 53.5, atencionPrioritaria: 15.7 },
-            '5': { media: 22.3, deseable: 22.3, enProgreso: 64.5, atencionPrioritaria: 13.2 },
-            '6': { media: 17.7, deseable: 17.7, enProgreso: 56.6, atencionPrioritaria: 25.7 }
-        },
-        secundaria: {
-            '1': { media: 23.4, deseable: 23.4, enProgreso: 67.8, atencionPrioritaria: 8.7 },
-            '2': { media: 8.9, deseable: 8.9, enProgreso: 76.4, atencionPrioritaria: 14.7 },
-            '3': { media: 14.3, deseable: 14.3, enProgreso: 73.2, atencionPrioritaria: 12.5 }
-        }
-    },
-
-    /* ========================================================
        5. COMPONENTES SAAL
        ======================================================== */
     componentesSAAL: {
@@ -203,7 +261,6 @@ const DATOS = {
             { id: 'seguridad', nombre: 'Seguridad y disposición', descripcion: 'Confianza, actitud y disfrute de la lectura.' },
             { id: 'comprension', nombre: 'Comprensión lectora', descripcion: 'Identificación de ideas, detalles e inferencias.' }
         ],
-        // 1° y 2° primaria solo evalúan Fluidez y Comprensión
         primeroSegundoPrimaria: ['fluidez', 'comprension']
     },
 
@@ -256,7 +313,7 @@ const DATOS = {
     ],
 
     /* ========================================================
-       7. LAS 5 RUTAS LEO
+       7. LAS 5 RUTAS LEO (con niveles para filtrado)
        ======================================================== */
     rutasLEO: {
         ruta1: {
@@ -267,16 +324,26 @@ const DATOS = {
             necesidad: 'Bajos resultados en comprensión lectora. Las y los estudiantes pueden decodificar, pero no siempre construyen significado, no infieren, no relacionan el texto con su experiencia.',
             etapas: ['Etapa 3 (6-8 años)', 'Etapa 4 (9-11 años) · principal', 'Etapa 5 (12-14 años)'],
             virtudes: ['Pensamiento reflexivo', 'Paciencia', 'Laboriosidad', 'Claridad'],
+            niveles: ['preescolar', 'primaria-baja', 'primaria-alta', 'secundaria'],
             actividadesEsenciales: [
                 { nombre: 'Lectura en voz alta diaria', nivel: 'Primaria baja y alta', frecuencia: 'Diaria' },
                 { nombre: 'Adivina qué sigue', nivel: 'Preescolar y Primaria baja', frecuencia: 'Semanal' },
                 { nombre: 'Círculo de lectura semanal', nivel: 'Primaria alta y Secundaria', frecuencia: 'Semanal' }
             ],
+            actividadesOpcionales: [
+                { nombre: 'Lectura de imágenes y predicción', nivel: 'Primaria alta', frecuencia: 'Semanal' },
+                { nombre: 'El semáforo de la lectura', nivel: 'Primaria baja', frecuencia: 'Semanal' },
+                { nombre: 'Fichero de palabras nuevas', nivel: 'Primaria baja', frecuencia: 'Semanal' },
+                { nombre: 'Reseña en 100 palabras', nivel: 'Primaria alta', frecuencia: 'Quincenal' },
+                { nombre: 'Lectura para debate', nivel: 'Secundaria', frecuencia: 'Semanal' }
+            ],
             indicadores: {
                 cuanti: 'Porcentaje de estudiantes que mejoran su nivel de comprensión lectora en Jalisco Avanza (meta: reducir 10% anual en nivel "En desarrollo").',
                 cuali: 'Predicen, verifican, identifican ideas principales, infieren, relacionan, formulan preguntas.'
             },
-            duracion: 'Todo el ciclo escolar, con énfasis en el primer trimestre.'
+            duracion: 'Todo el ciclo escolar, con énfasis en el primer trimestre.',
+            conexionVagones: 'Narrativa, texto informativo, texto argumentativo, poesía, texto multimodal.',
+            conexionFamilia: 'Lectura compartida en casa, el libro viajero, carta para familias con preguntas guía.'
         },
         ruta2: {
             id: 'ruta2',
@@ -286,16 +353,26 @@ const DATOS = {
             necesidad: 'Falta de motivación hacia la lectura. Muchas y muchos estudiantes asocian la lectura con obligación, evaluación y tarea, no con placer, descubrimiento ni juego.',
             etapas: ['Etapa 1 (0-2 años)', 'Etapa 2 (3-5 años)', 'Etapa 3 (6-8 años)', 'Etapa 4 (9-11 años) · principal', 'Etapa 5 (12-14 años)'],
             virtudes: ['Curiosidad', 'Creatividad', 'Atención', 'Apego seguro'],
+            niveles: ['inicial', 'preescolar', 'primaria-baja', 'primaria-alta', 'secundaria'],
             actividadesEsenciales: [
                 { nombre: 'Lectura en voz alta diaria', nivel: 'Primaria baja y alta', frecuencia: 'Diaria' },
                 { nombre: 'Cita a ciegas con un libro', nivel: 'Primaria alta y Secundaria', frecuencia: 'Mensual' },
                 { nombre: 'Cuentos con títeres', nivel: 'Preescolar y Primaria baja', frecuencia: 'Quincenal' }
             ],
+            actividadesOpcionales: [
+                { nombre: 'La bolsa misteriosa', nivel: 'Preescolar', frecuencia: 'Semanal' },
+                { nombre: 'Palabras que vuelan', nivel: 'Preescolar', frecuencia: 'Semanal' },
+                { nombre: 'Historias con tres imágenes', nivel: 'Preescolar', frecuencia: 'Semanal' },
+                { nombre: 'La ruleta de los cuentos', nivel: 'Primaria baja', frecuencia: 'Semanal' },
+                { nombre: 'Mapa de mi historia', nivel: 'Primaria alta', frecuencia: 'Mensual' }
+            ],
             indicadores: {
                 cuanti: 'Aumento en la frecuencia de lectura por placer (encuesta a estudiantes y familias).',
                 cuali: 'Eligen libros por iniciativa propia, comparten lo que leen, imaginan finales alternativos, disfrutan de la lectura en voz alta, recomiendan libros.'
             },
-            duracion: 'Todo el ciclo escolar, con énfasis en el primer y segundo trimestre.'
+            duracion: 'Todo el ciclo escolar, con énfasis en el primer y segundo trimestre.',
+            conexionVagones: 'Narrativa, poesía, texto multimodal, texto oral.',
+            conexionFamilia: 'Cuentos en familia, el libro viajero, fiesta de cuentos, carta para familias con actividades lúdicas.'
         },
         ruta3: {
             id: 'ruta3',
@@ -305,16 +382,26 @@ const DATOS = {
             necesidad: 'Dificultad para expresar opiniones fundamentadas. Las y los estudiantes opinan, pero no siempre argumentan; confunden opinión con hecho; no citan evidencias.',
             etapas: ['Etapa 4 (9-11 años)', 'Etapa 5 (12-14 años) · principal', 'Etapa 6 (15-17 años)'],
             virtudes: ['Juicio', 'Veracidad', 'Civilidad', 'Pensamiento crítico'],
+            niveles: ['primaria-alta', 'secundaria', 'bachillerato'],
             actividadesEsenciales: [
                 { nombre: 'Noticias del mundo', nivel: 'Primaria alta', frecuencia: 'Semanal' },
                 { nombre: 'Debate de posturas', nivel: 'Primaria alta y Secundaria', frecuencia: 'Quincenal' },
                 { nombre: 'Lectura para debate', nivel: 'Secundaria', frecuencia: 'Semanal' }
             ],
+            actividadesOpcionales: [
+                { nombre: 'El debate del libro', nivel: 'Primaria alta', frecuencia: 'Quincenal' },
+                { nombre: 'Tertulia literaria', nivel: 'Primaria alta y Secundaria', frecuencia: 'Mensual' },
+                { nombre: 'Debate de citas', nivel: 'Secundaria', frecuencia: 'Quincenal' },
+                { nombre: 'Ensayo de 500 palabras', nivel: 'Secundaria', frecuencia: 'Mensual' },
+                { nombre: 'Juicio a un personaje', nivel: 'Secundaria', frecuencia: 'Trimestral' }
+            ],
             indicadores: {
                 cuanti: 'Porcentaje de estudiantes que mejoran su nivel de pensamiento crítico en Jalisco Avanza (meta: reducir 10% anual en nivel "En desarrollo").',
                 cuali: 'Distinguen hechos de opiniones, citan evidencias, escuchan posturas distintas con respeto, formulan preguntas críticas, argumentan oralmente y por escrito.'
             },
-            duracion: 'Todo el ciclo escolar, con énfasis en el segundo y tercer trimestre.'
+            duracion: 'Todo el ciclo escolar, con énfasis en el segundo y tercer trimestre.',
+            conexionVagones: 'Texto argumentativo, texto informativo, narrativa, texto multimodal.',
+            conexionFamilia: 'Debate en casa, carta para familias con preguntas para argumentar, noticias en familia.'
         },
         ruta4: {
             id: 'ruta4',
@@ -324,16 +411,26 @@ const DATOS = {
             necesidad: 'Poca producción escrita creativa. Las y los estudiantes leen, pero no siempre escriben; cuando escriben, lo hacen por obligación, sin disfrute, sin voz propia.',
             etapas: ['Etapa 2 (3-5 años)', 'Etapa 3 (6-8 años)', 'Etapa 4 (9-11 años) · principal', 'Etapa 5 (12-14 años)', 'Etapa 6 (15-17 años)'],
             virtudes: ['Creatividad', 'Honestidad', 'Perseverancia', 'Claridad'],
+            niveles: ['preescolar', 'primaria-baja', 'primaria-alta', 'secundaria', 'bachillerato'],
             actividadesEsenciales: [
                 { nombre: 'Juegos de escritura creativa', nivel: 'Primaria baja', frecuencia: 'Semanal' },
                 { nombre: 'Club de escritores', nivel: 'Primaria alta', frecuencia: 'Semanal' },
                 { nombre: 'Escritura de microrrelatos', nivel: 'Primaria alta y Secundaria', frecuencia: 'Quincenal' }
             ],
+            actividadesOpcionales: [
+                { nombre: 'Dibujo mi cuento', nivel: 'Preescolar', frecuencia: 'Semanal' },
+                { nombre: 'Cantamos y escribimos', nivel: 'Preescolar', frecuencia: 'Semanal' },
+                { nombre: 'Historias con tres imágenes', nivel: 'Preescolar', frecuencia: 'Semanal' },
+                { nombre: 'Poema colectivo', nivel: 'Primaria alta', frecuencia: 'Mensual' },
+                { nombre: 'Contraportada', nivel: 'Secundaria', frecuencia: 'Quincenal' }
+            ],
             indicadores: {
                 cuanti: 'Porcentaje de estudiantes que producen textos propios de manera regular (portafolio de escritura).',
                 cuali: 'Escriben por iniciativa propia, comparten sus textos, revisan y mejoran, experimentan con géneros y formatos, encuentran su propia voz.'
             },
-            duracion: 'Todo el ciclo escolar, con énfasis en el segundo y tercer trimestre.'
+            duracion: 'Todo el ciclo escolar, con énfasis en el segundo y tercer trimestre.',
+            conexionVagones: 'Narrativa, poesía, texto multimodal, texto dramático.',
+            conexionFamilia: 'Escritura en familia, carta para familias con actividades, el libro viajero con página nueva.'
         },
         ruta5: {
             id: 'ruta5',
@@ -343,16 +440,26 @@ const DATOS = {
             necesidad: 'Poca participación de las familias y la comunidad en la formación lectora. La lectura se concibe como una actividad solitaria, escolar, individual.',
             etapas: ['Etapa 1 (0-2 años)', 'Etapa 2 (3-5 años)', 'Etapa 3 (6-8 años)', 'Etapa 4 (9-11 años) · principal', 'Etapa 5 (12-14 años)', 'Etapa 6 (15-17 años)'],
             virtudes: ['Vínculo', 'Empatía', 'Generosidad', 'Comunidad'],
+            niveles: ['inicial', 'preescolar', 'primaria-baja', 'primaria-alta', 'secundaria'],
             actividadesEsenciales: [
                 { nombre: 'Lector invitado', nivel: 'Primaria baja', frecuencia: 'Semanal' },
                 { nombre: 'Lectura compartida en parejas', nivel: 'Preescolar', frecuencia: 'Semanal' },
                 { nombre: 'Círculo de lectores docentes', nivel: 'Docentes', frecuencia: 'Trimestral' }
             ],
+            actividadesOpcionales: [
+                { nombre: 'El libro viajero', nivel: 'Preescolar y Primaria baja', frecuencia: 'Semanal' },
+                { nombre: 'Fiesta de cuentos (Día del Niño)', nivel: 'Preescolar', frecuencia: 'Anual' },
+                { nombre: 'Maratón de lectura', nivel: 'Primaria alta', frecuencia: 'Trimestral' },
+                { nombre: 'Tertulia literaria', nivel: 'Primaria alta y Secundaria', frecuencia: 'Mensual' },
+                { nombre: 'Semana de autores jaliscienses', nivel: 'Primaria alta', frecuencia: 'Anual' }
+            ],
             indicadores: {
                 cuanti: 'Porcentaje de familias que reportan leer con sus hijos al menos tres veces por semana (meta: incrementar en 20 puntos porcentuales respecto a la línea base).',
                 cuali: 'Las familias participan, los estudiantes comparten lo que leen, la comunidad se involucra, los estudiantes recomiendan libros, la escuela se convierte en espacio de encuentro.'
             },
-            duracion: 'Todo el ciclo escolar, con énfasis en el primer y tercer trimestre.'
+            duracion: 'Todo el ciclo escolar, con énfasis en el primer y tercer trimestre.',
+            conexionVagones: 'Narrativa, poesía, texto oral, texto multimodal.',
+            conexionFamilia: 'Lectura en familia, carta para familias, fiesta de la palabra, guía para acompañar la lectura en casa.'
         }
     },
 
@@ -360,7 +467,6 @@ const DATOS = {
        8. MOTOR DE RECOMENDACIÓN · REGLAS DE CRUCE
        ======================================================== */
     motorRecomendacion: {
-        // Dimensiones gatillo por ruta (🔴 o 🟡)
         reglas: [
             {
                 rutaId: 'ruta1',
@@ -388,7 +494,6 @@ const DATOS = {
                 peso: 'alto'
             }
         ],
-        // Regla de prioridad
         prioridad: {
             alta: { minRojos: 3, etiqueta: 'ALTA' },
             media: { minRojos: 2, etiqueta: 'MEDIA' },
@@ -517,7 +622,7 @@ const DATOS = {
     },
 
     /* ========================================================
-       11. OPCIONES DE IDENTIFICACIÓN
+       11. DATOS DE IDENTIFICACIÓN
        ======================================================== */
     identificacion: {
         regiones: [
@@ -535,9 +640,6 @@ const DATOS = {
             'Región 12 · Centro'
         ],
         turnos: ['Matutino', 'Vespertino', 'Nocturno', 'Mixto', 'Discontinuo'],
-        niveles: ['Primaria', 'Secundaria'],
-        gradosPrimaria: ['1°', '2°', '3°', '4°', '5°', '6°'],
-        gradosSecundaria: ['1°', '2°', '3°'],
         modosLlenado: [
             { id: 'individual', nombre: 'Individual', descripcion: 'Director(a) / ATP llena antes o durante CTE.' },
             { id: 'colectivo', nombre: 'Colectivo', descripcion: 'Se llena colaborativamente durante CTE.' }
@@ -560,6 +662,135 @@ const DATOS = {
         mensajeVocesOmitidas: 'Esta sección es omitible, pero te recomendamos llenarla ahora o en la siguiente ocasión para tener un diagnóstico más completo del ecosistema lector.',
         alertaMasDe5Rojos: 'Hay más de 5 dimensiones en 🔴 Atención prioritaria. Te recomendamos enfocar los esfuerzos en las más críticas.',
         alertaMasDe3Rutas: 'Han seleccionado más de 3 rutas para un trimestre. Consideren priorizar para no dispersar los esfuerzos.'
+    },
+
+    /* ========================================================
+       13. MOMENTO 3: HOJA DE RUTA TRIMESTRAL
+       ======================================================== */
+    momento3: {
+        // Meses del trimestre
+        meses: [
+            { id: 'septiembre', nombre: 'Septiembre', numero: 9 },
+            { id: 'octubre', nombre: 'Octubre', numero: 10 },
+            { id: 'noviembre', nombre: 'Noviembre', numero: 11 }
+        ],
+        // Semanas por mes (para calendarización)
+        semanas: {
+            septiembre: ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4'],
+            octubre: ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4'],
+            noviembre: ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4']
+        },
+        // Tipos de actividad (periodicidad según guía española)
+        tiposActividad: [
+            { id: 'ordinaria', nombre: 'Ordinaria', descripcion: 'Se realiza de manera cotidiana (diaria o semanal).', color: 'verde' },
+            { id: 'periodica', nombre: 'Periódica', descripcion: 'Se realiza quincenal o mensualmente.', color: 'amarillo' },
+            { id: 'extraordinaria', nombre: 'Extraordinaria', descripcion: 'Se realiza una vez al trimestre o al año.', color: 'rojo' }
+        ],
+        // Estados de implementación (para la bitácora)
+        estadosImplementacion: [
+            { id: 'no-iniciada', nombre: 'No iniciada', color: 'gris' },
+            { id: 'en-proceso', nombre: 'En proceso', color: 'amarillo' },
+            { id: 'completada', nombre: 'Completada', color: 'verde' },
+            { id: 'reprogramada', nombre: 'Reprogramada', color: 'rojo' }
+        ],
+        // Roles para responsables
+        roles: [
+            'Director(a)',
+            'ATP / Supervisor',
+            'Docente de grupo',
+            'Docente de Lengua y Literatura',
+            'Bibliotecario(a)',
+            'Docente de otra asignatura',
+            'Estudiante',
+            'Familia / Tutor',
+            'Comunidad'
+        ],
+        // Tipos de evidencia para la bitácora
+        tiposEvidencia: [
+            'Fotografía',
+            'Video',
+            'Audio',
+            'Texto escrito',
+            'Dibujo',
+            'Producto final',
+            'Lista de asistencia',
+            'Otro'
+        ],
+        // Preguntas guía para la bitácora (evaluación formativa)
+        preguntasBitacora: [
+            '¿Qué actividad se realizó?',
+            '¿Quiénes participaron?',
+            '¿Cómo fue la experiencia?',
+            '¿Qué funcionó bien?',
+            '¿Qué se puede mejorar?',
+            '¿Qué evidencias tenemos?'
+        ]
+    },
+
+    /* ========================================================
+       14. MODO DEMO (Ejemplo "Primaria Benito Juárez")
+       ======================================================== */
+    demo: {
+        escuela: 'Escuela Primaria Benito Juárez',
+        cct: '14DPR0001A',
+        region: 'Región 12 · Centro',
+        municipio: 'Guadalajara',
+        turno: 'Matutino',
+        nivel: 'primaria-alta',
+        grados: ['4°', '5°', '6°'],
+        numeroEstudiantes: 180,
+        director: 'María López Hernández',
+        atp: 'Juan Pérez Ramírez',
+        fechaCTE: '2026-09-25',
+        modoLlenado: 'colectivo',
+        rutasSeleccionadas: ['ruta1', 'ruta4', 'ruta5'],
+        actividades: [
+            {
+                rutaId: 'ruta1',
+                actividad: 'Lectura en voz alta diaria',
+                mes: 'septiembre',
+                semana: 'Semana 1',
+                responsable: 'Docente de grupo',
+                tipo: 'ordinaria',
+                estado: 'completada'
+            },
+            {
+                rutaId: 'ruta1',
+                actividad: 'Círculo de lectura semanal',
+                mes: 'septiembre',
+                semana: 'Semana 2',
+                responsable: 'Docente de Lengua y Literatura',
+                tipo: 'ordinaria',
+                estado: 'en-proceso'
+            },
+            {
+                rutaId: 'ruta4',
+                actividad: 'Club de escritores',
+                mes: 'octubre',
+                semana: 'Semana 1',
+                responsable: 'Docente de grupo',
+                tipo: 'ordinaria',
+                estado: 'no-iniciada'
+            },
+            {
+                rutaId: 'ruta5',
+                actividad: 'Lector invitado',
+                mes: 'octubre',
+                semana: 'Semana 3',
+                responsable: 'Familia / Tutor',
+                tipo: 'periodica',
+                estado: 'no-iniciada'
+            },
+            {
+                rutaId: 'ruta5',
+                actividad: 'Maratón de lectura',
+                mes: 'noviembre',
+                semana: 'Semana 2',
+                responsable: 'Bibliotecario(a)',
+                tipo: 'extraordinaria',
+                estado: 'no-iniciada'
+            }
+        ]
     }
 };
 
