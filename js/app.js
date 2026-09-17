@@ -1,15 +1,18 @@
 /* ============================================================
-   TERMÓMETRO LECTOR · JALISCO LEO
-   app.js — Navegación, wizard y guardado
+   PLAN LECTOR JALISCO LEO
+   app.js — Navegación por momentos y control general
    ============================================================ */
 
 const APP = (function() {
 
     /* ========================================================
-       REFERENCIAS
+       CONSTANTES
        ======================================================== */
-    const TOTAL_PASOS = 7;
-    let pasoActual = 1;
+    const TOTAL_PASOS_TERMOMETRO = 7;
+    const MOMENTOS = ['momento0', 'momento1', 'momento2', 'momento3', 'momento4', 'momento5'];
+
+    let momentoActual = 'momento3'; // Por defecto, el corazón
+    let pasoTermometro = 1;
 
     /* ========================================================
        INICIALIZACIÓN
@@ -24,43 +27,51 @@ const APP = (function() {
         // Configurar botones
         configurarBotones();
 
-        // Configurar pasos clickeables
-        configurarPasos();
+        // Configurar pestañas de momentos
+        configurarMomentos();
 
-        // Restaurar paso actual
-        const estado = ESTADO.obtener();
-        pasoActual = estado.meta.pasoActual || 1;
+        // Configurar sub-pasos del Termómetro
+        configurarPasosTermometro();
 
-        // Mostrar paso
-        mostrarPaso(pasoActual, false);
+        // Restaurar momento y paso actual
+        const meta = ESTADO.obtener().meta;
+        momentoActual = meta.momentoActual || 'momento3';
+        pasoTermometro = meta.pasoActual || 1;
+
+        // Mostrar momento actual
+        mostrarMomento(momentoActual, false);
+
+        // Si es Momento 3, inicializarlo
+        if (momentoActual === 'momento3' && typeof MOMENTO3 !== 'undefined') {
+            MOMENTO3.init();
+        }
 
         // Notificar
-        console.log('🚂 Termómetro Lector iniciado. Paso:', pasoActual);
+        console.log('🚂 Plan Lector Jalisco LEO iniciado. Momento:', momentoActual);
     }
 
     /* ========================================================
        CONFIGURAR BOTONES
        ======================================================== */
     function configurarBotones() {
-        // Volver
+        // Volver (Termómetro)
         const btnVolver = document.getElementById('btn-volver');
         if (btnVolver) {
             btnVolver.addEventListener('click', () => {
-                if (pasoActual > 1) {
-                    mostrarPaso(pasoActual - 1);
+                if (pasoTermometro > 1) {
+                    mostrarPasoTermometro(pasoTermometro - 1);
                 }
             });
         }
 
-        // Continuar
+        // Continuar (Termómetro)
         const btnContinuar = document.getElementById('btn-continuar');
         if (btnContinuar) {
             btnContinuar.addEventListener('click', () => {
-                if (validarPasoActual()) {
-                    if (pasoActual < TOTAL_PASOS) {
-                        mostrarPaso(pasoActual + 1);
+                if (validarPasoTermometro()) {
+                    if (pasoTermometro < TOTAL_PASOS_TERMOMETRO) {
+                        mostrarPasoTermometro(pasoTermometro + 1);
                     } else {
-                        // Estamos en el Acta: marcar como completado
                         ESTADO.marcarCompletado();
                         mostrarToast('¡Diagnóstico completado! 🎉', 'exito');
                     }
@@ -90,8 +101,11 @@ const APP = (function() {
                     () => {
                         if (ESTADO.cargarBorradorManual()) {
                             mostrarToast('Borrador cargado correctamente.', 'exito');
-                            const nuevoPaso = ESTADO.getPasoActual();
-                            mostrarPaso(nuevoPaso, false);
+                            // Recargar el momento actual
+                            mostrarMomento(momentoActual, false);
+                            if (momentoActual === 'momento3' && typeof MOMENTO3 !== 'undefined') {
+                                MOMENTO3.init();
+                            }
                         } else {
                             mostrarToast('No hay borrador guardado.', 'error');
                         }
@@ -106,41 +120,145 @@ const APP = (function() {
             btnReiniciar.addEventListener('click', () => {
                 mostrarModalConfirmacion(
                     'Reiniciar todo',
-                    '¿Estás segura? Se borrarán todos los datos del diagnóstico actual.',
+                    '¿Estás segura? Se borrarán todos los datos del Plan Lector actual.',
                     () => {
                         ESTADO.reiniciar();
-                        mostrarToast('Diagnóstico reiniciado.', 'info');
-                        mostrarPaso(1, false);
+                        mostrarToast('Plan Lector reiniciado.', 'info');
+                        mostrarMomento('momento3', false);
+                        if (typeof MOMENTO3 !== 'undefined') {
+                            MOMENTO3.init();
+                        }
                     }
                 );
+            });
+        }
+
+        // Modo Demo
+        const btnDemo = document.getElementById('btn-modo-demo');
+        if (btnDemo) {
+            btnDemo.addEventListener('click', () => {
+                if (typeof DEMO !== 'undefined' && DEMO.iniciar) {
+                    DEMO.iniciar();
+                } else {
+                    mostrarToast('Modo Demo en desarrollo. Estará disponible pronto.', 'info');
+                }
             });
         }
     }
 
     /* ========================================================
-       CONFIGURAR PASOS CLICKEABLES
+       CONFIGURAR PESTAÑAS DE MOMENTOS
        ======================================================== */
-    function configurarPasos() {
+    function configurarMomentos() {
+        document.querySelectorAll('#lista-momentos .momento').forEach(li => {
+            li.addEventListener('click', () => {
+                const momentoId = li.dataset.momento;
+                mostrarMomento(momentoId);
+            });
+        });
+    }
+
+    /* ========================================================
+       MOSTRAR MOMENTO
+       ======================================================== */
+    function mostrarMomento(momentoId, guardar = true) {
+        if (!MOMENTOS.includes(momentoId)) return;
+
+        momentoActual = momentoId;
+
+        // Ocultar todos los momentos
+        document.querySelectorAll('.momento-contenido').forEach(m => m.classList.remove('activo'));
+
+        // Mostrar el momento correspondiente
+        const momentoEl = document.getElementById(momentoId);
+        if (momentoEl) {
+            momentoEl.classList.add('activo');
+        }
+
+        // Actualizar pestañas
+        document.querySelectorAll('#lista-momentos .momento').forEach(li => {
+            li.classList.toggle('activo', li.dataset.momento === momentoId);
+        });
+
+        // Actualizar barra de progreso global
+        actualizarProgresoGlobal();
+
+        // Guardar momento actual
+        if (guardar) {
+            ESTADO.setMomentoActual(momentoId);
+        }
+
+        // Inicializar el momento si es necesario
+        if (momentoId === 'momento3' && typeof MOMENTO3 !== 'undefined') {
+            MOMENTO3.init();
+        }
+
+        // Scroll al inicio
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* ========================================================
+       ACTUALIZAR PROGRESO GLOBAL
+       ======================================================== */
+    function actualizarProgresoGlobal() {
+        const momentosCompletados = calcularMomentosCompletados();
+        const porcentaje = (momentosCompletados / MOMENTOS.length) * 100;
+
+        const relleno = document.getElementById('barra-progreso-relleno');
+        if (relleno) {
+            relleno.style.width = `${porcentaje}%`;
+        }
+    }
+
+    /* ========================================================
+       CALCULAR MOMENTOS COMPLETADOS
+       ======================================================== */
+    function calcularMomentosCompletados() {
+        let completados = 0;
+
+        // Momento 0: Preparación (placeholder, siempre cuenta como 0)
+        // Momento 1: Encuadre (placeholder, siempre cuenta como 0)
+
+        // Momento 2: Termómetro Lector (7 secciones)
+        let seccionesTermometro = 0;
+        for (let i = 1; i <= 7; i++) {
+            if (ESTADO.seccionCompleta(i)) seccionesTermometro++;
+        }
+        if (seccionesTermometro >= 6) completados++; // Consideramos completo si al menos 6 de 7
+
+        // Momento 3: Hoja de Ruta Trimestral
+        if (typeof MOMENTO3 !== 'undefined') {
+            const validaciones = ESTADO.momento3Completo();
+            if (validaciones.completo) completados++;
+        }
+
+        // Momento 4: Cierre y Acuerdos (placeholder, siempre cuenta como 0)
+        // Momento 5: Evaluación y Documentación (placeholder, siempre cuenta como 0)
+
+        return completados;
+    }
+
+    /* ========================================================
+       CONFIGURAR PASOS DEL TERMÓMETRO (SUB-PESTAÑAS)
+       ======================================================== */
+    function configurarPasosTermometro() {
         document.querySelectorAll('#lista-pasos .paso').forEach(li => {
             li.addEventListener('click', () => {
                 const paso = parseInt(li.dataset.paso, 10);
-                // Solo permitir ir a pasos anteriores o al actual
-                // (no saltar hacia adelante sin validar)
-                if (paso <= pasoActual) {
-                    mostrarPaso(paso);
+                if (paso <= pasoTermometro) {
+                    mostrarPasoTermometro(paso);
                 } else {
-                    // Validar todos los pasos intermedios
                     let puedeAvanzar = true;
-                    for (let i = pasoActual; i < paso; i++) {
-                        if (!validarPaso(i)) {
+                    for (let i = pasoTermometro; i < paso; i++) {
+                        if (!validarPasoTermometro(i)) {
                             puedeAvanzar = false;
                             mostrarToast(`Completa primero el paso ${i}.`, 'info');
-                            mostrarPaso(i);
+                            mostrarPasoTermometro(i);
                             break;
                         }
                     }
                     if (puedeAvanzar) {
-                        mostrarPaso(paso);
+                        mostrarPasoTermometro(paso);
                     }
                 }
             });
@@ -148,27 +266,27 @@ const APP = (function() {
     }
 
     /* ========================================================
-       MOSTRAR PASO
+       MOSTRAR PASO DEL TERMÓMETRO
        ======================================================== */
-    function mostrarPaso(nuevoPaso, guardar = true) {
-        if (nuevoPaso < 1 || nuevoPaso > TOTAL_PASOS) return;
+    function mostrarPasoTermometro(nuevoPaso, guardar = true) {
+        if (nuevoPaso < 1 || nuevoPaso > TOTAL_PASOS_TERMOMETRO) return;
 
-        pasoActual = nuevoPaso;
+        pasoTermometro = nuevoPaso;
 
         // Ocultar todas las secciones
-        document.querySelectorAll('.seccion').forEach(s => s.classList.remove('activa'));
+        document.querySelectorAll('.seccion-termometro').forEach(s => s.classList.remove('activa'));
 
         // Mostrar la sección correspondiente
-        const seccion = document.getElementById(`seccion-${nuevoPaso}`);
+        const seccion = document.querySelector(`.seccion-termometro[data-seccion="${nuevoPaso}"]`);
         if (seccion) {
             seccion.classList.add('activa');
         }
 
-        // Actualizar barra de progreso
-        actualizarProgreso();
+        // Actualizar barra de progreso del Termómetro
+        actualizarProgresoTermometro();
 
         // Actualizar botones
-        actualizarBotones();
+        actualizarBotonesTermometro();
 
         // Guardar paso actual
         if (guardar) {
@@ -180,53 +298,43 @@ const APP = (function() {
     }
 
     /* ========================================================
-       ACTUALIZAR PROGRESO
+       ACTUALIZAR PROGRESO DEL TERMÓMETRO
        ======================================================== */
-    function actualizarProgreso() {
-        // Marcar pasos
+    function actualizarProgresoTermometro() {
         document.querySelectorAll('#lista-pasos .paso').forEach(li => {
             const paso = parseInt(li.dataset.paso, 10);
             li.classList.remove('activo', 'completado');
 
-            if (paso === pasoActual) {
+            if (paso === pasoTermometro) {
                 li.classList.add('activo');
-            } else if (paso < pasoActual) {
+            } else if (paso < pasoTermometro) {
                 li.classList.add('completado');
             } else {
-                // Verificar si está completo aunque sea futuro
                 if (ESTADO.seccionCompleta(paso)) {
                     li.classList.add('completado');
                 }
             }
         });
 
-        // Barra de relleno
-        const relleno = document.getElementById('barra-progreso-relleno');
-        if (relleno) {
-            const porcentaje = (pasoActual / TOTAL_PASOS) * 100;
-            relleno.style.width = `${porcentaje}%`;
-        }
-
-        // Indicador de paso
         const pasoActualEl = document.getElementById('paso-actual');
         const pasoTotalEl = document.getElementById('paso-total');
-        if (pasoActualEl) pasoActualEl.textContent = pasoActual;
-        if (pasoTotalEl) pasoTotalEl.textContent = TOTAL_PASOS;
+        if (pasoActualEl) pasoActualEl.textContent = pasoTermometro;
+        if (pasoTotalEl) pasoTotalEl.textContent = TOTAL_PASOS_TERMOMETRO;
     }
 
     /* ========================================================
-       ACTUALIZAR BOTONES
+       ACTUALIZAR BOTONES DEL TERMÓMETRO
        ======================================================== */
-    function actualizarBotones() {
+    function actualizarBotonesTermometro() {
         const btnVolver = document.getElementById('btn-volver');
         const btnContinuar = document.getElementById('btn-continuar');
 
         if (btnVolver) {
-            btnVolver.disabled = pasoActual === 1;
+            btnVolver.disabled = pasoTermometro === 1;
         }
 
         if (btnContinuar) {
-            if (pasoActual === TOTAL_PASOS) {
+            if (pasoTermometro === TOTAL_PASOS_TERMOMETRO) {
                 btnContinuar.innerHTML = '<i class="fas fa-check"></i> Completar diagnóstico';
             } else {
                 btnContinuar.innerHTML = 'Guardar y continuar <i class="fas fa-arrow-right"></i>';
@@ -235,20 +343,17 @@ const APP = (function() {
     }
 
     /* ========================================================
-       VALIDAR PASO ACTUAL
+       VALIDAR PASO DEL TERMÓMETRO
        ======================================================== */
-    function validarPasoActual() {
-        return validarPaso(pasoActual);
-    }
-
-    function validarPaso(numero) {
-        switch (numero) {
-            case 1: return SECCION1.validar();
-            case 2: return SECCION2.validar();
-            case 3: return SECCION3.validar(); // opcional
-            case 4: return SECCION4.validar(); // opcional
-            case 5: return SECCION5.validar();
-            case 6: return SECCION6.validar();
+    function validarPasoTermometro(numero) {
+        const paso = numero || pasoTermometro;
+        switch (paso) {
+            case 1: return typeof SECCION1 !== 'undefined' ? SECCION1.validar() : true;
+            case 2: return typeof SECCION2 !== 'undefined' ? SECCION2.validar() : true;
+            case 3: return typeof SECCION3 !== 'undefined' ? SECCION3.validar() : true;
+            case 4: return typeof SECCION4 !== 'undefined' ? SECCION4.validar() : true;
+            case 5: return typeof SECCION5 !== 'undefined' ? SECCION5.validar() : true;
+            case 6: return typeof SECCION6 !== 'undefined' ? SECCION6.validar() : true;
             case 7: return true; // Acta siempre válida
             default: return true;
         }
@@ -278,17 +383,21 @@ const APP = (function() {
                 break;
 
             case 'reiniciado':
-                mostrarToast('Diagnóstico reiniciado.', 'info');
+                mostrarToast('Plan Lector reiniciado.', 'info');
                 break;
 
             case 'completado':
                 mostrarToast('¡Diagnóstico completado! 🎉', 'exito');
                 break;
+
+            case 'momento3SeleccionConfirmada':
+                mostrarToast('Selección de rutas confirmada.', 'exito');
+                break;
         }
     }
 
     /* ========================================================
-       TOASTS (notificaciones)
+       TOASTS
        ======================================================== */
     function mostrarToast(mensaje, tipo = 'info', duracion = 3500) {
         const container = document.getElementById('toast-container');
@@ -332,9 +441,13 @@ const APP = (function() {
         if (!modal || !tituloEl || !mensajeEl) return;
 
         tituloEl.textContent = titulo;
-        mensajeEl.textContent = mensaje;
+        if (typeof mensaje === 'string') {
+            mensajeEl.textContent = mensaje;
+        } else {
+            mensajeEl.innerHTML = '';
+            mensajeEl.appendChild(mensaje);
+        }
 
-        // Limpiar listeners previos clonando
         const nuevoAceptar = btnAceptar.cloneNode(true);
         const nuevoCancelar = btnCancelar.cloneNode(true);
         btnAceptar.replaceWith(nuevoAceptar);
@@ -353,7 +466,6 @@ const APP = (function() {
             }
         });
 
-        // Cerrar con ESC
         const cerrarConEsc = (e) => {
             if (e.key === 'Escape') {
                 modal.style.display = 'none';
@@ -374,47 +486,57 @@ const APP = (function() {
                 ESTADO.guardarBorradorManual();
                 mostrarToast('Borrador guardado.', 'exito');
             }
-
-            // Ctrl/Cmd + → → Siguiente paso
-            if ((e.ctrlKey || e.metaKey) && e.key === 'ArrowRight') {
-                e.preventDefault();
-                if (validarPasoActual() && pasoActual < TOTAL_PASOS) {
-                    mostrarPaso(pasoActual + 1);
-                }
-            }
-
-            // Ctrl/Cmd + ← → Paso anterior
-            if ((e.ctrlKey || e.metaKey) && e.key === 'ArrowLeft') {
-                e.preventDefault();
-                if (pasoActual > 1) {
-                    mostrarPaso(pasoActual - 1);
-                }
-            }
         });
     }
-
-    /* ========================================================
-       INICIALIZACIÓN AUTOMÁTICA
-       ======================================================== */
-    document.addEventListener('DOMContentLoaded', () => {
-        init();
-        configurarAtajos();
-
-        // Mostrar toast de bienvenida
-        setTimeout(() => {
-            mostrarToast('¡Bienvenida al Termómetro Lector! 🧡', 'info', 4000);
-        }, 800);
-    });
 
     /* ========================================================
        API PÚBLICA
        ======================================================== */
     return {
         init,
-        mostrarPaso,
+        mostrarMomento,
+        mostrarPasoTermometro,
         mostrarToast,
-        validarPaso,
-        getPasoActual: () => pasoActual
+        mostrarModalConfirmacion,
+        validarPasoTermometro,
+        getMomentoActual: () => momentoActual,
+        getPasoTermometro: () => pasoTermometro
     };
 
 })();
+
+// ============================================================
+// INICIALIZACIÓN AUTOMÁTICA
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+    APP.init();
+    configurarAtajosAPP();
+
+    setTimeout(() => {
+        APP.mostrarToast('¡Bienvenida al Plan Lector Jalisco LEO! 🧡', 'info', 4000);
+    }, 800);
+});
+
+// ============================================================
+// ATAJOS GLOBALES (fuera del módulo para evitar conflictos)
+// ============================================================
+function configurarAtajosAPP() {
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'ArrowRight') {
+            e.preventDefault();
+            if (APP.getMomentoActual() === 'momento2') {
+                if (APP.validarPasoTermometro() && APP.getPasoTermometro() < 7) {
+                    APP.mostrarPasoTermometro(APP.getPasoTermometro() + 1);
+                }
+            }
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key === 'ArrowLeft') {
+            e.preventDefault();
+            if (APP.getMomentoActual() === 'momento2') {
+                if (APP.getPasoTermometro() > 1) {
+                    APP.mostrarPasoTermometro(APP.getPasoTermometro() - 1);
+                }
+            }
+        }
+    });
+}
