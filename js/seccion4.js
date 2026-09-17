@@ -119,7 +119,6 @@ const SECCION4 = (function() {
             verde: '#2E9E5B',
             amarillo: '#E8B93B',
             rojo: '#D93B3B',
-            gris: '#D9D5D0'
         };
 
         return `
@@ -142,7 +141,7 @@ const SECCION4 = (function() {
                                     <td>
                                         <div class="selector-semaforo" data-dimension="${d.id}"
                                              style="display:inline-flex; gap:0.5rem; align-items:center;">
-                                            ${['verde', 'amarillo', 'rojo', 'gris'].map(c => `
+                                            ${['verde', 'amarillo', 'rojo'].map(c => `
                                                 <label class="semaforo-opcion ${color === c ? 'seleccionada' : ''}"
                                                        style="
                                                            display:inline-flex;
