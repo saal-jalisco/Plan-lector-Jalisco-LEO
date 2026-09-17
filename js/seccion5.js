@@ -89,7 +89,6 @@ const SECCION5 = (function() {
                     <span class="semaforo"><span class="semaforo-punto verde"></span> <span>Fortaleza</span></span> ·
                     <span class="semaforo"><span class="semaforo-punto amarillo"></span> <span>En progreso</span></span> ·
                     <span class="semaforo"><span class="semaforo-punto rojo"></span> <span>Atención prioritaria</span></span> ·
-                    <span class="semaforo"><span class="semaforo-punto gris"></span> <span>Sin dato</span></span>
                 </div>
 
                 <!-- ===== LECTURA AUTOMÁTICA ===== -->
@@ -160,7 +159,6 @@ const SECCION5 = (function() {
             verde: 'Fortaleza',
             amarillo: 'En progreso',
             rojo: 'Atención',
-            gris: 'Sin dato'
         };
 
         // Colores inline (para asegurar que se vean)
@@ -168,7 +166,6 @@ const SECCION5 = (function() {
             verde: '#2E9E5B',
             amarillo: '#E8B93B',
             rojo: '#D93B3B',
-            gris: '#D9D5D0'
         };
 
         return `
@@ -193,7 +190,7 @@ const SECCION5 = (function() {
                 </td>
                 <td>
                     <div class="selector-semaforo" style="display:inline-flex; gap:0.5rem; align-items:center;">
-                        ${['verde', 'amarillo', 'rojo', 'gris'].map(c => `
+                        ${['verde', 'amarillo', 'rojo'].map(c => `
                             <label class="semaforo-opcion ${colorActual === c ? 'seleccionada' : ''}"
                                    style="
                                        display:inline-flex;
