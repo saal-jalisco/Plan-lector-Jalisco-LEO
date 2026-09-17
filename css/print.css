@@ -1,0 +1,430 @@
+/* ============================================================
+   TERMÓMETRO LECTOR · JALISCO LEO
+   print.css — Estilos para impresión y exportación a PDF
+   ============================================================ */
+
+@media print {
+
+    /* ===== RESET PARA IMPRESIÓN ===== */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+
+    body {
+        background: var(--blanco) !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-size: 11pt;
+    }
+
+    /* ===== OCULTAR ELEMENTOS DE INTERFAZ ===== */
+    .app-header,
+    .app-footer,
+    .progreso-wizard,
+    #lista-pasos,
+    .barra-progreso,
+    .header-acciones,
+    .navegacion,
+    .toast-container,
+    .modal-overlay,
+    .btn,
+    .no-print,
+    .cargando {
+        display: none !important;
+    }
+
+    /* ===== CONTENEDOR PRINCIPAL ===== */
+    .app-container {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        min-height: auto !important;
+    }
+
+    .app-main {
+        padding: 0 !important;
+    }
+
+    /* ===== SOLO MOSTRAR EL ACTA ===== */
+    .seccion {
+        display: none !important;
+    }
+
+    #seccion-7 {
+        display: block !important;
+        padding: 0 !important;
+    }
+
+    /* ===== ENCABEZADO DEL ACTA (visible en impresión) ===== */
+    .acta-header {
+        display: block !important;
+        text-align: center;
+        padding: 1.5rem 0 1rem;
+        border-bottom: 3px solid var(--carmesi);
+        margin-bottom: 1.5rem;
+    }
+
+    .acta-header .acta-logo {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--naranja);
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        margin-bottom: 0.5rem;
+    }
+
+    .acta-header h1 {
+        color: var(--carmesi);
+        font-size: 1.6rem;
+        font-weight: 800;
+        margin-bottom: 0.3rem;
+    }
+
+    .acta-header .acta-subtitulo {
+        color: var(--gris-oscuro);
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+
+    /* ===== SECCIONES DEL ACTA ===== */
+    .acta-seccion {
+        margin-bottom: 1.5rem;
+        page-break-inside: avoid;
+    }
+
+    .acta-seccion h2 {
+        color: var(--carmesi);
+        font-size: 1.1rem;
+        font-weight: 800;
+        padding-bottom: 0.3rem;
+        border-bottom: 2px solid var(--naranja);
+        margin-bottom: 0.75rem;
+        page-break-after: avoid;
+    }
+
+    .acta-seccion h3 {
+        color: var(--carmesi);
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin: 1rem 0 0.5rem;
+        page-break-after: avoid;
+    }
+
+    .acta-seccion p {
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin-bottom: 0.6rem;
+    }
+
+    /* ===== TABLAS EN IMPRESIÓN ===== */
+    .tabla-wrapper {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        page-break-inside: avoid;
+        margin: 0.75rem 0;
+    }
+
+    table {
+        font-size: 0.8rem;
+        border: 1px solid var(--gris-claro);
+    }
+
+    thead {
+        background: var(--carmesi) !important;
+        color: var(--blanco) !important;
+    }
+
+    thead th {
+        padding: 0.5rem 0.6rem;
+        font-size: 0.78rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    tbody td {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.78rem;
+        border: 1px solid var(--gris-claro);
+    }
+
+    tbody tr:nth-child(even) {
+        background: var(--fila-alterna) !important;
+    }
+
+    /* ===== TARJETAS EN IMPRESIÓN ===== */
+    .tarjeta {
+        box-shadow: none !important;
+        border: 1px solid var(--gris-claro);
+        border-left: 3px solid var(--naranja) !important;
+        padding: 0.75rem 1rem;
+        margin: 0.5rem 0;
+        page-break-inside: avoid;
+    }
+
+    .tarjeta:hover {
+        transform: none !important;
+    }
+
+    /* ===== CAJAS EN IMPRESIÓN ===== */
+    .caja-destacada,
+    .caja-info,
+    .caja-alerta,
+    .caja-exito {
+        padding: 0.75rem 1rem;
+        margin: 0.6rem 0;
+        page-break-inside: avoid;
+        border-radius: 0;
+    }
+
+    /* ===== SEMÁFORO EN IMPRESIÓN ===== */
+    .semaforo-punto {
+        box-shadow: none !important;
+        border: 1px solid rgba(0, 0, 0, 0.15);
+    }
+
+    /* ===== CHIPS EN IMPRESIÓN ===== */
+    .chip {
+        font-size: 0.7rem;
+        padding: 0.15rem 0.6rem;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    /* ===== RESUMEN EJECUTIVO (primera página) ===== */
+    .acta-resumen-ejecutivo {
+        page-break-after: always;
+        background: var(--crema) !important;
+        padding: 1.5rem;
+        border-radius: 0;
+        border: 2px solid var(--carmesi);
+    }
+
+    .acta-resumen-ejecutivo h2 {
+        color: var(--carmesi);
+        font-size: 1.2rem;
+        margin-bottom: 0.75rem;
+        border-bottom: 2px solid var(--naranja);
+        padding-bottom: 0.3rem;
+    }
+
+    /* ===== FIRMAS ===== */
+    .acta-firmas {
+        margin-top: 2rem;
+        page-break-inside: avoid;
+    }
+
+    .firma-linea {
+        border-top: 1px solid var(--gris-oscuro);
+        margin-top: 3rem;
+        padding-top: 0.3rem;
+        text-align: center;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .firmas-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem;
+        margin-top: 1.5rem;
+    }
+
+    /* ===== PIE DE PÁGINA ===== */
+    .acta-footer {
+        display: block !important;
+        text-align: center;
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--gris-claro);
+        font-size: 0.75rem;
+        color: var(--gris-medio);
+        font-weight: 500;
+    }
+
+    /* ===== CONTROL DE SALTOS DE PÁGINA ===== */
+    h1, h2, h3, h4 {
+        page-break-after: avoid;
+    }
+
+    p, li {
+        orphans: 3;
+        widows: 3;
+    }
+
+    .acta-seccion {
+        page-break-inside: avoid;
+    }
+
+    /* ===== MÁRGENES DE PÁGINA ===== */
+    @page {
+        size: letter;
+        margin: 1.5cm 1.8cm;
+    }
+
+    @page :first {
+        margin-top: 1cm;
+    }
+
+    /* ===== EVITAR QUE LAS TABLAS SE CORTEN ===== */
+    tr {
+        page-break-inside: avoid;
+    }
+
+    /* ===== OCULTAR ELEMENTOS VACÍOS ===== */
+    .acta-seccion:empty {
+        display: none !important;
+    }
+
+    /* ===== LINKS ===== */
+    a {
+        text-decoration: none;
+        color: var(--gris-oscuro);
+    }
+
+    /* ===== PÁGINA DE FIRMAS ===== */
+    .acta-firmas {
+        page-break-before: auto;
+    }
+
+    /* ===== MODO HORIZONTAL PARA TABLAS GRANDES (opcional) ===== */
+    .tabla-grande {
+        page-break-inside: avoid;
+    }
+}
+
+/* ============================================================
+   ESTILOS DE PANTALLA PARA EL ACTA (previsualización)
+   ============================================================ */
+@media screen {
+
+    .acta-header {
+        text-align: center;
+        padding: 2rem 0 1.5rem;
+        border-bottom: 3px solid var(--carmesi);
+        margin-bottom: 2rem;
+    }
+
+    .acta-header .acta-logo {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--naranja);
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        margin-bottom: 0.5rem;
+    }
+
+    .acta-header h1 {
+        color: var(--carmesi);
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin-bottom: 0.3rem;
+    }
+
+    .acta-header .acta-subtitulo {
+        color: var(--gris-oscuro);
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    .acta-seccion {
+        margin-bottom: 2rem;
+    }
+
+    .acta-seccion h2 {
+        color: var(--carmesi);
+        font-size: 1.3rem;
+        font-weight: 800;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--naranja);
+        margin-bottom: 1rem;
+    }
+
+    .acta-seccion h3 {
+        color: var(--carmesi);
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin: 1.25rem 0 0.6rem;
+    }
+
+    .acta-resumen-ejecutivo {
+        background: var(--crema);
+        padding: 1.5rem;
+        border-radius: var(--radio-lg);
+        border: 2px solid var(--carmesi);
+        margin-bottom: 2rem;
+    }
+
+    .acta-resumen-ejecutivo h2 {
+        color: var(--carmesi);
+        font-size: 1.3rem;
+        margin-bottom: 0.75rem;
+        border-bottom: 2px solid var(--naranja);
+        padding-bottom: 0.4rem;
+    }
+
+    .acta-firmas {
+        margin-top: 2rem;
+    }
+
+    .firmas-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem;
+        margin-top: 1.5rem;
+    }
+
+    .firma-linea {
+        border-top: 1px solid var(--gris-oscuro);
+        margin-top: 3rem;
+        padding-top: 0.3rem;
+        text-align: center;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .acta-footer {
+        text-align: center;
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--gris-claro);
+        font-size: 0.8rem;
+        color: var(--gris-medio);
+        font-weight: 500;
+    }
+
+    /* ===== BOTONES DE EXPORTACIÓN (solo en pantalla) ===== */
+    .acta-acciones {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin: 2rem 0;
+        flex-wrap: wrap;
+    }
+
+    .acta-acciones .btn {
+        min-width: 180px;
+    }
+}
+
+/* ============================================================
+   RESPONSIVE PARA PANTALLA
+   ============================================================ */
+@media screen and (max-width: 768px) {
+    .firmas-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .acta-header h1 {
+        font-size: 1.4rem;
+    }
+
+    .acta-acciones {
+        flex-direction: column;
+    }
+
+    .acta-acciones .btn {
+        width: 100%;
+    }
+}
