@@ -107,12 +107,20 @@ const SECCION4 = (function() {
         }).join('');
     }
 
-    /* ========================================================
+       /* ========================================================
        RENDERIZAR SÍNTESIS
        ======================================================== */
     function renderizarSintesis(v) {
         const sintesis = v.sintesis || {};
         const dimensionesVoces = DATOS.dimensiones.filter(d => d.grupo === 'Voces');
+
+        // Colores inline
+        const coloresInline = {
+            verde: '#2E9E5B',
+            amarillo: '#E8B93B',
+            rojo: '#D93B3B',
+            gris: '#D9D5D0'
+        };
 
         return `
             <div class="tabla-wrapper">
@@ -132,12 +140,32 @@ const SECCION4 = (function() {
                                     <td><strong>${d.nombre}</strong></td>
                                     <td><span class="chip">${d.fuente}</span></td>
                                     <td>
-                                        <div class="selector-semaforo" data-dimension="${d.id}">
+                                        <div class="selector-semaforo" data-dimension="${d.id}"
+                                             style="display:inline-flex; gap:0.5rem; align-items:center;">
                                             ${['verde', 'amarillo', 'rojo', 'gris'].map(c => `
-                                                <label class="semaforo-opcion ${color === c ? 'seleccionada' : ''}">
+                                                <label class="semaforo-opcion ${color === c ? 'seleccionada' : ''}"
+                                                       style="
+                                                           display:inline-flex;
+                                                           align-items:center;
+                                                           justify-content:center;
+                                                           cursor:pointer;
+                                                           padding:0.3rem;
+                                                           border-radius:50%;
+                                                           border:2px solid ${color === c ? '#4A4A4A' : 'transparent'};
+                                                           background:${color === c ? 'rgba(0,0,0,0.05)' : 'transparent'};
+                                                       ">
                                                     <input type="radio" name="sintesis-${d.id}" value="${c}"
-                                                           ${color === c ? 'checked' : ''}>
-                                                    <span class="semaforo-punto ${c}"></span>
+                                                           ${color === c ? 'checked' : ''}
+                                                           style="display:none;">
+                                                    <span style="
+                                                        display:inline-block;
+                                                        width:22px;
+                                                        height:22px;
+                                                        border-radius:50%;
+                                                        background:${coloresInline[c]};
+                                                        border:2px solid rgba(0,0,0,0.08);
+                                                        ${color === c ? 'transform:scale(1.15); box-shadow:0 0 0 3px rgba(0,0,0,0.1);' : ''}
+                                                    "></span>
                                                 </label>
                                             `).join('')}
                                         </div>
