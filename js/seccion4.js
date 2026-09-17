@@ -60,7 +60,6 @@ const SECCION4 = (function() {
                     <h3><i class="fas fa-layer-group"></i> Síntesis del ecosistema</h3>
                     <p class="ayuda">
                         Semáforo por dimensión. Puedes ajustarlo manualmente.
-                        Mismos colores que Jalisco Avanza y SAAL.
                     </p>
                     ${renderizarSintesis(v)}
                 </div>
