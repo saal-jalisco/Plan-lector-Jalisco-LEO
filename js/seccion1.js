@@ -1,5 +1,5 @@
 /* ============================================================
-   TERMÓMETRO LECTOR · JALISCO LEO
+   PLAN LECTOR JALISCO LEO
    seccion1.js — Sección 1: Identificación
    ============================================================ */
 
@@ -92,8 +92,10 @@ const SECCION1 = (function() {
                             <label for="nivel">Nivel educativo <span class="obligatorio">*</span></label>
                             <select id="nivel" data-campo="nivel">
                                 <option value="">— Selecciona —</option>
-                                ${DATOS.identificacion.niveles.map(n => `
-                                    <option value="${n}" ${id.nivel === n ? 'selected' : ''}>${n}</option>
+                                ${DATOS.niveles.map(n => `
+                                    <option value="${n.id}" ${id.nivel === n.id ? 'selected' : ''}>
+                                        ${n.nombre} (${n.rango})
+                                    </option>
                                 `).join('')}
                             </select>
                             <span class="error" id="error-nivel"></span>
@@ -192,23 +194,19 @@ const SECCION1 = (function() {
     /* ========================================================
        RENDERIZAR GRADOS SEGÚN NIVEL
        ======================================================== */
-    function renderizarGrados(nivel, gradosSeleccionados = []) {
+    function renderizarGrados(nivelId, gradosSeleccionados = []) {
         const container = document.getElementById('grados-container');
         if (!container) return;
 
-        let grados = [];
-        if (nivel === 'Primaria') {
-            grados = DATOS.identificacion.gradosPrimaria;
-        } else if (nivel === 'Secundaria') {
-            grados = DATOS.identificacion.gradosSecundaria;
-        }
+        // Buscar el nivel en DATOS.niveles
+        const nivel = DATOS.niveles.find(n => n.id === nivelId);
 
-        if (grados.length === 0) {
+        if (!nivel) {
             container.innerHTML = `<p class="ayuda">Selecciona primero el nivel educativo.</p>`;
             return;
         }
 
-        container.innerHTML = grados.map(g => `
+        container.innerHTML = nivel.grados.map(g => `
             <label class="opcion ${gradosSeleccionados.includes(g) ? 'seleccionada' : ''}">
                 <input type="checkbox" name="grados" value="${g}"
                        ${gradosSeleccionados.includes(g) ? 'checked' : ''}>
