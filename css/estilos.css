@@ -8,14 +8,16 @@
     /* Paleta LEO */
     --carmesi: #E50746;
     --carmesi-oscuro: #C0063A;
-    --naranja: #F08013;
-    --naranja-claro: #F9A94D;
+    --naranja: #F08013;          /* ← ANTES */
+    --naranja-claro: #F9A94D;    /* ← ANTES */
     --gris-medio: #A19C95;
     --gris-oscuro: #4A4A4A;
     --gris-claro: #D9D5D0;
     --crema: #F5F0E6;
     --blanco: #FFFFFF;
     --fila-alterna: #FDF8F5;
+    /* ... */
+}
 
     /* Semáforo */
     --verde: #2E9E5B;
