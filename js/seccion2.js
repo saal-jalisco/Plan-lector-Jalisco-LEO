@@ -51,7 +51,7 @@ const SECCION2 = (function() {
                            target="_blank" rel="noopener">
                             Apprende Jalisco <i class="fas fa-external-link-alt"></i>
                         </a>
-                        e ingresa los datos por grado.
+                        e ingresa la <strong>cantidad de alumnos</strong> en cada nivel.
                     </p>
 
                     <div id="lista-grados-escuela">
@@ -149,7 +149,7 @@ const SECCION2 = (function() {
     }
 
     /* ========================================================
-       GRADOS DE LA ESCUELA
+       GRADOS DE LA ESCUELA (con cantidades)
        ======================================================== */
     function renderizarGradosEscuela(nivel, grados, datosEscuela) {
         if (!nivel || grados.length === 0) {
@@ -184,32 +184,33 @@ const SECCION2 = (function() {
                                value="${d.grupo || ''}" placeholder="Ej. A" maxlength="2"
                                style="text-transform: uppercase;">
                     </div>
+                    <div class="form-grupo">
+                        <label>Total de evaluados</label>
+                        <input type="number" class="input-total" data-index="${i}" data-campo="total"
+                               value="${d.total || ''}" min="0" placeholder="Ej. 30">
+                    </div>
                 </div>
 
                 <div class="form-fila">
                     <div class="form-grupo">
-                        <label>Media global Lectura (%)</label>
-                        <input type="number" class="input-media" data-index="${i}" data-campo="media"
-                               value="${d.media || ''}" min="0" max="100" step="0.1">
-                    </div>
-                    <div class="form-grupo">
-                        <label>% Deseable</label>
+                        <label>🟢 Deseable (núm.)</label>
                         <input type="number" class="input-deseable" data-index="${i}" data-campo="deseable"
-                               value="${d.deseable || ''}" min="0" max="100" step="0.1">
+                               value="${d.deseable || ''}" min="0" placeholder="Ej. 12">
                     </div>
                     <div class="form-grupo">
-                        <label>% En progreso</label>
+                        <label>🟡 En progreso (núm.)</label>
                         <input type="number" class="input-progreso" data-index="${i}" data-campo="enProgreso"
-                               value="${d.enProgreso || ''}" min="0" max="100" step="0.1">
+                               value="${d.enProgreso || ''}" min="0" placeholder="Ej. 15">
                     </div>
                     <div class="form-grupo">
-                        <label>% Atención prioritaria</label>
+                        <label>🔴 Atención prioritaria (núm.)</label>
                         <input type="number" class="input-atencion" data-index="${i}" data-campo="atencionPrioritaria"
-                               value="${d.atencionPrioritaria || ''}" min="0" max="100" step="0.1">
+                               value="${d.atencionPrioritaria || ''}" min="0" placeholder="Ej. 3">
                     </div>
                 </div>
 
                 <div class="validacion-suma" id="validacion-${i}"></div>
+                <div class="resumen-porcentajes" id="resumen-${i}"></div>
             </div>
         `).join('');
     }
@@ -240,11 +241,13 @@ const SECCION2 = (function() {
                         ${datosEscuela.map(d => {
                             const key = (d.grado || '').charAt(0);
                             const estatal = fuente[key];
-                            if (!estatal || !d.media) {
+                            const mediaEscuela = calcularMediaEscuela(d);
+
+                            if (!estatal || mediaEscuela === null) {
                                 return `
                                     <tr>
                                         <td><strong>${d.grado}${d.grupo ? ' · ' + d.grupo : ''}</strong></td>
-                                        <td>${d.media ? d.media + '%' : '—'}</td>
+                                        <td>${mediaEscuela !== null ? mediaEscuela.toFixed(1) + '%' : '—'}</td>
                                         <td>${estatal ? estatal.media + '%' : '—'}</td>
                                         <td>—</td>
                                         <td>—</td>
@@ -252,12 +255,12 @@ const SECCION2 = (function() {
                                 `;
                             }
 
-                            const brecha = (parseFloat(d.media) - estatal.media).toFixed(1);
+                            const brecha = (mediaEscuela - estatal.media).toFixed(1);
                             const semaforo = calcularSemaforoBrecha(brecha);
                             return `
                                 <tr>
                                     <td><strong>${d.grado}${d.grupo ? ' · ' + d.grupo : ''}</strong></td>
-                                    <td>${d.media}%</td>
+                                    <td>${mediaEscuela.toFixed(1)}%</td>
                                     <td>${estatal.media}%</td>
                                     <td><strong>${brecha > 0 ? '+' : ''}${brecha}</strong></td>
                                     <td>${renderizarSemaforo(semaforo)}</td>
@@ -275,6 +278,22 @@ const SECCION2 = (function() {
                 🔴 Brecha &lt; -3 pts (por debajo del estatal)
             </div>
         `;
+    }
+
+    /* ========================================================
+       CALCULAR MEDIA DE LA ESCUELA
+       ======================================================== */
+    function calcularMediaEscuela(d) {
+        const total = parseFloat(d.total) || 0;
+        if (total === 0) return null;
+        const deseable = parseFloat(d.deseable) || 0;
+        // La media se calcula como el % deseable + 50% del en progreso (aprox.)
+        // O simplemente como el % de deseable + en progreso (que son "aprobados")
+        // Usamos: (deseable + enProgreso*0.5) / total * 100
+        // Pero para ser consistentes con Jalisco Avanza, usamos:
+        // media = (deseable + enProgreso) / total * 100
+        const aprobados = deseable + (parseFloat(d.enProgreso) || 0);
+        return (aprobados / total) * 100;
     }
 
     function calcularSemaforoBrecha(brecha) {
@@ -325,6 +344,9 @@ const SECCION2 = (function() {
                 ESTADO.actualizarCampo('lineaBase', 'observaciones', e.target.value);
             });
         }
+
+        // Revalidar y recalcular al final
+        revalidarTodos();
     }
 
     /* ========================================================
@@ -343,7 +365,7 @@ const SECCION2 = (function() {
         const nuevo = {
             grado: grados[0],
             grupo: '',
-            media: '',
+            total: '',
             deseable: '',
             enProgreso: '',
             atencionPrioritaria: ''
@@ -370,8 +392,8 @@ const SECCION2 = (function() {
         let valor = e.target.value;
 
         if (campo === 'grupo') valor = valor.toUpperCase();
-        if (['media', 'deseable', 'enProgreso', 'atencionPrioritaria'].includes(campo)) {
-            valor = valor === '' ? '' : parseFloat(valor);
+        if (['total', 'deseable', 'enProgreso', 'atencionPrioritaria'].includes(campo)) {
+            valor = valor === '' ? '' : parseInt(valor, 10);
         }
 
         const lb = ESTADO.obtenerSeccion('lineaBase');
@@ -381,31 +403,51 @@ const SECCION2 = (function() {
 
         validarSuma(index, nuevosDatos[index]);
         actualizarComparacion();
+        validar();
     }
 
     /* ========================================================
-       VALIDAR SUMA = 100% (±1% por redondeo)
+       VALIDAR SUMA (cantidades, no porcentajes)
        ======================================================== */
     function validarSuma(index, datos) {
         const el = document.getElementById(`validacion-${index}`);
+        const resumenEl = document.getElementById(`resumen-${index}`);
         if (!el) return;
 
-        const valores = [
-            parseFloat(datos.deseable) || 0,
-            parseFloat(datos.enProgreso) || 0,
-            parseFloat(datos.atencionPrioritaria) || 0
-        ];
-        const suma = valores.reduce((a, b) => a + b, 0);
+        const total = parseInt(datos.total) || 0;
+        const deseable = parseInt(datos.deseable) || 0;
+        const enProgreso = parseInt(datos.enProgreso) || 0;
+        const atencion = parseInt(datos.atencionPrioritaria) || 0;
 
-        if (suma === 0) {
+        const suma = deseable + enProgreso + atencion;
+
+        // Validación
+        if (total === 0 && suma === 0) {
             el.innerHTML = '';
+            if (resumenEl) resumenEl.innerHTML = '';
             return;
         }
 
-        if (Math.abs(suma - 100) <= 1) {
-            el.innerHTML = `<span class="chip verde"><i class="fas fa-check"></i> Suma: ${suma.toFixed(1)}%</span>`;
+        if (suma === total) {
+            el.innerHTML = `<span class="chip verde"><i class="fas fa-check"></i> Suma: ${suma} / ${total}</span>`;
+        } else if (suma < total) {
+            el.innerHTML = `<span class="chip amarillo"><i class="fas fa-exclamation-triangle"></i> Faltan ${total - suma} alumnos por clasificar (${suma} / ${total})</span>`;
         } else {
-            el.innerHTML = `<span class="chip rojo"><i class="fas fa-exclamation-triangle"></i> Suma: ${suma.toFixed(1)}% (debe ser 100% ±1%)</span>`;
+            el.innerHTML = `<span class="chip rojo"><i class="fas fa-exclamation-triangle"></i> Suma: ${suma} / ${total} (excede el total)</span>`;
+        }
+
+        // Mostrar porcentajes calculados
+        if (resumenEl && total > 0) {
+            const pDeseable = ((deseable / total) * 100).toFixed(1);
+            const pProgreso = ((enProgreso / total) * 100).toFixed(1);
+            const pAtencion = ((atencion / total) * 100).toFixed(1);
+            resumenEl.innerHTML = `
+                <span class="chip verde">🟢 ${pDeseable}%</span>
+                <span class="chip amarillo">🟡 ${pProgreso}%</span>
+                <span class="chip rojo">🔴 ${pAtencion}%</span>
+            `;
+        } else if (resumenEl) {
+            resumenEl.innerHTML = '';
         }
     }
 
@@ -422,34 +464,45 @@ const SECCION2 = (function() {
     }
 
     /* ========================================================
+       REVALIDAR TODOS LOS GRUPOS
+       ======================================================== */
+    function revalidarTodos() {
+        const lb = ESTADO.obtenerSeccion('lineaBase');
+        (lb.datosEscuela || []).forEach((d, i) => validarSuma(i, d));
+    }
+
+    /* ========================================================
        VALIDAR SECCIÓN COMPLETA
        ======================================================== */
     function validar() {
-    const lb = ESTADO.obtenerSeccion('lineaBase');
-    const resumen = document.getElementById('resumen-seccion2');
+        const lb = ESTADO.obtenerSeccion('lineaBase');
+        const resumen = document.getElementById('resumen-seccion2');
 
-    if (!resumen) return false;
+        if (!resumen) return false;
 
-    const tieneGrupos = lb.datosEscuela && lb.datosEscuela.length > 0;
-    // Al menos UN grupo completo (no todos)
-    const alMenosUnGrupoValido = tieneGrupos && lb.datosEscuela.some(d =>
-        d.media && d.deseable && d.enProgreso && d.atencionPrioritaria
-    );
+        const tieneGrupos = lb.datosEscuela && lb.datosEscuela.length > 0;
+        // Al menos UN grupo con total y suma correcta
+        const alMenosUnGrupoValido = tieneGrupos && lb.datosEscuela.some(d => {
+            const total = parseInt(d.total) || 0;
+            const suma = (parseInt(d.deseable) || 0) + (parseInt(d.enProgreso) || 0) + (parseInt(d.atencionPrioritaria) || 0);
+            return total > 0 && suma === total;
+        });
 
-    if (alMenosUnGrupoValido) {
-        resumen.className = 'caja-exito';
-        resumen.innerHTML = '<i class="fas fa-check-circle"></i> Sección completa. Puedes continuar.';
-    } else if (tieneGrupos) {
-        resumen.className = 'caja-info';
-        resumen.innerHTML = '<i class="fas fa-info-circle"></i> Completa al menos un grupo con todos sus campos.';
-    } else {
-        resumen.className = 'caja-info';
-        resumen.innerHTML = '<i class="fas fa-info-circle"></i> Agrega al menos un grupo para continuar.';
+        if (alMenosUnGrupoValido) {
+            resumen.className = 'caja-exito';
+            resumen.innerHTML = '<i class="fas fa-check-circle"></i> Sección completa. Puedes continuar.';
+        } else if (tieneGrupos) {
+            resumen.className = 'caja-info';
+            resumen.innerHTML = '<i class="fas fa-info-circle"></i> Completa al menos un grupo con todos sus campos.';
+        } else {
+            resumen.className = 'caja-info';
+            resumen.innerHTML = '<i class="fas fa-info-circle"></i> Agrega al menos un grupo para continuar.';
+        }
+
+        ESTADO.notificar('seccion2Validada', { completa: alMenosUnGrupoValido });
+        return alMenosUnGrupoValido;
     }
 
-    ESTADO.notificar('seccion2Validada', { completa: alMenosUnGrupoValido });
-    return alMenosUnGrupoValido;
-}
     /* ========================================================
        SUSCRIBIR CAMBIOS EXTERNOS
        ======================================================== */
