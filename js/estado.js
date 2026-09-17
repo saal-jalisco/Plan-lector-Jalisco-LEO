@@ -1,15 +1,15 @@
 /* ============================================================
-   TERMÓMETRO LECTOR · JALISCO LEO
+   PLAN LECTOR JALISCO LEO
    estado.js — Gestión de estado + localStorage
    ============================================================ */
 
 const ESTADO = (function() {
 
     /* ========================================================
-       CLAVE DE ALMACENAMIENTO
+       CLAVES DE ALMACENAMIENTO
        ======================================================== */
-    const CLAVE_LOCALSTORAGE = 'termometro_lector_estado_v1';
-    const CLAVE_BORRADOR_MANUAL = 'termometro_lector_borrador_v1';
+    const CLAVE_LOCALSTORAGE = 'plan_lector_jalisco_leo_estado_v4';
+    const CLAVE_BORRADOR_MANUAL = 'plan_lector_jalisco_leo_borrador_v4';
 
     /* ========================================================
        ESTADO INICIAL
@@ -18,10 +18,11 @@ const ESTADO = (function() {
         return {
             // Metadatos
             meta: {
-                version: '1.0',
+                version: '4.0',
                 fechaCreacion: new Date().toISOString(),
                 fechaUltimaModificacion: new Date().toISOString(),
                 pasoActual: 1,
+                momentoActual: 'momento2',
                 completado: false
             },
 
@@ -32,7 +33,7 @@ const ESTADO = (function() {
                 cct: '',
                 nombreEscuela: '',
                 turno: '',
-                nivel: '',
+                nivel: '',        // Ahora es el ID del nivel (ej. 'primaria-alta')
                 grados: [],
                 numeroEstudiantes: '',
                 director: '',
@@ -43,31 +44,31 @@ const ESTADO = (function() {
 
             // Sección 2: Línea Base
             lineaBase: {
-                datosEscuela: [], // [{grado, grupo, media, deseable, enProgreso, atencionPrioritaria}]
+                datosEscuela: [],
                 observaciones: ''
             },
 
             // Sección 3: SAAL
             saal: {
-                tieneSAAL: '', // 'si' | 'no' | 'otros'
+                tieneSAAL: '',
                 otrosDiagnosticos: '',
-                resumenGrados: [], // [{grado, grupo, evaluados, deseable, enProgreso, atencionPrioritaria}]
-                componentesDebiles: {}, // {fluidez: 30, comprension: 45, ...}
+                resumenGrados: [],
+                componentesDebiles: {},
                 observaciones: ''
             },
 
             // Sección 4: Voces del Ecosistema
             voces: {
-                estudiantes: {}, // {p1: 'Mucho', p2: 'Semanal', ...}
+                estudiantes: {},
                 familias: {},
                 docentes: {},
-                sintesis: {} // {dimension: 'verde'|'amarillo'|'rojo'}
+                sintesis: {}
             },
 
             // Sección 5: Termómetro Visual
             termometro: {
-                dimensiones: {}, // {comprension: 'verde', fluidez: 'amarillo', ...}
-                ajustes: {}, // {comprension: {valor: 'amarillo', justificacion: '...'}}
+                dimensiones: {},
+                ajustes: {},
                 lecturaAutomatica: {
                     fortalezas: [],
                     enProgreso: [],
@@ -78,8 +79,8 @@ const ESTADO = (function() {
 
             // Sección 6: Rutas Sugeridas
             rutas: {
-                sugeridas: [], // [{rutaId, prioridad, dimensionesGatillo}]
-                seleccionadas: [], // [{rutaId, orden}]
+                sugeridas: [],
+                seleccionadas: [],
                 notas: ''
             },
 
@@ -94,6 +95,77 @@ const ESTADO = (function() {
                     docentes: []
                 },
                 resumenEjecutivo: ''
+            },
+
+            // ========================================================
+            // MOMENTO 3: HOJA DE RUTA TRIMESTRAL (el corazón)
+            // ========================================================
+            momento3: {
+                // 3.1 Selección de Rutas (se sincroniza con rutas.seleccionadas)
+                seleccionRutas: {
+                    rutas: [],           // [{rutaId, orden}]
+                    notas: '',
+                    confirmada: false,
+                    fechaConfirmacion: ''
+                },
+
+                // 3.2 Calendarización
+                calendarizacion: {
+                    trimestre: 'primer',
+                    anio: new Date().getFullYear(),
+                    actividades: [],     // [{id, rutaId, nombre, mes, semana, tipo, estado, notas}]
+                    notas: ''
+                },
+
+                // 3.3 Responsables
+                responsables: {
+                    asignaciones: [],    // [{actividadId, rol, nombre, correo}]
+                    notas: ''
+                },
+
+                // 3.4 Bitácora de Actividades
+                bitacora: {
+                    registros: [],       // [{actividadId, fecha, estado, observaciones, evidencias, participantes}]
+                    notas: ''
+                },
+
+                // 3.5 Productos generados
+                productos: {
+                    hojaRutaGenerada: false,
+                    fichasRutasGeneradas: false,
+                    cartaFamiliasGenerada: false,
+                    bitacoraGenerada: false
+                }
+            },
+
+            // ========================================================
+            // MOMENTO 4: CIERRE Y ACUERDOS
+            // ========================================================
+            momento4: {
+                compromisos: [],
+                proximosPasos: '',
+                fechaCompromiso: '',
+                firmas: {
+                    director: '',
+                    atp: '',
+                    docentes: []
+                }
+            },
+
+            // ========================================================
+            // MOMENTO 5: EVALUACIÓN Y DOCUMENTACIÓN
+            // ========================================================
+            momento5: {
+                evaluacion: {
+                    logros: '',
+                    dificultades: '',
+                    aprendizajes: '',
+                    recomendaciones: ''
+                },
+                documentacion: {
+                    evidencias: [],
+                    notas: ''
+                }
             }
         };
     }
@@ -104,7 +176,7 @@ const ESTADO = (function() {
     let estado = estadoInicial();
 
     /* ========================================================
-       LISTENERS (para notificar cambios)
+       LISTENERS
        ======================================================== */
     const listeners = [];
 
@@ -127,15 +199,15 @@ const ESTADO = (function() {
     }
 
     /* ========================================================
-       GUARDAR EN LOCALSTORAGE (automático)
+       GUARDAR EN LOCALSTORAGE
        ======================================================== */
     let timeoutGuardado = null;
 
     function guardarAuto() {
         clearTimeout(timeoutGuardado);
         timeoutGuardado = setTimeout(() => {
-            guardar();
-        }, 500); // debounce de 500ms
+            guardar(true);
+        }, 500);
     }
 
     function guardar(silencioso = false) {
@@ -163,7 +235,6 @@ const ESTADO = (function() {
             const guardado = localStorage.getItem(CLAVE_LOCALSTORAGE);
             if (guardado) {
                 const parsed = JSON.parse(guardado);
-                // Merge con estado inicial para asegurar estructura completa
                 estado = mergeProfundo(estadoInicial(), parsed);
                 notificar('cargado', { exito: true });
                 return true;
@@ -177,7 +248,7 @@ const ESTADO = (function() {
     }
 
     /* ========================================================
-       MERGE PROFUNDO (para compatibilidad de versiones)
+       MERGE PROFUNDO
        ======================================================== */
     function mergeProfundo(base, nuevo) {
         if (Array.isArray(base)) {
@@ -200,7 +271,7 @@ const ESTADO = (function() {
     }
 
     /* ========================================================
-       REINICIAR TODO
+       REINICIAR
        ======================================================== */
     function reiniciar() {
         estado = estadoInicial();
@@ -211,7 +282,7 @@ const ESTADO = (function() {
     }
 
     /* ========================================================
-       GUARDAR BORRADOR MANUAL (copia de seguridad)
+       BORRADOR MANUAL
        ======================================================== */
     function guardarBorradorManual() {
         try {
@@ -232,9 +303,6 @@ const ESTADO = (function() {
         }
     }
 
-    /* ========================================================
-       CARGAR BORRADOR MANUAL
-       ======================================================== */
     function cargarBorradorManual() {
         try {
             const borrador = localStorage.getItem(CLAVE_BORRADOR_MANUAL);
@@ -255,7 +323,7 @@ const ESTADO = (function() {
     }
 
     /* ========================================================
-       EXPORTAR ESTADO COMO JSON
+       EXPORTAR / IMPORTAR JSON
        ======================================================== */
     function exportarJSON() {
         try {
@@ -264,7 +332,7 @@ const ESTADO = (function() {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `termometro-lector-${fechaArchivo()}.json`;
+            a.download = `plan-lector-jalisco-leo-${fechaArchivo()}.json`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -278,9 +346,6 @@ const ESTADO = (function() {
         }
     }
 
-    /* ========================================================
-       IMPORTAR ESTADO DESDE JSON
-       ======================================================== */
     function importarJSON(archivo) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -297,9 +362,7 @@ const ESTADO = (function() {
                     reject(err);
                 }
             };
-            reader.onerror = (err) => {
-                reject(err);
-            };
+            reader.onerror = (err) => reject(err);
             reader.readAsText(archivo);
         });
     }
@@ -307,18 +370,14 @@ const ESTADO = (function() {
     /* ========================================================
        HELPERS DE ACCESO
        ======================================================== */
-
-    // Obtener todo el estado
     function obtener() {
         return estado;
     }
 
-    // Obtener una sección
     function obtenerSeccion(nombre) {
         return estado[nombre] || null;
     }
 
-    // Actualizar una sección completa
     function actualizarSeccion(nombre, datos) {
         if (estado[nombre]) {
             estado[nombre] = { ...estado[nombre], ...datos };
@@ -327,7 +386,6 @@ const ESTADO = (function() {
         }
     }
 
-    // Actualizar un campo específico
     function actualizarCampo(seccion, campo, valor) {
         if (estado[seccion]) {
             estado[seccion][campo] = valor;
@@ -336,7 +394,9 @@ const ESTADO = (function() {
         }
     }
 
-    // Navegación
+    /* ========================================================
+       NAVEGACIÓN
+       ======================================================== */
     function setPasoActual(paso) {
         estado.meta.pasoActual = paso;
         guardarAuto();
@@ -347,7 +407,16 @@ const ESTADO = (function() {
         return estado.meta.pasoActual;
     }
 
-    // Marcar como completado
+    function setMomentoActual(momentoId) {
+        estado.meta.momentoActual = momentoId;
+        guardarAuto();
+        notificar('momentoCambiado', { momento: momentoId });
+    }
+
+    function getMomentoActual() {
+        return estado.meta.momentoActual;
+    }
+
     function marcarCompletado() {
         estado.meta.completado = true;
         guardar();
@@ -375,17 +444,16 @@ const ESTADO = (function() {
     }
 
     /* ========================================================
-       VALIDACIONES
+       VALIDACIONES POR SECCIÓN
        ======================================================== */
-
-    // Verifica si una sección está completa
     function seccionCompleta(numero) {
         switch (numero) {
-            case 1:
+            case 1: {
                 const id = estado.identificacion;
                 return !!(id.region && id.municipio && id.cct && id.nombreEscuela &&
                          id.turno && id.nivel && id.grados.length > 0 &&
                          id.numeroEstudiantes && id.director && id.fechaCTE && id.modoLlenado);
+            }
             case 2:
                 return estado.lineaBase.datosEscuela.length > 0;
             case 3:
@@ -397,7 +465,7 @@ const ESTADO = (function() {
             case 5:
                 return Object.keys(estado.termometro.dimensiones).length > 0;
             case 6:
-                return estado.rutas.seleccionadas.length > 0;
+                return estado.rutas.seleccionadas.length >= 2;
             case 7:
                 return estado.acta.acuerdos !== '';
             default:
@@ -405,13 +473,179 @@ const ESTADO = (function() {
         }
     }
 
-    // Devuelve el porcentaje de completado
     function porcentajeCompletado() {
         let completadas = 0;
         for (let i = 1; i <= 7; i++) {
             if (seccionCompleta(i)) completadas++;
         }
         return Math.round((completadas / 7) * 100);
+    }
+
+    /* ========================================================
+       VALIDACIONES DEL MOMENTO 3
+       ======================================================== */
+    function momento3Completo() {
+        const m3 = estado.momento3;
+        const id = estado.identificacion;
+        const reglas = DATOS.reglasFiltradoNivel[id.nivel] || { minimoRutas: 2, maximoRutas: 5 };
+
+        const rutasSeleccionadas = m3.seleccionRutas.rutas.length;
+        const cumpleMinRutas = rutasSeleccionadas >= reglas.minimoRutas;
+        const cumpleMaxRutas = rutasSeleccionadas <= reglas.maximoRutas;
+        const tieneActividades = m3.calendarizacion.actividades.length > 0;
+        const tieneResponsables = m3.responsables.asignaciones.length > 0;
+        const tieneBitacora = m3.bitacora.registros.length > 0;
+
+        return {
+            seleccionRutas: cumpleMinRutas && cumpleMaxRutas,
+            calendarizacion: tieneActividades,
+            responsables: tieneResponsables,
+            bitacora: tieneBitacora,
+            completo: cumpleMinRutas && cumpleMaxRutas && tieneActividades && tieneResponsables
+        };
+    }
+
+    /* ========================================================
+       HELPERS DEL MOMENTO 3
+       ======================================================== */
+
+    // 3.1 Selección de Rutas
+    function sincronizarRutasSeleccionadas() {
+        // Sincroniza rutas.seleccionadas con momento3.seleccionRutas.rutas
+        const rutas = estado.rutas.seleccionadas || [];
+        estado.momento3.seleccionRutas.rutas = rutas.map((r, i) => ({
+            rutaId: r.rutaId,
+            orden: i
+        }));
+        guardarAuto();
+        notificar('momento3RutasSincronizadas', { rutas: estado.momento3.seleccionRutas.rutas });
+    }
+
+    function confirmarSeleccionRutas() {
+        sincronizarRutasSeleccionadas();
+        estado.momento3.seleccionRutas.confirmada = true;
+        estado.momento3.seleccionRutas.fechaConfirmacion = new Date().toISOString();
+        guardar();
+        notificar('momento3SeleccionConfirmada', {});
+    }
+
+    // 3.2 Calendarización
+    function agregarActividad(actividad) {
+        const nueva = {
+            id: `act-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            rutaId: actividad.rutaId || '',
+            nombre: actividad.nombre || '',
+            mes: actividad.mes || 'septiembre',
+            semana: actividad.semana || 'Semana 1',
+            tipo: actividad.tipo || 'ordinaria',
+            estado: actividad.estado || 'no-iniciada',
+            notas: actividad.notas || '',
+            fechaCreacion: new Date().toISOString()
+        };
+        estado.momento3.calendarizacion.actividades.push(nueva);
+        guardarAuto();
+        notificar('momento3ActividadAgregada', { actividad: nueva });
+        return nueva;
+    }
+
+    function actualizarActividad(actividadId, cambios) {
+        const actividades = estado.momento3.calendarizacion.actividades;
+        const index = actividades.findIndex(a => a.id === actividadId);
+        if (index === -1) return null;
+
+        actividades[index] = { ...actividades[index], ...cambios };
+        guardarAuto();
+        notificar('momento3ActividadActualizada', { actividad: actividades[index] });
+        return actividades[index];
+    }
+
+    function eliminarActividad(actividadId) {
+        const actividades = estado.momento3.calendarizacion.actividades;
+        const filtradas = actividades.filter(a => a.id !== actividadId);
+        estado.momento3.calendarizacion.actividades = filtradas;
+        guardarAuto();
+        notificar('momento3ActividadEliminada', { actividadId });
+        return true;
+    }
+
+    // 3.3 Responsables
+    function asignarResponsable(actividadId, rol, nombre, correo = '') {
+        const asignaciones = estado.momento3.responsables.asignaciones;
+        const existente = asignaciones.findIndex(a => a.actividadId === actividadId && a.rol === rol);
+
+        const nueva = {
+            actividadId,
+            rol,
+            nombre,
+            correo,
+            fechaAsignacion: new Date().toISOString()
+        };
+
+        if (existente !== -1) {
+            asignaciones[existente] = nueva;
+        } else {
+            asignaciones.push(nueva);
+        }
+
+        guardarAuto();
+        notificar('momento3ResponsableAsignado', { asignacion: nueva });
+        return nueva;
+    }
+
+    function eliminarResponsable(actividadId, rol) {
+        const asignaciones = estado.momento3.responsables.asignaciones;
+        const filtradas = asignaciones.filter(a => !(a.actividadId === actividadId && a.rol === rol));
+        estado.momento3.responsables.asignaciones = filtradas;
+        guardarAuto();
+        notificar('momento3ResponsableEliminado', { actividadId, rol });
+        return true;
+    }
+
+    // 3.4 Bitácora
+    function agregarRegistroBitacora(registro) {
+        const nuevo = {
+            id: `bit-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            actividadId: registro.actividadId || '',
+            fecha: registro.fecha || new Date().toISOString().split('T')[0],
+            estado: registro.estado || 'completada',
+            observaciones: registro.observaciones || '',
+            participantes: registro.participantes || '',
+            evidencias: registro.evidencias || [],
+            fechaRegistro: new Date().toISOString()
+        };
+        estado.momento3.bitacora.registros.push(nuevo);
+        guardarAuto();
+        notificar('momento3RegistroAgregado', { registro: nuevo });
+        return nuevo;
+    }
+
+    function actualizarRegistroBitacora(registroId, cambios) {
+        const registros = estado.momento3.bitacora.registros;
+        const index = registros.findIndex(r => r.id === registroId);
+        if (index === -1) return null;
+
+        registros[index] = { ...registros[index], ...cambios };
+        guardarAuto();
+        notificar('momento3RegistroActualizado', { registro: registros[index] });
+        return registros[index];
+    }
+
+    function eliminarRegistroBitacora(registroId) {
+        const registros = estado.momento3.bitacora.registros;
+        const filtrados = registros.filter(r => r.id !== registroId);
+        estado.momento3.bitacora.registros = filtrados;
+        guardarAuto();
+        notificar('momento3RegistroEliminado', { registroId });
+        return true;
+    }
+
+    // 3.5 Productos
+    function marcarProductoGenerado(producto) {
+        if (estado.momento3.productos[producto] !== undefined) {
+            estado.momento3.productos[producto] = true;
+            guardarAuto();
+            notificar('momento3ProductoGenerado', { producto });
+        }
     }
 
     /* ========================================================
@@ -447,11 +681,27 @@ const ESTADO = (function() {
         // Navegación
         setPasoActual,
         getPasoActual,
+        setMomentoActual,
+        getMomentoActual,
         marcarCompletado,
 
         // Validaciones
         seccionCompleta,
         porcentajeCompletado,
+        momento3Completo,
+
+        // Helpers del Momento 3
+        sincronizarRutasSeleccionadas,
+        confirmarSeleccionRutas,
+        agregarActividad,
+        actualizarActividad,
+        eliminarActividad,
+        asignarResponsable,
+        eliminarResponsable,
+        agregarRegistroBitacora,
+        actualizarRegistroBitacora,
+        eliminarRegistroBitacora,
+        marcarProductoGenerado,
 
         // Eventos
         suscribir,
