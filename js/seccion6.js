@@ -1,5 +1,5 @@
 /* ============================================================
-   TERMÓMETRO LECTOR · JALISCO LEO
+   PLAN LECTOR JALISCO LEO
    seccion6.js — Sección 6: Rutas Sugeridas
    ============================================================ */
 
@@ -27,9 +27,19 @@ const SECCION6 = (function() {
     function renderizar() {
         const r = ESTADO.obtenerSeccion('rutas');
         const t = ESTADO.obtenerSeccion('termometro');
+        const id = ESTADO.obtenerSeccion('identificacion');
 
-        // Calcular rutas sugeridas desde el motor
-        const sugeridas = calcularRutasSugeridas(t.dimensiones || {});
+        // Obtener reglas de filtrado según el nivel
+        const reglas = DATOS.reglasFiltradoNivel[id.nivel] || {
+            rutasSugeridas: ['ruta1', 'ruta2', 'ruta3', 'ruta4', 'ruta5'],
+            rutasOpcionales: [],
+            minimoRutas: 2,
+            maximoRutas: 5,
+            nota: 'Selecciona las rutas que mejor se adapten a tu escuela.'
+        };
+
+        // Calcular rutas sugeridas desde el motor (solo las que aplican al nivel)
+        const sugeridas = calcularRutasSugeridas(t.dimensiones || {}, reglas, id.nivel);
 
         // Guardar en estado
         if (!r.sugeridas || r.sugeridas.length === 0) {
@@ -39,15 +49,36 @@ const SECCION6 = (function() {
         const rutasActuales = r.sugeridas && r.sugeridas.length > 0 ? r.sugeridas : sugeridas;
         const seleccionadas = r.seleccionadas || [];
 
+        // Validar mínimo y máximo
+        const validacion = validarCantidadRutas(seleccionadas, reglas);
+
         contenedor.innerHTML = `
             <div class="form-seccion">
 
-                <!-- ===== ALERTA SI >3 RUTAS ===== -->
-                ${seleccionadas.length > 3 ? `
+                <!-- ===== INFORMACIÓN DEL NIVEL ===== -->
+                <div class="caja-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Nivel educativo:</strong> ${obtenerNombreNivel(id.nivel)} ·
+                    <strong>Rutas sugeridas:</strong> ${reglas.rutasSugeridas.length} ·
+                    <strong>Mínimo a seleccionar:</strong> ${reglas.minimoRutas} ·
+                    <strong>Máximo:</strong> ${reglas.maximoRutas}
+                    <br><span class="ayuda">${reglas.nota}</span>
+                </div>
+
+                <!-- ===== ALERTA SI > MÁXIMO ===== -->
+                ${seleccionadas.length > reglas.maximoRutas ? `
                     <div class="caja-alerta">
                         <i class="fas fa-exclamation-triangle"></i>
-                        <strong>Atención:</strong> Han seleccionado más de 3 rutas para un trimestre.
+                        <strong>Atención:</strong> Han seleccionado más de ${reglas.maximoRutas} rutas para un trimestre.
                         Consideren priorizar para no dispersar los esfuerzos.
+                    </div>
+                ` : ''}
+
+                <!-- ===== ALERTA SI < MÍNIMO ===== -->
+                ${seleccionadas.length > 0 && seleccionadas.length < reglas.minimoRutas ? `
+                    <div class="caja-alerta">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Atención:</strong> Deben seleccionar al menos ${reglas.minimoRutas} rutas para el trimestre.
                     </div>
                 ` : ''}
 
@@ -55,7 +86,7 @@ const SECCION6 = (function() {
                 <div class="form-bloque">
                     <h3><i class="fas fa-gears"></i> Motor de recomendación</h3>
                     <p class="ayuda">
-                        Basado en las dimensiones en 🔴 y 🟡 del Termómetro.
+                        Basado en las dimensiones en 🔴 y 🟡 del Termómetro, filtradas por el nivel educativo.
                         Las rutas se ordenan por prioridad.
                     </p>
 
@@ -78,6 +109,7 @@ const SECCION6 = (function() {
                         <p class="ayuda">
                             Marca las rutas que trabajarán este trimestre.
                             Puedes reordenarlas con las flechas.
+                            <br><strong>Seleccionadas:</strong> ${seleccionadas.length} de ${rutasActuales.length}
                         </p>
 
                         <div id="lista-seleccionadas">
@@ -98,7 +130,7 @@ const SECCION6 = (function() {
                 <!-- ===== RESUMEN ===== -->
                 <div class="caja-info" id="resumen-seccion6">
                     <i class="fas fa-info-circle"></i>
-                    Selecciona al menos una ruta para continuar.
+                    Selecciona al menos ${reglas.minimoRutas} ruta(s) para continuar.
                 </div>
 
             </div>
@@ -109,13 +141,22 @@ const SECCION6 = (function() {
     }
 
     /* ========================================================
-       CALCULAR RUTAS SUGERIDAS (MOTOR)
+       CALCULAR RUTAS SUGERIDAS (MOTOR + FILTRO POR NIVEL)
        ======================================================== */
-    function calcularRutasSugeridas(dimensiones) {
+    function calcularRutasSugeridas(dimensiones, reglas, nivelId) {
         const resultado = [];
-        const reglas = DATOS.motorRecomendacion.reglas;
+        const reglasMotor = DATOS.motorRecomendacion.reglas;
 
-        reglas.forEach(regla => {
+        // Filtrar solo las rutas que aplican al nivel
+        const rutasPermitidas = [
+            ...reglas.rutasSugeridas,
+            ...reglas.rutasOpcionales
+        ];
+
+        reglasMotor.forEach(regla => {
+            // Solo considerar rutas permitidas para este nivel
+            if (!rutasPermitidas.includes(regla.rutaId)) return;
+
             const gatillosActivos = regla.dimensionesGatillo.filter(dim => {
                 const color = dimensiones[dim];
                 return color === 'rojo' || color === 'amarillo';
@@ -133,21 +174,54 @@ const SECCION6 = (function() {
             const rutaDef = DATOS.rutasLEO[regla.rutaId];
             if (!rutaDef) return;
 
+            // Ajustar prioridad si la ruta es sugerida (no opcional)
+            let prioridadAjustada = prioridad;
+            if (reglas.rutasSugeridas.includes(regla.rutaId) && prioridad === 'BAJA') {
+                prioridadAjustada = 'MEDIA';
+            }
+
             resultado.push({
                 rutaId: regla.rutaId,
-                prioridad,
+                prioridad: prioridadAjustada,
                 rojos,
                 peso: regla.peso,
                 dimensionesGatillo: gatillosActivos,
-                ruta: rutaDef
+                ruta: rutaDef,
+                esSugerida: reglas.rutasSugeridas.includes(regla.rutaId)
             });
         });
 
-        // Ordenar: ALTA → MEDIA → BAJA
+        // Ordenar: ALTA → MEDIA → BAJA, y dentro de cada prioridad, sugeridas primero
         const ordenPrioridad = { ALTA: 0, MEDIA: 1, BAJA: 2 };
-        resultado.sort((a, b) => ordenPrioridad[a.prioridad] - ordenPrioridad[b.prioridad]);
+        resultado.sort((a, b) => {
+            const diff = ordenPrioridad[a.prioridad] - ordenPrioridad[b.prioridad];
+            if (diff !== 0) return diff;
+            return (b.esSugerida ? 1 : 0) - (a.esSugerida ? 1 : 0);
+        });
 
         return resultado;
+    }
+
+    /* ========================================================
+       VALIDAR CANTIDAD DE RUTAS
+       ======================================================== */
+    function validarCantidadRutas(seleccionadas, reglas) {
+        const cantidad = seleccionadas.length;
+        return {
+            cumpleMinimo: cantidad >= reglas.minimoRutas,
+            cumpleMaximo: cantidad <= reglas.maximoRutas,
+            cantidad,
+            minimo: reglas.minimoRutas,
+            maximo: reglas.maximoRutas
+        };
+    }
+
+    /* ========================================================
+       OBTENER NOMBRE DEL NIVEL
+       ======================================================== */
+    function obtenerNombreNivel(nivelId) {
+        const nivel = DATOS.niveles.find(n => n.id === nivelId);
+        return nivel ? `${nivel.nombre} (${nivel.rango})` : 'No especificado';
     }
 
     /* ========================================================
@@ -166,6 +240,7 @@ const SECCION6 = (function() {
                     <span class="chip ${coloresPrioridad[s.prioridad]}">
                         <i class="fas fa-flag"></i> ${s.prioridad}
                     </span>
+                    ${s.esSugerida ? `<span class="chip carmesi"><i class="fas fa-star"></i> Sugerida</span>` : ''}
                     <label class="opcion-check">
                         <input type="checkbox" class="check-ruta" data-ruta="${s.rutaId}"
                                ${seleccionada ? 'checked' : ''}>
@@ -347,13 +422,24 @@ const SECCION6 = (function() {
         titulo.textContent = `🚂 ${ruta.nombre}`;
         mensaje.innerHTML = `
             <p style="font-style: italic; margin-bottom: 1rem;">"${ruta.lema}"</p>
+
             <h4 style="color: var(--carmesi); margin-bottom: 0.5rem;">Actividades esenciales</h4>
-            <ul>
+            <ul style="margin-bottom: 1rem;">
                 ${ruta.actividadesEsenciales.map(a => `
                     <li><strong>${a.nombre}</strong> · <span class="chip">${a.nivel}</span> <span class="chip naranja">${a.frecuencia}</span></li>
                 `).join('')}
             </ul>
-            <h4 style="color: var(--carmesi); margin-top: 1rem; margin-bottom: 0.5rem;">Indicadores</h4>
+
+            ${ruta.actividadesOpcionales && ruta.actividadesOpcionales.length > 0 ? `
+                <h4 style="color: var(--carmesi); margin-bottom: 0.5rem;">Actividades opcionales</h4>
+                <ul style="margin-bottom: 1rem;">
+                    ${ruta.actividadesOpcionales.map(a => `
+                        <li><strong>${a.nombre}</strong> · <span class="chip">${a.nivel}</span> <span class="chip naranja">${a.frecuencia}</span></li>
+                    `).join('')}
+                </ul>
+            ` : ''}
+
+            <h4 style="color: var(--carmesi); margin-bottom: 0.5rem;">Indicadores</h4>
             <p><strong>Cuantitativo:</strong> ${ruta.indicadores.cuanti}</p>
             <p><strong>Cualitativo:</strong> ${ruta.indicadores.cuali}</p>
         `;
@@ -378,21 +464,35 @@ const SECCION6 = (function() {
        ======================================================== */
     function validar() {
         const r = ESTADO.obtenerSeccion('rutas');
+        const id = ESTADO.obtenerSeccion('identificacion');
         const resumen = document.getElementById('resumen-seccion6');
         if (!resumen) return false;
 
-        const tieneSeleccion = r.seleccionadas && r.seleccionadas.length > 0;
+        const reglas = DATOS.reglasFiltradoNivel[id.nivel] || {
+            minimoRutas: 2,
+            maximoRutas: 5
+        };
 
-        if (tieneSeleccion) {
+        const seleccionadas = r.seleccionadas || [];
+        const cumpleMinimo = seleccionadas.length >= reglas.minimoRutas;
+        const cumpleMaximo = seleccionadas.length <= reglas.maximoRutas;
+
+        if (cumpleMinimo && cumpleMaximo) {
             resumen.className = 'caja-exito';
-            resumen.innerHTML = `<i class="fas fa-check-circle"></i> ${r.seleccionadas.length} ruta(s) seleccionada(s). Puedes continuar.`;
-        } else {
+            resumen.innerHTML = `<i class="fas fa-check-circle"></i> ${seleccionadas.length} ruta(s) seleccionada(s). Puedes continuar.`;
+            ESTADO.notificar('seccion6Validada', { completa: true });
+            return true;
+        } else if (!cumpleMinimo) {
             resumen.className = 'caja-info';
-            resumen.innerHTML = '<i class="fas fa-info-circle"></i> Selecciona al menos una ruta para continuar.';
+            resumen.innerHTML = `<i class="fas fa-info-circle"></i> Selecciona al menos ${reglas.minimoRutas} ruta(s) para continuar.`;
+            ESTADO.notificar('seccion6Validada', { completa: false });
+            return false;
+        } else {
+            resumen.className = 'caja-alerta';
+            resumen.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Has seleccionado más de ${reglas.maximoRutas} rutas. Considera priorizar.`;
+            ESTADO.notificar('seccion6Validada', { completa: false });
+            return false;
         }
-
-        ESTADO.notificar('seccion6Validada', { completa: tieneSeleccion });
-        return tieneSeleccion;
     }
 
     /* ========================================================
