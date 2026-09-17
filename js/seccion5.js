@@ -68,7 +68,7 @@ const SECCION5 = (function() {
                                     <th>#</th>
                                     <th>Dimensión</th>
                                     <th>Fuente</th>
-                                    <th>Dato</th>
+                                    <th>Estado</th>
                                     <th>Semáforo</th>
                                     <th>Ajuste</th>
                                 </tr>
@@ -86,10 +86,10 @@ const SECCION5 = (function() {
                 <!-- ===== LEYENDA ===== -->
                 <div class="caja-info">
                     <strong>Semáforo:</strong>
-                    <span class="semaforo"><span class="semaforo-punto verde"></span> Fortaleza</span> ·
-                    <span class="semaforo"><span class="semaforo-punto amarillo"></span> En progreso</span> ·
-                    <span class="semaforo"><span class="semaforo-punto rojo"></span> Atención prioritaria</span> ·
-                    <span class="semaforo"><span class="semaforo-punto gris"></span> Sin dato</span>
+                    <span class="semaforo"><span class="semaforo-punto verde"></span> <span>Fortaleza</span></span> ·
+                    <span class="semaforo"><span class="semaforo-punto amarillo"></span> <span>En progreso</span></span> ·
+                    <span class="semaforo"><span class="semaforo-punto rojo"></span> <span>Atención prioritaria</span></span> ·
+                    <span class="semaforo"><span class="semaforo-punto gris"></span> <span>Sin dato</span></span>
                 </div>
 
                 <!-- ===== LECTURA AUTOMÁTICA ===== -->
@@ -171,7 +171,7 @@ const SECCION5 = (function() {
                 <td>
                     <span class="semaforo">
                         <span class="semaforo-punto ${colorActual}"></span>
-                        ${etiquetasColor[colorActual]}
+                        <span>${etiquetasColor[colorActual]}</span>
                     </span>
                     ${tieneAjuste ? '<br><span class="chip naranja"><i class="fas fa-pen"></i> Ajustado</span>' : ''}
                 </td>
@@ -240,17 +240,27 @@ const SECCION5 = (function() {
         const id = ESTADO.obtenerSeccion('identificacion');
         const fuente = id.nivel === 'Primaria' ? DATOS.lineaBase.primaria : DATOS.lineaBase.secundaria;
         const brechas = datosEscuela
-            .filter(d => d.media)
+            .filter(d => d.total)
             .map(d => {
                 const key = (d.grado || '').charAt(0);
                 const estatal = fuente[key];
                 if (!estatal) return null;
-                return parseFloat(d.media) - estatal.media;
+                const mediaEscuela = calcularMediaEscuela(d);
+                if (mediaEscuela === null) return null;
+                return mediaEscuela - estatal.media;
             })
             .filter(b => b !== null);
 
         if (brechas.length === 0) return 0;
         return brechas.reduce((a, b) => a + b, 0) / brechas.length;
+    }
+
+    function calcularMediaEscuela(d) {
+        const total = parseFloat(d.total) || 0;
+        if (total === 0) return null;
+        const deseable = parseFloat(d.deseable) || 0;
+        const enProgreso = parseFloat(d.enProgreso) || 0;
+        return ((deseable + enProgreso) / total) * 100;
     }
 
     function calcularColorDesdeBrecha(brecha) {
@@ -262,7 +272,6 @@ const SECCION5 = (function() {
     function calcularColorDesdeComponente(valor) {
         if (valor === '' || valor === null || valor === undefined) return 'gris';
         const v = parseFloat(valor);
-        if (v >= 50) return 'rojo';
         if (v >= 30) return 'rojo';
         if (v >= 15) return 'amarillo';
         return 'verde';
@@ -403,7 +412,6 @@ const SECCION5 = (function() {
        EXPORTAR SEMÁFORO COMO IMAGEN
        ======================================================== */
     function exportarSemaforo() {
-        // Implementación simple: usar html2canvas si está disponible
         if (typeof html2canvas === 'undefined') {
             alert('Para exportar como imagen, necesitas cargar html2canvas. Contacta a Dips.');
             return;
@@ -454,7 +462,6 @@ const SECCION5 = (function() {
                 renderizar();
             }
             if (evento === 'seccionActualizada') {
-                // Recalcular si cambiaron secciones anteriores
                 renderizar();
             }
         });
