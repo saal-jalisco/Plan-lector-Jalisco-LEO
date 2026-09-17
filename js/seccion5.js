@@ -301,7 +301,6 @@ const SECCION5 = (function() {
     }
 
     function calcularColorDesdeComponente(valor) {
-        if (valor === '' || valor === null || valor === undefined) return 'gris';
         const v = parseFloat(valor);
         if (v >= 30) return 'rojo';
         if (v >= 15) return 'amarillo';
