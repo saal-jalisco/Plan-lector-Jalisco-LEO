@@ -834,4 +834,43 @@ tbody tr:nth-child(even) {
     .presentacion-controles .btn {
         width: 100%;
     }
+}/* ============================================================
+   NAVEGACIÓN ENTRE MOMENTOS (Anterior / Siguiente)
+   ============================================================ */
+.navegacion-momentos {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--gris-claro);
+}
+
+.navegacion-momentos .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.95rem;
+}
+
+.navegacion-momentos .btn i {
+    font-size: 0.9rem;
+}
+
+.navegacion-momentos .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .navegacion-momentos {
+        flex-direction: column-reverse;
+    }
+
+    .navegacion-momentos .btn {
+        width: 100%;
+        justify-content: center;
+    }
 }
