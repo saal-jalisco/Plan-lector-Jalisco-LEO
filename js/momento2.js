@@ -1,26 +1,24 @@
 /* ============================================================
    PLAN LECTOR JALISCO LEO
    momento2.js — Contenedor del Termómetro Lector
-   Integra las secciones 1..N en un flujo con navegación.
-   v1.0 — Primera versión
+   v1.1 — Fix de IDs (contenido-seccion-N con guion)
    ============================================================ */
 
 const MOMENTO2 = (function() {
 
     /* ========================================================
        CONFIGURACIÓN DE SECCIONES
-       ✏️ AJUSTA AQUÍ: nombre, icono y módulo global de cada
-       sección del Termómetro. El orden de este array define
-       el orden de navegación.
+       ✏️ Los IDs de la izquierda se usan internamente.
+       El módulo busca el contenedor #contenido-seccion-{N} en el DOM.
        ======================================================== */
-   const SECCIONES = [
-    { id: 'seccion1', nombre: 'Identificación',       icono: 'fa-id-card',           modulo: 'SECCION1' },
-    { id: 'seccion2', nombre: 'Línea Base',           icono: 'fa-chart-line',        modulo: 'SECCION2' },
-    { id: 'seccion3', nombre: 'Diagnóstico SAAL',     icono: 'fa-microscope',        modulo: 'SECCION3' },
-    { id: 'seccion4', nombre: 'Voces del Ecosistema', icono: 'fa-comments',          modulo: 'SECCION4' },
-    { id: 'seccion5', nombre: 'Termómetro Visual',    icono: 'fa-temperature-half',  modulo: 'SECCION5' },
-    { id: 'seccion6', nombre: 'Rutas Sugeridas',      icono: 'fa-route',             modulo: 'SECCION6' }
-];
+    const SECCIONES = [
+        { id: 'seccion1', numero: 1, nombre: 'Identificación',       icono: 'fa-id-card',           modulo: 'SECCION1' },
+        { id: 'seccion2', numero: 2, nombre: 'Línea Base',           icono: 'fa-chart-line',        modulo: 'SECCION2' },
+        { id: 'seccion3', numero: 3, nombre: 'Diagnóstico SAAL',     icono: 'fa-microscope',        modulo: 'SECCION3' },
+        { id: 'seccion4', numero: 4, nombre: 'Voces del Ecosistema', icono: 'fa-comments',          modulo: 'SECCION4' },
+        { id: 'seccion5', numero: 5, nombre: 'Termómetro Visual',    icono: 'fa-temperature-half',  modulo: 'SECCION5' },
+        { id: 'seccion6', numero: 6, nombre: 'Rutas Sugeridas',      icono: 'fa-route',             modulo: 'SECCION6' }
+    ];
 
     /* ========================================================
        REFERENCIAS
@@ -46,7 +44,7 @@ const MOMENTO2 = (function() {
     }
 
     /* ========================================================
-       RENDER PÚBLICO (para app.js)
+       RENDER PÚBLICO
        ======================================================== */
     function render() {
         if (!inicializado || !contenedor || !document.body.contains(contenedor)) {
@@ -65,7 +63,6 @@ const MOMENTO2 = (function() {
         contenedor.innerHTML = `
             <div class="momento2-wrapper">
 
-                <!-- ===== ENCABEZADO ===== -->
                 <div class="momento2-header">
                     <div class="momento2-titulo">
                         <span class="overline">Momento 2 · Diagnóstico del ecosistema lector</span>
@@ -77,7 +74,6 @@ const MOMENTO2 = (function() {
                     </div>
                 </div>
 
-                <!-- ===== BARRA DE PROGRESO ===== -->
                 <div class="momento2-progreso">
                     ${SECCIONES.map((sec, i) => {
                         const activa = seccionActual === sec.id;
@@ -92,10 +88,8 @@ const MOMENTO2 = (function() {
                     }).join('')}
                 </div>
 
-                <!-- ===== CONTENEDOR DE LA SECCIÓN ACTUAL ===== -->
                 <div id="contenido-seccion-actual" class="momento2-contenido"></div>
 
-                <!-- ===== NAVEGACIÓN ===== -->
                 <div class="momento2-navegacion">
                     <button id="btn-sec-anterior" class="btn btn-secundario"
                             ${seccionActual === SECCIONES[0].id ? 'disabled' : ''}>
@@ -121,7 +115,7 @@ const MOMENTO2 = (function() {
     }
 
     /* ========================================================
-       CARGAR SECCIÓN
+       CARGAR SECCIÓN — FIX: id con guion (contenido-seccion-N)
        ======================================================== */
     function cargarSeccion(secId) {
         const contenedorSec = document.getElementById('contenido-seccion-actual');
@@ -130,9 +124,9 @@ const MOMENTO2 = (function() {
         const secDef = SECCIONES.find(s => s.id === secId);
         if (!secDef) return;
 
-        // El módulo (SECCION1, SECCION2...) busca un contenedor con id contenido-seccion-N
-        // Así que creamos ese contenedor interno y se lo pasamos.
-        contenedorSec.innerHTML = `<div id="contenido-${secId}" class="seccion-wrapper"></div>`;
+        // ⬇️ FIX: creamos el div con el ID que las secciones esperan
+        //    Ejemplo: contenido-seccion-1 (con guion antes del número)
+        contenedorSec.innerHTML = `<div id="contenido-seccion-${secDef.numero}" class="seccion-wrapper"></div>`;
 
         const modulo = (typeof window !== 'undefined' ? window[secDef.modulo] : null);
 
@@ -142,7 +136,8 @@ const MOMENTO2 = (function() {
                     <i class="fas fa-exclamation-triangle"></i>
                     <strong>Sección no disponible:</strong>
                     No se encontró <code>window.${secDef.modulo}</code>.
-                    Asegúrate de que el archivo esté cargado y exponga el módulo en <code>window</code>.
+                    Verifica que el archivo <code>${secId}.js</code> esté cargado
+                    y que termine con <code>window.${secDef.modulo} = ${secDef.modulo};</code>.
                 </div>
             `;
             console.warn(`⚠️ MOMENTO2: No se encontró window.${secDef.modulo}`);
@@ -150,9 +145,6 @@ const MOMENTO2 = (function() {
         }
 
         try {
-            // Algunos módulos exponen init() y leen el contenedor por id fijo.
-            // Seccion1 usa getElementById('contenido-seccion-1'), así que el div
-            // interno debe tener ese id. Se lo damos con contenido-${secId}.
             modulo.init();
         } catch (e) {
             console.error(`❌ Error al inicializar ${secDef.modulo}:`, e);
@@ -190,7 +182,6 @@ const MOMENTO2 = (function() {
                 if (index < SECCIONES.length - 1) {
                     irASeccion(SECCIONES[index + 1].id);
                 } else {
-                    // Estamos en la última sección: mostrar toast o resumen
                     mostrarToast('Termómetro completo. Continúa al Momento 3.', 'exito');
                 }
             });
