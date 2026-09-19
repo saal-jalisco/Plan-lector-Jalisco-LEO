@@ -2,6 +2,7 @@
    PLAN LECTOR JALISCO LEO
    momento3.js — Contenedor principal del Momento 3
    Hoja de Ruta Trimestral (el corazón del artefacto)
+   v2.0 — Fix window + 1 ruta por trimestre
    ============================================================ */
 
 const MOMENTO3 = (function() {
@@ -11,45 +12,101 @@ const MOMENTO3 = (function() {
        ======================================================== */
     let contenedor = null;
     let subSeccionActual = 'seleccion';
+    let inicializado = false;
 
     const SUB_SECCIONES = [
-        { id: 'seleccion',      nombre: 'Selección de Rutas',   icono: 'fa-list-check',       modulo: 'MOMENTO3_1' },
-        { id: 'calendarizacion', nombre: 'Calendarización',      icono: 'fa-calendar-days',    modulo: 'MOMENTO3_2' },
-        { id: 'responsables',   nombre: 'Responsables',         icono: 'fa-users-gear',       modulo: 'MOMENTO3_3' },
-        { id: 'bitacora',       nombre: 'Bitácora',             icono: 'fa-book-open',        modulo: 'MOMENTO3_4' }
+        { id: 'seleccion',       nombre: 'Selección de Ruta',  icono: 'fa-list-check',    modulo: 'MOMENTO3_1' },
+        { id: 'calendarizacion', nombre: 'Calendarización',     icono: 'fa-calendar-days', modulo: 'MOMENTO3_2' },
+        { id: 'responsables',    nombre: 'Responsables',        icono: 'fa-users-gear',    modulo: 'MOMENTO3_3' },
+        { id: 'bitacora',        nombre: 'Bitácora',            icono: 'fa-book-open',     modulo: 'MOMENTO3_4' }
     ];
 
     /* ========================================================
-       INICIALIZACIÓN
+       INIT
        ======================================================== */
     function init() {
         contenedor = document.getElementById('contenido-momento3');
-        if (!contenedor) return;
+        if (!contenedor) {
+            console.error('❌ MOMENTO3: No se encontró #contenido-momento3');
+            return;
+        }
 
-        // Sincronizar rutas seleccionadas del Termómetro
-        ESTADO.sincronizarRutasSeleccionadas();
+        console.log('🚂 MOMENTO3.init() — Iniciando contenedor del Momento 3');
+
+        // Sincronizar (si existe el método en ESTADO)
+        if (typeof ESTADO !== 'undefined' && typeof ESTADO.sincronizarRutasSeleccionadas === 'function') {
+            try { ESTADO.sincronizarRutasSeleccionadas(); }
+            catch (e) { console.warn('⚠️ sincronizarRutasSeleccionadas falló:', e); }
+        }
 
         renderizar();
         suscribirCambios();
+        inicializado = true;
+    }
+
+    /* ========================================================
+       RENDER PÚBLICO (para app.js)
+       ======================================================== */
+    function render() {
+        if (!inicializado || !contenedor || !document.body.contains(contenedor)) {
+            init();
+        } else {
+            renderizar();
+        }
+    }
+
+    /* ========================================================
+       OBTENER VALIDACIONES (defensivo)
+       ======================================================== */
+    function obtenerValidaciones() {
+        if (typeof ESTADO !== 'undefined' && typeof ESTADO.momento3Completo === 'function') {
+            try { return ESTADO.momento3Completo(); }
+            catch (e) { console.warn('⚠️ momento3Completo falló:', e); }
+        }
+        return {
+            seleccionRutas: false,
+            calendarizacion: false,
+            responsables: false,
+            bitacora: false,
+            completo: false
+        };
+    }
+
+    /* ========================================================
+       OBTENER M3 (defensivo)
+       ======================================================== */
+    function obtenerM3() {
+        if (typeof ESTADO !== 'undefined' && typeof ESTADO.obtenerSeccion === 'function') {
+            try { return ESTADO.obtenerSeccion('momento3') || {}; }
+            catch (e) { console.warn('⚠️ obtenerSeccion(momento3) falló:', e); }
+        }
+        return {
+            seleccionRutas: { rutaId: null, bancoSeleccionado: [], cierreMes: null },
+            calendarizacion: { actividades: [] },
+            responsables: { asignaciones: [] },
+            bitacora: { registros: [], notas: '' }
+        };
     }
 
     /* ========================================================
        RENDERIZAR CONTENEDOR PRINCIPAL
        ======================================================== */
     function renderizar() {
-        const m3 = ESTADO.obtenerSeccion('momento3');
-        const validaciones = ESTADO.momento3Completo();
+        if (!contenedor) return;
+
+        const m3 = obtenerM3();
+        const validaciones = obtenerValidaciones();
 
         contenedor.innerHTML = `
             <div class="momento3-wrapper">
 
-                <!-- ===== ENCABEZADO DEL MOMENTO 3 ===== -->
+                <!-- ===== ENCABEZADO ===== -->
                 <div class="momento3-header">
                     <div class="momento3-titulo">
                         <span class="overline">Momento 3 · El corazón del Plan Lector</span>
                         <h2><i class="fas fa-route"></i> Hoja de Ruta Trimestral</h2>
                         <p class="subtitulo">
-                            Diseña el plan trimestral: selecciona rutas, calendariza actividades,
+                            Una ruta por trimestre. Elige la ruta LEO, calendariza sus anclas, banco y cierre,
                             asigna responsables y registra la implementación.
                         </p>
                     </div>
@@ -77,14 +134,13 @@ const MOMENTO3 = (function() {
                     }).join('')}
                 </div>
 
-                <!-- ===== CONTENIDO DE LA SUB-SECCIÓN ACTUAL ===== -->
-                <div id="contenido-sub-seccion" class="momento3-contenido">
-                    <!-- Se carga dinámicamente -->
-                </div>
+                <!-- ===== CONTENIDO ===== -->
+                <div id="contenido-sub-seccion" class="momento3-contenido"></div>
 
-                <!-- ===== NAVEGACIÓN ENTRE SUB-SECCIONES ===== -->
+                <!-- ===== NAVEGACIÓN ===== -->
                 <div class="momento3-navegacion">
-                    <button id="btn-sub-anterior" class="btn btn-secundario" ${subSeccionActual === SUB_SECCIONES[0].id ? 'disabled' : ''}>
+                    <button id="btn-sub-anterior" class="btn btn-secundario"
+                            ${subSeccionActual === SUB_SECCIONES[0].id ? 'disabled' : ''}>
                         <i class="fas fa-arrow-left"></i> Anterior
                     </button>
 
@@ -102,10 +158,7 @@ const MOMENTO3 = (function() {
             </div>
         `;
 
-        // Cargar la sub-sección actual
         cargarSubSeccion(subSeccionActual);
-
-        // Configurar eventos de navegación
         configurarNavegacion();
     }
 
@@ -119,26 +172,29 @@ const MOMENTO3 = (function() {
         const subDef = SUB_SECCIONES.find(s => s.id === subId);
         if (!subDef) return;
 
-        // Buscar el módulo correspondiente en el scope global
-        const modulo = window[subDef.modulo];
+        // Buscar el módulo (probamos en window y en globalThis por si acaso)
+        const modulo = (typeof window !== 'undefined' ? window[subDef.modulo] : null)
+                    || (typeof globalThis !== 'undefined' ? globalThis[subDef.modulo] : null);
 
         if (!modulo || typeof modulo.renderizar !== 'function') {
             contenedorSub.innerHTML = `
                 <div class="caja-alerta">
                     <i class="fas fa-exclamation-triangle"></i>
-                    <strong>Error:</strong> No se encontró el módulo <code>${subDef.modulo}</code>.
-                    Asegúrate de haber cargado el archivo <code>${subDef.modulo.toLowerCase()}.js</code>.
+                    <strong>Sub-sección no disponible:</strong>
+                    No se encontró <code>window.${subDef.modulo}</code>.
+                    Asegúrate de que el archivo <code>${subDef.modulo.toLowerCase().replace('_', '-')}-*.js</code>
+                    esté cargado y exponga el módulo en <code>window</code>.
                 </div>
             `;
+            console.warn(`⚠️ MOMENTO3: No se encontró window.${subDef.modulo}`);
             return;
         }
 
-        // Renderizar la sub-sección
         contenedorSub.innerHTML = '';
         try {
             modulo.renderizar(contenedorSub);
         } catch (e) {
-            console.error(`Error al renderizar ${subDef.modulo}:`, e);
+            console.error(`❌ Error al renderizar ${subDef.modulo}:`, e);
             contenedorSub.innerHTML = `
                 <div class="caja-alerta">
                     <i class="fas fa-exclamation-triangle"></i>
@@ -152,26 +208,22 @@ const MOMENTO3 = (function() {
        CONFIGURAR NAVEGACIÓN
        ======================================================== */
     function configurarNavegacion() {
-        // Click en sub-pasos
+        if (!contenedor) return;
+
         contenedor.querySelectorAll('.sub-paso').forEach(el => {
             el.addEventListener('click', () => {
-                const subId = el.dataset.sub;
-                irASubSeccion(subId);
+                irASubSeccion(el.dataset.sub);
             });
         });
 
-        // Botón anterior
         const btnAnterior = document.getElementById('btn-sub-anterior');
         if (btnAnterior) {
             btnAnterior.addEventListener('click', () => {
                 const index = obtenerIndiceSubSeccion();
-                if (index > 0) {
-                    irASubSeccion(SUB_SECCIONES[index - 1].id);
-                }
+                if (index > 0) irASubSeccion(SUB_SECCIONES[index - 1].id);
             });
         }
 
-        // Botón siguiente
         const btnSiguiente = document.getElementById('btn-sub-siguiente');
         if (btnSiguiente) {
             btnSiguiente.addEventListener('click', () => {
@@ -179,7 +231,6 @@ const MOMENTO3 = (function() {
                 if (index < SUB_SECCIONES.length - 1) {
                     irASubSeccion(SUB_SECCIONES[index + 1].id);
                 } else {
-                    // Mostrar resumen final
                     mostrarResumenFinal();
                 }
             });
@@ -195,33 +246,36 @@ const MOMENTO3 = (function() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    /* ========================================================
-       OBTENER ÍNDICE DE SUB-SECCIÓN ACTUAL
-       ======================================================== */
     function obtenerIndiceSubSeccion() {
         return SUB_SECCIONES.findIndex(s => s.id === subSeccionActual);
     }
 
     /* ========================================================
-       MOSTRAR RESUMEN FINAL
+       RESUMEN FINAL
        ======================================================== */
     function mostrarResumenFinal() {
-        const m3 = ESTADO.obtenerSeccion('momento3');
-        const id = ESTADO.obtenerSeccion('identificacion');
-        const validaciones = ESTADO.momento3Completo();
+        const m3 = obtenerM3();
+        const validaciones = obtenerValidaciones();
 
         const contenedorSub = document.getElementById('contenido-sub-seccion');
         if (!contenedorSub) return;
 
-        // Contar actividades por mes
-        const actividades = m3.calendarizacion.actividades || [];
+        // === NUEVA ESTRUCTURA: 1 ruta ===
+        const rutaId = m3.seleccionRutas?.rutaId || null;
+        const ruta = rutaId && typeof DATOS !== 'undefined'
+            ? DATOS.rutasLEO[rutaId]
+            : null;
+        const bancoSel = m3.seleccionRutas?.bancoSeleccionado || [];
+        const cierreMes = m3.seleccionRutas?.cierreMes || null;
+
+        // Actividades
+        const actividades = m3.calendarizacion?.actividades || [];
         const porMes = {
             septiembre: actividades.filter(a => a.mes === 'septiembre').length,
             octubre: actividades.filter(a => a.mes === 'octubre').length,
             noviembre: actividades.filter(a => a.mes === 'noviembre').length
         };
 
-        // Contar actividades por estado
         const porEstado = {
             'no-iniciada': actividades.filter(a => a.estado === 'no-iniciada').length,
             'en-proceso': actividades.filter(a => a.estado === 'en-proceso').length,
@@ -229,17 +283,14 @@ const MOMENTO3 = (function() {
             'reprogramada': actividades.filter(a => a.estado === 'reprogramada').length
         };
 
-        // Rutas seleccionadas
-        const rutasSeleccionadas = m3.seleccionRutas.rutas || [];
-        const rutasInfo = rutasSeleccionadas.map(r => {
-            const ruta = DATOS.rutasLEO[r.rutaId];
-            return ruta ? ruta.nombre : r.rutaId;
-        });
+        // Datos Jalisco Avanza para la ruta elegida
+        const just = ruta?.datosJustificacion;
+        const justPrimaria = just?.primaria;
+        const justSecundaria = just?.secundaria;
 
         contenedorSub.innerHTML = `
             <div class="resumen-momento3">
 
-                <!-- ===== ENCABEZADO ===== -->
                 <div class="seccion-header">
                     <h3><i class="fas fa-clipboard-check"></i> Resumen del Momento 3</h3>
                     <p class="seccion-descripcion">
@@ -247,22 +298,36 @@ const MOMENTO3 = (function() {
                     </p>
                 </div>
 
-                <!-- ===== ESTADO GENERAL ===== -->
+                <!-- ===== BLOQUE DE RUTA ELEGIDA ===== -->
+                ${ruta ? `
+                    <div class="caja-info" style="margin-bottom: 1rem;">
+                        <i class="fas fa-route"></i>
+                        <strong>Ruta elegida:</strong> ${ruta.nombre}
+                        <p style="font-style: italic; margin: 0.5rem 0;">"${ruta.lema}"</p>
+                        <p><strong>Banco seleccionado:</strong> ${bancoSel.length > 0 ? bancoSel.join(' · ') : '(sin seleccionar)'}</p>
+                        <p><strong>Mes del cierre:</strong> ${cierreMes || '(sin definir)'}</p>
+                    </div>
+                ` : `
+                    <div class="caja-alerta" style="margin-bottom: 1rem;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Aún no has seleccionado una ruta.</strong>
+                        Regresa al sub-paso 3.1 para elegirla.
+                    </div>
+                `}
+
+                <!-- ===== TARJETAS DE ESTADO ===== -->
                 <div class="tarjeta-grid">
                     <div class="tarjeta ${validaciones.seleccionRutas ? 'completada' : 'pendiente'}">
-                        <h4><i class="fas fa-list-check"></i> 3.1 Selección de Rutas</h4>
-                        <p><strong>${rutasSeleccionadas.length}</strong> ruta(s) seleccionada(s)</p>
+                        <h4><i class="fas fa-list-check"></i> 3.1 Selección de Ruta</h4>
+                        <p>${ruta ? `<strong>${ruta.nombre}</strong>` : 'Sin ruta seleccionada'}</p>
                         ${validaciones.seleccionRutas
                             ? '<span class="chip verde"><i class="fas fa-check"></i> Completa</span>'
                             : '<span class="chip rojo"><i class="fas fa-times"></i> Pendiente</span>'}
-                        <ul style="margin-top: 0.5rem;">
-                            ${rutasInfo.map(r => `<li>${r}</li>`).join('')}
-                        </ul>
                     </div>
 
                     <div class="tarjeta ${validaciones.calendarizacion ? 'completada' : 'pendiente'}">
                         <h4><i class="fas fa-calendar-days"></i> 3.2 Calendarización</h4>
-                        <p><strong>${actividades.length}</strong> actividad(es) calendarizada(s)</p>
+                        <p><strong>${actividades.length}</strong> actividad(es)</p>
                         ${validaciones.calendarizacion
                             ? '<span class="chip verde"><i class="fas fa-check"></i> Completa</span>'
                             : '<span class="chip rojo"><i class="fas fa-times"></i> Pendiente</span>'}
@@ -275,7 +340,7 @@ const MOMENTO3 = (function() {
 
                     <div class="tarjeta ${validaciones.responsables ? 'completada' : 'pendiente'}">
                         <h4><i class="fas fa-users-gear"></i> 3.3 Responsables</h4>
-                        <p><strong>${m3.responsables.asignaciones.length}</strong> asignación(es)</p>
+                        <p><strong>${(m3.responsables?.asignaciones || []).length}</strong> asignación(es)</p>
                         ${validaciones.responsables
                             ? '<span class="chip verde"><i class="fas fa-check"></i> Completa</span>'
                             : '<span class="chip rojo"><i class="fas fa-times"></i> Pendiente</span>'}
@@ -283,7 +348,7 @@ const MOMENTO3 = (function() {
 
                     <div class="tarjeta ${validaciones.bitacora ? 'completada' : 'pendiente'}">
                         <h4><i class="fas fa-book-open"></i> 3.4 Bitácora</h4>
-                        <p><strong>${m3.bitacora.registros.length}</strong> registro(s)</p>
+                        <p><strong>${(m3.bitacora?.registros || []).length}</strong> registro(s)</p>
                         ${validaciones.bitacora
                             ? '<span class="chip verde"><i class="fas fa-check"></i> Completa</span>'
                             : '<span class="chip amarillo"><i class="fas fa-clock"></i> En proceso</span>'}
@@ -295,13 +360,44 @@ const MOMENTO3 = (function() {
                     </div>
                 </div>
 
+                <!-- ===== DATOS JALISCO AVANZA (solo si hay ruta) ===== -->
+                ${ruta ? `
+                    <div class="form-bloque" style="margin-top: 1.5rem;">
+                        <h3><i class="fas fa-chart-bar"></i> Datos que justifican esta ruta</h3>
+                        <p class="ayuda">Fuente: Jalisco Avanza 2025 · Lectura</p>
+
+                        <div class="tarjeta-grid" style="margin-top: 0.75rem;">
+                            ${justPrimaria ? `
+                                <div class="tarjeta">
+                                    <h4>Primaria · ${justPrimaria.grado}</h4>
+                                    <p><strong>${justPrimaria.ua}</strong></p>
+                                    <p style="font-size: 1.5rem; color: var(--carmesi); margin: 0.5rem 0;">
+                                        ${justPrimaria.porcentaje}%
+                                    </p>
+                                    <p class="ayuda">${justPrimaria.texto}</p>
+                                </div>
+                            ` : ''}
+                            ${justSecundaria ? `
+                                <div class="tarjeta">
+                                    <h4>Secundaria · ${justSecundaria.grado}</h4>
+                                    <p><strong>${justSecundaria.ua}</strong></p>
+                                    <p style="font-size: 1.5rem; color: var(--carmesi); margin: 0.5rem 0;">
+                                        ${justSecundaria.porcentaje}%
+                                    </p>
+                                    <p class="ayuda">${justSecundaria.texto}</p>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                ` : ''}
+
                 <!-- ===== ESTADO GENERAL ===== -->
                 <div class="caja-${validaciones.completo ? 'exito' : 'info'}" style="margin-top: 1.5rem;">
                     <i class="fas ${validaciones.completo ? 'fa-check-circle' : 'fa-info-circle'}"></i>
                     <strong>${validaciones.completo ? '¡Momento 3 completo!' : 'Momento 3 en proceso'}</strong>
                     <p style="margin-top: 0.5rem;">
                         ${validaciones.completo
-                            ? 'Puedes generar los productos: Hoja de Ruta Trimestral, Fichas de Rutas, Carta para Familias y Bitácora de Actividades.'
+                            ? 'Puedes generar los productos: Hoja de Ruta Trimestral, Ficha de Ruta, Carta para Familias y Bitácora de Actividades.'
                             : 'Completa las sub-secciones pendientes para generar los productos finales.'}
                     </p>
                 </div>
@@ -316,9 +412,9 @@ const MOMENTO3 = (function() {
                                 ${!validaciones.completo ? 'disabled' : ''}>
                             <i class="fas fa-file-lines"></i> Hoja de Ruta Trimestral
                         </button>
-                        <button type="button" class="btn btn-naranja" id="btn-generar-fichas-rutas"
+                        <button type="button" class="btn btn-naranja" id="btn-generar-ficha-ruta"
                                 ${!validaciones.seleccionRutas ? 'disabled' : ''}>
-                            <i class="fas fa-route"></i> Fichas de Rutas
+                            <i class="fas fa-route"></i> Ficha de la Ruta
                         </button>
                         <button type="button" class="btn btn-secundario" id="btn-generar-carta-familias"
                                 ${!validaciones.seleccionRutas ? 'disabled' : ''}>
@@ -341,72 +437,47 @@ const MOMENTO3 = (function() {
             </div>
         `;
 
-        // Configurar botones de exportación
         configurarBotonesExportacion();
     }
 
     /* ========================================================
-       CONFIGURAR BOTONES DE EXPORTACIÓN
+       BOTONES DE EXPORTACIÓN
        ======================================================== */
     function configurarBotonesExportacion() {
-        // Generar Hoja de Ruta
-        const btnHoja = document.getElementById('btn-generar-hoja-ruta');
-        if (btnHoja) {
-            btnHoja.addEventListener('click', () => {
-                ESTADO.marcarProductoGenerado('hojaRutaGenerada');
-                if (typeof PRODUCTOS !== 'undefined' && PRODUCTOS.generarHojaRuta) {
-                    PRODUCTOS.generarHojaRuta();
+        const bind = (id, tipo, producto) => {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            btn.addEventListener('click', () => {
+                if (typeof ESTADO !== 'undefined' && typeof ESTADO.marcarProductoGenerado === 'function') {
+                    try { ESTADO.marcarProductoGenerado(producto); } catch (e) { /* silencioso */ }
+                }
+                if (typeof PRODUCTOS !== 'undefined' && typeof PRODUCTOS[tipo] === 'function') {
+                    PRODUCTOS[tipo]();
                 } else {
-                    APP.mostrarToast('Producto "Hoja de Ruta" en desarrollo. Estará disponible pronto.', 'info');
+                    mostrarToast(`Producto "${tipo}" en desarrollo.`, 'info');
                 }
             });
-        }
+        };
 
-        // Generar Fichas de Rutas
-        const btnFichas = document.getElementById('btn-generar-fichas-rutas');
-        if (btnFichas) {
-            btnFichas.addEventListener('click', () => {
-                ESTADO.marcarProductoGenerado('fichasRutasGeneradas');
-                if (typeof PRODUCTOS !== 'undefined' && PRODUCTOS.generarFichasRutas) {
-                    PRODUCTOS.generarFichasRutas();
-                } else {
-                    APP.mostrarToast('Producto "Fichas de Rutas" en desarrollo. Estará disponible pronto.', 'info');
-                }
-            });
-        }
+        bind('btn-generar-hoja-ruta', 'generarHojaRuta', 'hojaRutaGenerada');
+        bind('btn-generar-ficha-ruta', 'generarFichaRuta', 'fichaRutaGenerada');
+        bind('btn-generar-carta-familias', 'generarCartaFamilias', 'cartaFamiliasGenerada');
+        bind('btn-generar-bitacora', 'generarBitacora', 'bitacoraGenerada');
 
-        // Generar Carta para Familias
-        const btnCarta = document.getElementById('btn-generar-carta-familias');
-        if (btnCarta) {
-            btnCarta.addEventListener('click', () => {
-                ESTADO.marcarProductoGenerado('cartaFamiliasGenerada');
-                if (typeof PRODUCTOS !== 'undefined' && PRODUCTOS.generarCartaFamilias) {
-                    PRODUCTOS.generarCartaFamilias();
-                } else {
-                    APP.mostrarToast('Producto "Carta para Familias" en desarrollo. Estará disponible pronto.', 'info');
-                }
-            });
-        }
-
-        // Generar Bitácora
-        const btnBitacora = document.getElementById('btn-generar-bitacora');
-        if (btnBitacora) {
-            btnBitacora.addEventListener('click', () => {
-                ESTADO.marcarProductoGenerado('bitacoraGenerada');
-                if (typeof PRODUCTOS !== 'undefined' && PRODUCTOS.generarBitacora) {
-                    PRODUCTOS.generarBitacora();
-                } else {
-                    APP.mostrarToast('Producto "Bitácora" en desarrollo. Estará disponible pronto.', 'info');
-                }
-            });
-        }
-
-        // Volver a sub-secciones
         const btnVolver = document.getElementById('btn-volver-sub-secciones');
         if (btnVolver) {
-            btnVolver.addEventListener('click', () => {
-                irASubSeccion('seleccion');
-            });
+            btnVolver.addEventListener('click', () => irASubSeccion('seleccion'));
+        }
+    }
+
+    /* ========================================================
+       TOAST (defensivo)
+       ======================================================== */
+    function mostrarToast(mensaje, tipo) {
+        if (typeof APP !== 'undefined' && typeof APP.mostrarToast === 'function') {
+            APP.mostrarToast(mensaje, tipo);
+        } else {
+            console.log(`[Toast ${tipo}] ${mensaje}`);
         }
     }
 
@@ -414,16 +485,17 @@ const MOMENTO3 = (function() {
        SUSCRIBIR CAMBIOS
        ======================================================== */
     function suscribirCambios() {
-        ESTADO.suscribir((evento) => {
-            if (evento === 'reiniciado' || evento === 'borradorCargado' || evento === 'importado') {
-                subSeccionActual = 'seleccion';
-                renderizar();
-            }
-            // Cuando se actualizan las rutas seleccionadas, sincronizar
-            if (evento === 'campoActualizado') {
-                // No re-renderizar automáticamente para no perder foco
-            }
-        });
+        if (typeof ESTADO === 'undefined' || typeof ESTADO.suscribir !== 'function') return;
+        try {
+            ESTADO.suscribir((evento) => {
+                if (evento === 'reiniciado' || evento === 'borradorCargado' || evento === 'importado') {
+                    subSeccionActual = 'seleccion';
+                    renderizar();
+                }
+            });
+        } catch (e) {
+            console.warn('⚠️ No se pudo suscribir a ESTADO:', e);
+        }
     }
 
     /* ========================================================
@@ -431,6 +503,7 @@ const MOMENTO3 = (function() {
        ======================================================== */
     return {
         init,
+        render,
         renderizar,
         irASubSeccion,
         getSubSeccionActual: () => subSeccionActual
@@ -438,10 +511,13 @@ const MOMENTO3 = (function() {
 
 })();
 
-// ============================================================
-// INICIALIZACIÓN AUTOMÁTICA
-// ============================================================
-document.addEventListener('DOMContentLoaded', () => {
-    // Se inicializa cuando el usuario entra al Momento 3
-    // APP.init() se encarga de llamar a MOMENTO3.init() cuando corresponde
-});
+/* ============================================================
+   EXPOSICIÓN A WINDOW — FIX CRÍTICO
+   Sin esto, app.js no encuentra el módulo (mismo bug que
+   Momento0 y Momento1 ya corrigieron).
+   ============================================================ */
+if (typeof window !== 'undefined') {
+    window.MOMENTO3 = MOMENTO3;
+    window.Momento3 = MOMENTO3;  // alias para compatibilidad con app.js
+    console.log('✅ MOMENTO3 expuesto en window');
+}
