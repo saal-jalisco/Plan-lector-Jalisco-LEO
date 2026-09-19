@@ -522,6 +522,4 @@ const SECCION2 = (function() {
     return { init, renderizar, validar };
 
 })();
-if (typeof window !== 'undefined') {
-    window.SECCION2 = SECCION2;
-}
+if (typeof window !== 'undefined') { window.SECCION2 = SECCION2; }
