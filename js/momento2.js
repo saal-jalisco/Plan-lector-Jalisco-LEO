@@ -13,14 +13,14 @@ const MOMENTO2 = (function() {
        sección del Termómetro. El orden de este array define
        el orden de navegación.
        ======================================================== */
-    const SECCIONES = [
-        { id: 'seccion1', nombre: 'Identificación',        icono: 'fa-id-card',       modulo: 'SECCION1' },
-        { id: 'seccion2', nombre: 'Línea base',            icono: 'fa-chart-line',    modulo: 'SECCION2' },
-        { id: 'seccion3', nombre: 'Voces estudiantes',     icono: 'fa-child',         modulo: 'SECCION3' },
-        { id: 'seccion4', nombre: 'Voces familias',        icono: 'fa-people-roof',   modulo: 'SECCION4' },
-        { id: 'seccion5', nombre: 'Voces docentes',        icono: 'fa-chalkboard-user', modulo: 'SECCION5' },
-        { id: 'seccion6', nombre: 'Síntesis · Termómetro', icono: 'fa-temperature-half', modulo: 'SECCION6' }
-    ];
+   const SECCIONES = [
+    { id: 'seccion1', nombre: 'Identificación',       icono: 'fa-id-card',           modulo: 'SECCION1' },
+    { id: 'seccion2', nombre: 'Línea Base',           icono: 'fa-chart-line',        modulo: 'SECCION2' },
+    { id: 'seccion3', nombre: 'Diagnóstico SAAL',     icono: 'fa-microscope',        modulo: 'SECCION3' },
+    { id: 'seccion4', nombre: 'Voces del Ecosistema', icono: 'fa-comments',          modulo: 'SECCION4' },
+    { id: 'seccion5', nombre: 'Termómetro Visual',    icono: 'fa-temperature-half',  modulo: 'SECCION5' },
+    { id: 'seccion6', nombre: 'Rutas Sugeridas',      icono: 'fa-route',             modulo: 'SECCION6' }
+];
 
     /* ========================================================
        REFERENCIAS
