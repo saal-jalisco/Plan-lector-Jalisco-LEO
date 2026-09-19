@@ -158,50 +158,55 @@ window.Momento0 = {
     },
 
     /* ===== EVENTOS ===== */
-    attachEventos() {
-        // Checkboxes
-        document.querySelectorAll('.momento0-item input[type="checkbox"]').forEach(cb => {
-            cb.addEventListener('change', (e) => {
-                const id = e.target.dataset.id;
-                const categoria = e.target.dataset.categoria;
-                const item = this.insumos[categoria].find(i => i.id === id);
-                if (item) {
-                    item.listo = e.target.checked;
-                    e.target.closest('.momento0-item').classList.toggle('listo', item.listo);
-                }
-            });
+    /* ===== EVENTOS ===== */
+attachEventos() {
+    // Checkboxes
+    document.querySelectorAll('.momento0-item input[type="checkbox"]').forEach(cb => {
+        cb.addEventListener('change', (e) => {
+            const id = e.target.dataset.id;
+            const categoria = e.target.dataset.categoria;
+            const item = this.insumos[categoria].find(i => i.id === id);
+            if (item) {
+                item.listo = e.target.checked;
+                e.target.closest('.momento0-item').classList.toggle('listo', item.listo);
+            }
         });
+    });
 
-        // Guardar
-        const btnGuardar = document.getElementById('btn-guardar-momento0');
-        if (btnGuardar) {
-            btnGuardar.addEventListener('click', () => {
-                this.guardarEstado();
-                if (window.App) App.mostrarToast('Estado de preparación guardado');
+    // Guardar
+    const btnGuardar = document.getElementById('btn-guardar-momento0');
+    if (btnGuardar) {
+        btnGuardar.addEventListener('click', () => {
+            this.guardarEstado();
+            if (window.App) App.mostrarToast('Estado de preparación guardado');
+        });
+    }
+
+    // Marcar todo
+    const btnMarcarTodo = document.getElementById('btn-marcar-todo-momento0');
+    if (btnMarcarTodo) {
+        btnMarcarTodo.addEventListener('click', () => {
+            Object.keys(this.insumos).forEach(cat => {
+                this.insumos[cat].forEach(item => item.listo = true);
             });
-        }
+            this.render();
+            if (window.App) App.mostrarToast('Todos los insumos marcados como listos');
+        });
+    }
 
-        // Marcar todo
-        const btnMarcarTodo = document.getElementById('btn-marcar-todo-momento0');
-        if (btnMarcarTodo) {
-            btnMarcarTodo.addEventListener('click', () => {
-                Object.keys(this.insumos).forEach(cat => {
-                    this.insumos[cat].forEach(item => item.listo = true);
-                });
-                this.render();
-                if (window.App) App.mostrarToast('Todos los insumos marcados como listos');
-            });
-        }
-
-        // Siguiente
-        const btnSiguiente = document.getElementById('btn-siguiente-momento');
-        if (btnSiguiente) {
-            btnSiguiente.addEventListener('click', () => {
-                if (window.App) App.cambiarMomento(1);
-            });
-        }
-    },
-
+    // Siguiente (con verificación robusta)
+    const btnSiguiente = document.getElementById('btn-siguiente-momento');
+    if (btnSiguiente) {
+        btnSiguiente.addEventListener('click', () => {
+            console.log('👉 Clic en Siguiente desde Momento 0');
+            if (window.App && typeof window.App.cambiarMomento === 'function') {
+                window.App.cambiarMomento(1);
+            } else {
+                console.error('❌ App.cambiarMomento no está disponible');
+            }
+        });
+    }
+},
     /* ===== GUARDAR ESTADO ===== */
     guardarEstado() {
         if (window.Estado && Estado.setDatos) {
