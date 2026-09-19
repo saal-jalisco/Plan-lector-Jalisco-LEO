@@ -505,3 +505,6 @@ const SECCION5 = (function() {
     return { init, renderizar, validar };
 
 })();
+if (typeof window !== 'undefined') {
+    window.SECCION5 = SECCION5;
+}
