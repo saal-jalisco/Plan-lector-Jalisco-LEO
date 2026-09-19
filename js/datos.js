@@ -1,6 +1,8 @@
 /* ============================================================
    PLAN LECTOR JALISCO LEO
-   datos.js — Datos precargados
+   datos.js — Datos precargados (v5.1)
+   Estructura: 5 Rutas LEO con anclas + banco + cierre por nivel.
+   Niveles sin actividades propias se marcan disponible:false.
    ============================================================ */
 
 const DATOS = {
@@ -12,8 +14,8 @@ const DATOS = {
         proyecto: 'Plan Lector Jalisco LEO',
         modulo: 'Plan Lector',
         fuente: 'Jalisco Avanza 2025 · Jalisco LEO',
-        version: '4.0',
-        fechaActualizacion: '2026-09-17'
+        version: '5.1',
+        fechaActualizacion: '2026-09-19'
     },
 
     /* ========================================================
@@ -51,64 +53,60 @@ const DATOS = {
         {
             id: 'secundaria',
             nombre: 'Secundaria',
-            rango: '12-14 años',
+            rango: '12-15 años',
             grados: ['1°', '2°', '3°'],
             descripcion: 'Educación secundaria.'
         },
         {
-            id: 'bachillerato',
-            nombre: 'Bachillerato',
-            rango: '15-17 años',
-            grados: ['1°', '2°', '3°'],
-            descripcion: 'Educación media superior.'
+            id: 'docentes',
+            nombre: 'LEO entre docentes',
+            rango: 'CTE',
+            grados: ['Colectivo docente'],
+            descripcion: 'Formación lectora del colectivo docente.'
         }
     ],
 
     /* ========================================================
        2. REGLAS DE FILTRADO POR NIVEL EDUCATIVO
+       Decisión de Edith: UNA ruta por trimestre.
+       Solo se listan rutas DISPONIBLES para cada nivel.
        ======================================================== */
     reglasFiltradoNivel: {
         'inicial': {
             rutasSugeridas: ['ruta2', 'ruta5'],
-            rutasOpcionales: [],
-            minimoRutas: 2,
-            maximoRutas: 3,
-            nota: 'Para Inicial, se priorizan las rutas de imaginación y comunidad.'
+            rutasOpcionales: ['ruta1'],
+            rutaUnica: true,
+            nota: 'Para Inicial se sugieren las rutas de imaginación y comunidad. La Ruta 1 (comprender) es opcional. Las rutas 3 (argumentar) y 4 (crear) no tienen actividades propias para esta edad.'
         },
         'preescolar': {
             rutasSugeridas: ['ruta1', 'ruta2', 'ruta5'],
             rutasOpcionales: ['ruta4'],
-            minimoRutas: 2,
-            maximoRutas: 4,
-            nota: 'Para Preescolar, se priorizan las rutas de comprensión, imaginación y comunidad.'
+            rutaUnica: true,
+            nota: 'Para Preescolar se sugieren las rutas de comprensión, imaginación y comunidad. La Ruta 3 (argumentar) no tiene actividades propias para esta edad.'
         },
         'primaria-baja': {
             rutasSugeridas: ['ruta1', 'ruta2', 'ruta4', 'ruta5'],
-            rutasOpcionales: ['ruta3'],
-            minimoRutas: 2,
-            maximoRutas: 5,
-            nota: 'Para Primaria Baja, se priorizan las rutas de comprensión, imaginación, creación y comunidad.'
+            rutasOpcionales: [],
+            rutaUnica: true,
+            nota: 'Para Primaria Baja se sugieren comprensión, imaginación, creación y comunidad. La Ruta 3 (argumentar) se trabaja a partir de primaria alta.'
         },
         'primaria-alta': {
             rutasSugeridas: ['ruta1', 'ruta3', 'ruta4', 'ruta5'],
             rutasOpcionales: ['ruta2'],
-            minimoRutas: 2,
-            maximoRutas: 5,
-            nota: 'Para Primaria Alta, se priorizan las rutas de comprensión, argumentación, creación y comunidad.'
+            rutaUnica: true,
+            nota: 'Para Primaria Alta se sugieren comprensión, argumentación, creación y comunidad.'
         },
         'secundaria': {
             rutasSugeridas: ['ruta1', 'ruta3', 'ruta4'],
             rutasOpcionales: ['ruta2', 'ruta5'],
-            minimoRutas: 2,
-            maximoRutas: 5,
-            nota: 'Para Secundaria, se priorizan las rutas de comprensión, argumentación y creación.'
+            rutaUnica: true,
+            nota: 'Para Secundaria se sugieren comprensión, argumentación y creación.'
         },
-        'bachillerato': {
-            rutasSugeridas: ['ruta3', 'ruta4'],
-            rutasOpcionales: ['ruta1', 'ruta2', 'ruta5'],
-            minimoRutas: 2,
-            maximoRutas: 5,
-            nota: 'Para Bachillerato, se priorizan las rutas de argumentación y creación.'
+        'docentes': {
+            rutasSugeridas: ['ruta1', 'ruta2', 'ruta3', 'ruta4', 'ruta5'],
+            rutasOpcionales: [],
+            rutaUnica: true,
+            nota: 'Para el colectivo docente, cualquiera de las 5 rutas es pertinente. Elijan la que mejor responda a su necesidad formativa.'
         }
     },
 
@@ -313,153 +311,1853 @@ const DATOS = {
     ],
 
     /* ========================================================
-       7. LAS 5 RUTAS LEO (con niveles para filtrado)
+       7. LAS 5 RUTAS LEO (v5.1 — anclas + banco + cierre)
+       Estructura por nivel:
+         - Si el nivel tiene actividades propias:
+             { anclas: [2], banco: [5-7], cierre: {1} }
+         - Si NO tiene actividades propias:
+             { disponible: false, razonNoDisponible: '...' }
+       Cada actividad: { nombre, descripcion, frecuencia, virtud }
        ======================================================== */
     rutasLEO: {
+
+        /* ======================================================
+           RUTA 1: LEO PARA COMPRENDER
+           ====================================================== */
         ruta1: {
             id: 'ruta1',
             numero: 1,
             nombre: 'LEO para comprender',
             lema: 'LEO para tender puentes entre lo que dice el texto y lo que ya sabemos.',
-            necesidad: 'Bajos resultados en comprensión lectora. Las y los estudiantes pueden decodificar, pero no siempre construyen significado, no infieren, no relacionan el texto con su experiencia.',
-            etapas: ['Etapa 3 (6-8 años)', 'Etapa 4 (9-11 años) · principal', 'Etapa 5 (12-14 años)'],
+            proposito: 'Pasar de la decodificación a la comprensión profunda. Que las y los estudiantes no solo lean las palabras, sino que construyan significado, infieran, relacionen el texto con su experiencia, identifiquen ideas principales y secundarias, distingan hechos de opiniones.',
+            criterios: [
+                'Que trabajen predicción, inferencia, ideas principales, relación texto-experiencia.',
+                'Que permitan detenerse, releer, preguntar, conversar.',
+                'Que cultiven pensamiento reflexivo, paciencia, laboriosidad, claridad.'
+            ],
             virtudes: ['Pensamiento reflexivo', 'Paciencia', 'Laboriosidad', 'Claridad'],
-            niveles: ['preescolar', 'primaria-baja', 'primaria-alta', 'secundaria'],
-            actividadesEsenciales: [
-                { nombre: 'Lectura en voz alta diaria', nivel: 'Primaria baja y alta', frecuencia: 'Diaria' },
-                { nombre: 'Adivina qué sigue', nivel: 'Preescolar y Primaria baja', frecuencia: 'Semanal' },
-                { nombre: 'Círculo de lectura semanal', nivel: 'Primaria alta y Secundaria', frecuencia: 'Semanal' }
-            ],
-            actividadesOpcionales: [
-                { nombre: 'Lectura de imágenes y predicción', nivel: 'Primaria alta', frecuencia: 'Semanal' },
-                { nombre: 'El semáforo de la lectura', nivel: 'Primaria baja', frecuencia: 'Semanal' },
-                { nombre: 'Fichero de palabras nuevas', nivel: 'Primaria baja', frecuencia: 'Semanal' },
-                { nombre: 'Reseña en 100 palabras', nivel: 'Primaria alta', frecuencia: 'Quincenal' },
-                { nombre: 'Lectura para debate', nivel: 'Secundaria', frecuencia: 'Semanal' }
-            ],
-            indicadores: {
-                cuanti: 'Porcentaje de estudiantes que mejoran su nivel de comprensión lectora en Jalisco Avanza (meta: reducir 10% anual en nivel "En desarrollo").',
-                cuali: 'Predicen, verifican, identifican ideas principales, infieren, relacionan, formulan preguntas.'
-            },
+            preguntaOrientadora: '¿Necesitamos que nuestros estudiantes comprendan mejor lo que leen?',
+            subtituloPregunta: 'Atiende: comprensión profunda, inferencia, relación texto-experiencia.',
             duracion: 'Todo el ciclo escolar, con énfasis en el primer trimestre.',
-            conexionVagones: 'Narrativa, texto informativo, texto argumentativo, poesía, texto multimodal.',
-            conexionFamilia: 'Lectura compartida en casa, el libro viajero, carta para familias con preguntas guía.'
+            datosJustificacion: {
+                primaria: {
+                    ua: 'UA 2 · Integrar información y realizar inferencias',
+                    porcentaje: 44.9,
+                    grado: '6°',
+                    texto: 'En 6° de primaria, solo el 44.9% de las y los estudiantes logra integrar información y realizar inferencias. La comprensión profunda es el área con mayor oportunidad de mejora en el último tramo de primaria.'
+                },
+                secundaria: {
+                    ua: 'UA 2 · Integrar información y realizar inferencias',
+                    porcentaje: 49.8,
+                    grado: '3°',
+                    texto: 'En 3° de secundaria, solo el 49.8% logra integrar información y realizar inferencias. La comprensión inferencial sigue siendo un reto al cierre de la educación básica.'
+                }
+            },
+            niveles: {
+                'inicial': {
+                    anclas: [
+                        {
+                            nombre: 'Lectura de imágenes con señalamiento',
+                            descripcion: 'La educadora muestra libros con imágenes grandes, señala y nombra cada elemento.',
+                            frecuencia: 'Diaria',
+                            virtud: 'Atención'
+                        },
+                        {
+                            nombre: 'Cantos y arrullos',
+                            descripcion: 'La educadora canta nanas y canciones de cuna mientras mece al bebé. La voz transmite calma y crea el primer vínculo con el lenguaje.',
+                            frecuencia: 'Diaria',
+                            virtud: 'Vínculo'
+                        }
+                    ],
+                    banco: [
+                        {
+                            nombre: 'Juego de espejo sonoro',
+                            descripcion: 'La educadora emite sonidos y espera a que el bebé los imite. Luego invierten roles.',
+                            frecuencia: 'Diaria',
+                            virtud: 'Vínculo'
+                        },
+                        {
+                            nombre: 'Baño de palabras',
+                            descripcion: 'La educadora describe en voz alta todo lo que hace durante el cuidado del bebé.',
+                            frecuencia: 'Diaria',
+                            virtud: 'Vínculo'
+                        },
+                        {
+                            nombre: 'Ritmo y movimiento con palabras',
+                            descripcion: 'La educadora recita rimas marcando el ritmo con palmadas o moviendo al bebé suavemente.',
+                            frecuencia: 'Diaria',
+                            virtud: 'Vínculo'
+                        },
+                        {
+                            nombre: 'Narración con títeres de dedo',
+                            descripcion: 'La educadora narra pequeñas historias usando títeres de dedo.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Atención'
+                        },
+                        {
+                            nombre: 'Sonidos que cuentan',
+                            descripcion: 'La educadora asocia sonidos cotidianos con pequeñas historias.',
+                            frecuencia: 'Diaria',
+                            virtud: 'Atención'
+                        }
+                    ],
+                    cierre: {
+                        nombre: 'Caja de tesoros para tocar y nombrar',
+                        descripcion: 'Una caja con objetos seguros de diferentes texturas. La educadora los muestra y los nombra.',
+                        frecuencia: 'Semanal',
+                        virtud: 'Curiosidad'
+                    }
+                },
+                'preescolar': {
+                    anclas: [
+                        {
+                            nombre: 'Lectura de imágenes',
+                            descripcion: 'Los niños "leen" las ilustraciones de libros sin texto, construyendo hipótesis narrativas.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Atención'
+                        },
+                        {
+                            nombre: 'Adivina qué sigue',
+                            descripcion: 'La educadora lee un cuento y se detiene antes del final. Los niños predicen qué pasará.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Claridad'
+                        }
+                    ],
+                    banco: [
+                        {
+                            nombre: 'Dibujo mi cuento',
+                            descripcion: 'Después de escuchar un cuento, los niños dibujan lo que más les gustó. La educadora escribe lo que dictan.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Atención'
+                        },
+                        {
+                            nombre: 'El tendedero de cuentos',
+                            descripcion: 'Después de leer un cuento, los niños dibujan escenas y las cuelgan en orden en un tendedero.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Claridad'
+                        },
+                        {
+                            nombre: 'Veo, veo de colores y formas',
+                            descripcion: 'La educadora dice: "Veo, veo algo de color..." y los niños buscan objetos que coincidan.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Atención'
+                        },
+                        {
+                            nombre: 'La bolsa misteriosa',
+                            descripcion: 'Un niño saca un objeto de una bolsa, lo nombra e inventa una frase.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Curiosidad'
+                        },
+                        {
+                            nombre: 'Juegos de adivinanzas',
+                            descripcion: 'La educadora dice adivinanzas sencillas. Los niños las resuelven y luego inventan las suyas.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Curiosidad'
+                        },
+                        {
+                            nombre: 'Memoria de sonidos',
+                            descripcion: 'La educadora graba sonidos del entorno y los niños adivinan de qué se trata.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Atención'
+                        }
+                    ],
+                    cierre: {
+                        nombre: 'El mural de las emociones',
+                        descripcion: 'Después de leer un cuento, los niños dibujan su cara expresando una emoción del personaje.',
+                        frecuencia: 'Quincenal',
+                        virtud: 'Empatía'
+                    }
+                },
+                'primaria-baja': {
+                    anclas: [
+                        {
+                            nombre: 'Lectura en voz alta diaria',
+                            descripcion: 'El docente lee en voz alta un texto literario al inicio de la jornada, modelando fluidez, entonación y prosodia. Se detiene a preguntar, a predecir, a conectar.',
+                            frecuencia: 'Diaria',
+                            virtud: 'Perseverancia'
+                        },
+                        {
+                            nombre: 'El semáforo de la lectura',
+                            descripcion: 'Con tarjetas verde, amarilla y roja, indican si entienden, tienen dudas o no entienden.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Honestidad'
+                        }
+                    ],
+                    banco: [
+                        {
+                            nombre: 'Lectura en eco',
+                            descripcion: 'El docente lee una frase y los estudiantes la repiten como un eco.',
+                            frecuencia: 'Diaria',
+                            virtud: 'Perseverancia'
+                        },
+                        {
+                            nombre: 'Fichero de palabras nuevas',
+                            descripcion: 'Cada estudiante anota palabras nuevas que encuentra al leer, con definición.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Curiosidad'
+                        },
+                        {
+                            nombre: 'Palabras que crecen',
+                            descripcion: 'A partir de una palabra base, agregan letras para formar nuevas palabras.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Curiosidad'
+                        },
+                        {
+                            nombre: 'Diario de lecturas',
+                            descripcion: 'Cada estudiante registra los libros leídos, escribe una frase y hace un dibujo.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Claridad'
+                        },
+                        {
+                            nombre: 'Lectura en parejas con cambio de voz',
+                            descripcion: 'En parejas, leen un diálogo con diferentes emociones.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Empatía'
+                        },
+                        {
+                            nombre: 'Dibujo dictado',
+                            descripcion: 'El docente lee un texto descriptivo. Los estudiantes dibujan lo que escuchan y comparan.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Claridad'
+                        },
+                        {
+                            nombre: 'Teléfono descompuesto de cuentos',
+                            descripcion: 'Un estudiante lee un cuento y se lo cuenta al oído a otro. Comparan al final.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Atención'
+                        }
+                    ],
+                    cierre: {
+                        nombre: 'Círculo de lectores',
+                        descripcion: 'Conversación mensual sobre un libro leído en común con preguntas abiertas.',
+                        frecuencia: 'Mensual',
+                        virtud: 'Respeto'
+                    }
+                },
+                'primaria-alta': {
+                    anclas: [
+                        {
+                            nombre: 'Círculo de lectura semanal',
+                            descripcion: 'Lectura y discusión de un texto común, alternando roles (moderador, cronometrista, tomador de notas). El docente guía con preguntas abiertas.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Respeto'
+                        },
+                        {
+                            nombre: 'Lectura de imágenes y predicción',
+                            descripcion: 'Antes de leer, observan ilustraciones y predicen de qué tratará la historia.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Claridad'
+                        }
+                    ],
+                    banco: [
+                        {
+                            nombre: 'Reseña en 100 palabras',
+                            descripcion: 'Escriben una reseña de exactamente 100 palabras después de leer un libro.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Claridad'
+                        },
+                        {
+                            nombre: 'Noticias del mundo',
+                            descripcion: 'Cada semana, un estudiante trae una noticia, la lee y la comenta con el grupo.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Pensamiento crítico'
+                        },
+                        {
+                            nombre: 'El árbol de los libros',
+                            descripcion: 'Un árbol dibujado en el mural. Cada estudiante coloca una hoja con el título que leyó.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Comunidad'
+                        },
+                        {
+                            nombre: 'Construir un personaje',
+                            descripcion: 'Crean un personaje a partir de preguntas guía y escriben una historia con él.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Empatía'
+                        },
+                        {
+                            nombre: 'Cartas a personajes',
+                            descripcion: 'Después de leer un libro, escriben una carta a uno de los personajes.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Empatía'
+                        },
+                        {
+                            nombre: 'Entrevista a un personaje',
+                            descripcion: 'Por parejas, un estudiante asume el rol de un personaje y el otro lo entrevista.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Empatía'
+                        },
+                        {
+                            nombre: 'Mapa de mi historia',
+                            descripcion: 'Dibujan un mapa del lugar donde transcurre el libro que están leyendo.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Creatividad'
+                        }
+                    ],
+                    cierre: {
+                        nombre: 'Tertulia literaria',
+                        descripcion: 'Conversación mensual sobre un libro leído por todos, compartiendo impresiones.',
+                        frecuencia: 'Mensual',
+                        virtud: 'Respeto'
+                    }
+                },
+                'secundaria': {
+                    anclas: [
+                        {
+                            nombre: 'Círculo de silencio lector',
+                            descripcion: 'Veinte minutos de lectura individual en absoluto silencio. Al final, escriben una frase.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Autodisciplina'
+                        },
+                        {
+                            nombre: 'Bitácora de lector',
+                            descripcion: 'Registro personal de lecturas con fecha, título, autor y una reflexión breve.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Claridad'
+                        }
+                    ],
+                    banco: [
+                        {
+                            nombre: 'Lectura para debate',
+                            descripcion: 'Leen un texto breve sobre un tema polémico, toman postura y debaten.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Pensamiento crítico'
+                        },
+                        {
+                            nombre: 'Cineminuto literario',
+                            descripcion: 'En un minuto, un estudiante cuenta de qué trata un libro y por qué lo recomienda.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Claridad'
+                        },
+                        {
+                            nombre: 'Escritura de reseñas literarias',
+                            descripcion: 'Después de leer un libro, escriben una reseña y la comparten.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Honestidad'
+                        },
+                        {
+                            nombre: 'Mapa del tesoro literario',
+                            descripcion: 'Diseñan un mapa del tesoro donde las pistas son fragmentos de libros leídos.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Generosidad'
+                        },
+                        {
+                            nombre: 'Debate de citas',
+                            descripcion: 'Defienden o refutan una cita de un autor que les tocó al azar.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Pensamiento crítico'
+                        },
+                        {
+                            nombre: 'Ensayo de 500 palabras',
+                            descripcion: 'A partir de una pregunta disparadora, escriben un ensayo breve con estructura.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Claridad'
+                        },
+                        {
+                            nombre: 'Manifiesto lector',
+                            descripcion: 'Escriben su manifiesto personal como lectores: qué leen, por qué, qué nunca leerían.',
+                            frecuencia: 'Trimestral',
+                            virtud: 'Honestidad'
+                        }
+                    ],
+                    cierre: {
+                        nombre: 'Juicio a un personaje',
+                        descripcion: 'Organizan un juicio a un personaje de una novela con fiscales, defensores y jurado.',
+                        frecuencia: 'Trimestral',
+                        virtud: 'Juicio'
+                    }
+                },
+                'docentes': {
+                    anclas: [
+                        {
+                            nombre: 'Lectura en voz alta entre colegas',
+                            descripcion: 'Un docente lee en voz alta un texto breve al inicio del CTE. Los demás escuchan y comparten impresiones.',
+                            frecuencia: 'CTE',
+                            virtud: 'Vínculo'
+                        },
+                        {
+                            nombre: 'Cartelera de docentes lectores',
+                            descripcion: 'Un espacio en la sala de maestros donde cada docente recomienda un libro con una breve reseña.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Generosidad'
+                        }
+                    ],
+                    banco: [
+                        {
+                            nombre: 'El libro que me transformó',
+                            descripcion: 'Cada mes, un docente comparte en cinco minutos el libro que marcó su vida como lector.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Honestidad'
+                        },
+                        {
+                            nombre: 'Tertulia pedagógica',
+                            descripcion: 'Lectura y discusión de un artículo o capítulo sobre didáctica de la lectura.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Perseverancia'
+                        },
+                        {
+                            nombre: 'Escritura de la práctica',
+                            descripcion: 'Cada docente escribe un breve registro de una experiencia lectora exitosa en su aula.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Responsabilidad'
+                        },
+                        {
+                            nombre: 'Círculo de lectores docentes',
+                            descripcion: 'El colectivo elige un libro literario para leer durante el trimestre. Se comenta en una sesión final.',
+                            frecuencia: 'Trimestral',
+                            virtud: 'Comunidad'
+                        },
+                        {
+                            nombre: 'Club de traducción pedagógica',
+                            descripcion: 'Los docentes eligen un texto breve en otro idioma sobre educación, lo traducen y lo comentan.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Curiosidad'
+                        },
+                        {
+                            nombre: 'Maratón de lectura docente',
+                            descripcion: 'Jornada donde cada docente lee un fragmento de su libro favorito frente a la comunidad escolar.',
+                            frecuencia: 'Anual',
+                            virtud: 'Comunidad'
+                        }
+                    ],
+                    cierre: {
+                        nombre: 'Círculo de lectores docentes',
+                        descripcion: 'El colectivo elige un libro literario para leer durante el trimestre. Se comenta en una sesión final.',
+                        frecuencia: 'Trimestral',
+                        virtud: 'Comunidad'
+                    }
+                }
+            }
         },
+
+        /* ======================================================
+           RUTA 2: LEO PARA IMAGINAR
+           ====================================================== */
         ruta2: {
             id: 'ruta2',
             numero: 2,
             nombre: 'LEO para imaginar',
             lema: 'LEO para abrir la puerta a mundos que aún no existen.',
-            necesidad: 'Falta de motivación hacia la lectura. Muchas y muchos estudiantes asocian la lectura con obligación, evaluación y tarea, no con placer, descubrimiento ni juego.',
-            etapas: ['Etapa 1 (0-2 años)', 'Etapa 2 (3-5 años)', 'Etapa 3 (6-8 años)', 'Etapa 4 (9-11 años) · principal', 'Etapa 5 (12-14 años)'],
+            proposito: 'Recuperar el gozo de leer. Que las y los estudiantes asocien la lectura con placer, descubrimiento y juego, no con obligación. Sin gusto, no hay comprensión sostenida.',
+            criterios: [
+                'Que despierte la imaginación y la curiosidad.',
+                'Que invite a explorar, jugar, sorprenderse.',
+                'Que cultive curiosidad, creatividad, atención, apego seguro.'
+            ],
             virtudes: ['Curiosidad', 'Creatividad', 'Atención', 'Apego seguro'],
-            niveles: ['inicial', 'preescolar', 'primaria-baja', 'primaria-alta', 'secundaria'],
-            actividadesEsenciales: [
-                { nombre: 'Lectura en voz alta diaria', nivel: 'Primaria baja y alta', frecuencia: 'Diaria' },
-                { nombre: 'Cita a ciegas con un libro', nivel: 'Primaria alta y Secundaria', frecuencia: 'Mensual' },
-                { nombre: 'Cuentos con títeres', nivel: 'Preescolar y Primaria baja', frecuencia: 'Quincenal' }
-            ],
-            actividadesOpcionales: [
-                { nombre: 'La bolsa misteriosa', nivel: 'Preescolar', frecuencia: 'Semanal' },
-                { nombre: 'Palabras que vuelan', nivel: 'Preescolar', frecuencia: 'Semanal' },
-                { nombre: 'Historias con tres imágenes', nivel: 'Preescolar', frecuencia: 'Semanal' },
-                { nombre: 'La ruleta de los cuentos', nivel: 'Primaria baja', frecuencia: 'Semanal' },
-                { nombre: 'Mapa de mi historia', nivel: 'Primaria alta', frecuencia: 'Mensual' }
-            ],
-            indicadores: {
-                cuanti: 'Aumento en la frecuencia de lectura por placer (encuesta a estudiantes y familias).',
-                cuali: 'Eligen libros por iniciativa propia, comparten lo que leen, imaginan finales alternativos, disfrutan de la lectura en voz alta, recomiendan libros.'
-            },
+            preguntaOrientadora: '¿Necesitamos recuperar el gusto por leer?',
+            subtituloPregunta: 'Atiende: motivación, gozo, descubrimiento, juego.',
             duracion: 'Todo el ciclo escolar, con énfasis en el primer y segundo trimestre.',
-            conexionVagones: 'Narrativa, poesía, texto multimodal, texto oral.',
-            conexionFamilia: 'Cuentos en familia, el libro viajero, fiesta de cuentos, carta para familias con actividades lúdicas.'
+            datosJustificacion: {
+                primaria: {
+                    ua: 'UA 1 · Analizar la estructura de los textos',
+                    porcentaje: 45.1,
+                    grado: '6°',
+                    texto: 'En 6° de primaria, solo el 45.1% analiza la estructura de los textos. Recuperar el gozo por leer es condición para sostener la comprensión en el tiempo.'
+                },
+                secundaria: {
+                    ua: 'UA 1 · Analizar la estructura de los textos',
+                    porcentaje: 47.9,
+                    grado: '3°',
+                    texto: 'En 3° de secundaria, solo el 47.9% analiza la estructura de los textos. La motivación lectora es un predictor clave del logro académico.'
+                }
+            },
+            niveles: {
+                'inicial': {
+                    anclas: [
+                        {
+                            nombre: 'Cantos y arrullos',
+                            descripcion: 'La educadora canta nanas y canciones de cuna mientras mece al bebé.',
+                            frecuencia: 'Diaria',
+                            virtud: 'Vínculo'
+                        },
+                        {
+                            nombre: 'Exploración de libros sensoriales',
+                            descripcion: 'Se ofrecen libros de tela, plástico o cartón para que los bebés los manipulen.',
+                            frecuencia: 'Diaria',
+                            virtud: 'Curiosidad'
+                        }
+                    ],
+                    banco: [
+                        {
+                            nombre: 'Juego de espejo sonoro',
+                            descripcion: 'La educadora emite sonidos y espera a que el bebé los imite.',
+                            frecuencia: 'Diaria',
+                            virtud: 'Vínculo'
+                        },
+                        {
+                            nombre: 'Sombras que hablan',
+                            descripcion: 'Con una lámpara y las manos, la educadora crea sombras de animales y narra historias.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Curiosidad'
+                        },
+                        {
+                            nombre: 'Caja de tesoros para tocar y nombrar',
+                            descripcion: 'Una caja con objetos seguros de diferentes texturas. La educadora los muestra y los nombra.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Curiosidad'
+                        },
+                        {
+                            nombre: 'Narración con títeres de dedo',
+                            descripcion: 'La educadora narra pequeñas historias usando títeres de dedo.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Atención'
+                        },
+                        {
+                            nombre: 'Sonidos que cuentan',
+                            descripcion: 'La educadora asocia sonidos cotidianos con pequeñas historias.',
+                            frecuencia: 'Diaria',
+                            virtud: 'Atención'
+                        }
+                    ],
+                    cierre: {
+                        nombre: 'Fiesta de nanas y arrullos (Día de las Madres)',
+                        descripcion: 'Invitación a familias para compartir nanas y cantos tradicionales con sus bebés.',
+                        frecuencia: 'Anual',
+                        virtud: 'Comunidad'
+                    }
+                },
+                'preescolar': {
+                    anclas: [
+                        {
+                            nombre: 'Cuentos con objetos cotidianos',
+                            descripcion: 'La educadora narra una historia usando objetos cotidianos. Los niños crean las suyas.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Creatividad'
+                        },
+                        {
+                            nombre: 'La bolsa misteriosa',
+                            descripcion: 'Un niño saca un objeto de una bolsa, lo nombra e inventa una frase.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Curiosidad'
+                        }
+                    ],
+                    banco: [
+                        {
+                            nombre: 'Palabras que vuelan',
+                            descripcion: 'La educadora dice una palabra y los niños responden con otra que se les ocurra.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Creatividad'
+                        },
+                        {
+                            nombre: 'Historias con tres imágenes',
+                            descripcion: 'La educadora muestra tres imágenes sin relación. Los niños inventan una historia que las conecte.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Creatividad'
+                        },
+                        {
+                            nombre: 'Cuentos con títeres de palito',
+                            descripcion: 'Después de leer un cuento, los niños lo representan con títeres de palito.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Creatividad'
+                        },
+                        {
+                            nombre: 'Veo, veo de colores y formas',
+                            descripcion: 'La educadora dice: "Veo, veo algo de color..." y los niños buscan objetos que coincidan.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Atención'
+                        },
+                        {
+                            nombre: 'Juegos de rimas y palmas',
+                            descripcion: 'La educadora dice una palabra y los niños dan palmas por cada sílaba. Luego crean rimas.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Curiosidad'
+                        },
+                        {
+                            nombre: 'Memoria de sonidos',
+                            descripcion: 'La educadora graba sonidos del entorno y los niños adivinan de qué se trata.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Atención'
+                        },
+                        {
+                            nombre: 'El libro viajero',
+                            descripcion: 'Un libro álbum viaja cada fin de semana a una familia. El lunes, el niño cuenta lo que leyó.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Vínculo'
+                        }
+                    ],
+                    cierre: {
+                        nombre: 'Fiesta de cuentos (Día del Niño)',
+                        descripcion: 'Jornada de narración oral con participación de familias. Cada familia comparte un cuento.',
+                        frecuencia: 'Anual',
+                        virtud: 'Comunidad'
+                    }
+                },
+                'primaria-baja': {
+                    anclas: [
+                        {
+                            nombre: 'Lectura en voz alta diaria',
+                            descripcion: 'El docente lee en voz alta un texto literario al inicio de la jornada. Elige textos que sorprendan, que hagan reír, que conmuevan.',
+                            frecuencia: 'Diaria',
+                            virtud: 'Perseverancia'
+                        },
+                        {
+                            nombre: 'Juegos de escritura creativa',
+                            descripcion: 'A partir de consignas breves, escriben finales alternativos, cartas a personajes, nuevas aventuras.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Creatividad'
+                        }
+                    ],
+                    banco: [
+                        {
+                            nombre: 'La ruleta de los cuentos',
+                            descripcion: 'Una ruleta con personajes, lugares y objetos. Crean un cuento con los tres elementos.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Creatividad'
+                        },
+                        {
+                            nombre: 'Cuentos con títeres',
+                            descripcion: 'Después de leer un cuento, los estudiantes lo representan con títeres.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Creatividad'
+                        },
+                        {
+                            nombre: 'Recomendación estelar',
+                            descripcion: 'Cada viernes, un estudiante recomienda un libro al grupo explicando por qué.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Generosidad'
+                        },
+                        {
+                            nombre: 'Lectura en parejas con cambio de voz',
+                            descripcion: 'En parejas, leen un diálogo con diferentes emociones.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Empatía'
+                        },
+                        {
+                            nombre: 'Palabras en el aire',
+                            descripcion: 'El docente dice una categoría. Los estudiantes dicen palabras en cadena sin repetir.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Atención'
+                        },
+                        {
+                            nombre: 'Dictado creativo',
+                            descripcion: 'El docente dicta el inicio de una historia. Los estudiantes la completan.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Creatividad'
+                        },
+                        {
+                            nombre: 'El museo de los personajes',
+                            descripcion: 'Dibujan un personaje de un libro leído y escriben tres datos sobre él. Se exhiben.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Comunidad'
+                        }
+                    ],
+                    cierre: {
+                        nombre: 'Círculo de lectores',
+                        descripcion: 'Conversación mensual sobre un libro leído en común con preguntas abiertas.',
+                        frecuencia: 'Mensual',
+                        virtud: 'Respeto'
+                    }
+                },
+                'primaria-alta': {
+                    anclas: [
+                        {
+                            nombre: 'Cita a ciegas con un libro',
+                            descripcion: 'Los libros se envuelven con solo tres pistas. Eligen uno sin saber el título.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Curiosidad'
+                        },
+                        {
+                            nombre: 'Club de escritores',
+                            descripcion: 'Espacio semanal para escribir y compartir textos propios. El docente escribe junto con ellos.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Honestidad'
+                        }
+                    ],
+                    banco: [
+                        {
+                            nombre: 'Escritura de microrrelatos',
+                            descripcion: 'A partir de una imagen, frase o palabra, escriben un microrrelato de máximo 150 palabras.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Creatividad'
+                        },
+                        {
+                            nombre: 'Mapa de mi historia',
+                            descripcion: 'Dibujan un mapa del lugar donde transcurre el libro que están leyendo.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Creatividad'
+                        },
+                        {
+                            nombre: 'Construir un personaje',
+                            descripcion: 'Crean un personaje a partir de preguntas guía y escriben una historia con él.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Empatía'
+                        },
+                        {
+                            nombre: 'Poema colectivo',
+                            descripcion: 'Cada estudiante escribe un verso. Se juntan todos y se arma un poema colectivo.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Comunidad'
+                        },
+                        {
+                            nombre: 'El debate del libro',
+                            descripcion: 'Dos estudiantes defienden por qué su libro favorito es mejor, con argumentos y sin descalificar.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Respeto'
+                        },
+                        {
+                            nombre: 'Cartas a personajes',
+                            descripcion: 'Después de leer un libro, escriben una carta a uno de los personajes.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Empatía'
+                        },
+                        {
+                            nombre: 'Diccionario de autor',
+                            descripcion: 'Cada estudiante elige cinco palabras que definan su estilo como escritor.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Honestidad'
+                        }
+                    ],
+                    cierre: {
+                        nombre: 'Maratón de lectura',
+                        descripcion: 'Jornada completa dedicada a la lectura en todos los espacios de la escuela.',
+                        frecuencia: 'Trimestral',
+                        virtud: 'Comunidad'
+                    }
+                },
+                'secundaria': {
+                    anclas: [
+                        {
+                            nombre: 'Club de lectura juvenil',
+                            descripcion: 'Se reúnen voluntariamente para leer y conversar sobre libros.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Vínculo'
+                        },
+                        {
+                            nombre: 'Cita a ciegas con un libro',
+                            descripcion: 'Los libros se envuelven con solo tres pistas. Eligen uno sin saber el título.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Curiosidad'
+                        }
+                    ],
+                    banco: [
+                        {
+                            nombre: 'Escritura de microrrelatos',
+                            descripcion: 'A partir de una imagen, frase o palabra, escriben un microrrelato de máximo 150 palabras.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Creatividad'
+                        },
+                        {
+                            nombre: 'Podcast literario',
+                            descripcion: 'Graban un breve podcast recomendando un libro, con música y efectos de sonido.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Creatividad'
+                        },
+                        {
+                            nombre: 'Cadáver exquisito',
+                            descripcion: 'En grupo, cada estudiante escribe una línea sin ver lo que escribió el anterior.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Creatividad'
+                        },
+                        {
+                            nombre: 'Contraportada',
+                            descripcion: 'Escriben la contraportada de un libro que aún no existe, con título, sinopsis y frase gancho.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Creatividad'
+                        },
+                        {
+                            nombre: 'Club de traducción de canciones',
+                            descripcion: 'Eligen una canción en otro idioma, la traducen y analizan la letra.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Curiosidad'
+                        },
+                        {
+                            nombre: 'Mapa del tesoro literario',
+                            descripcion: 'Diseñan un mapa del tesoro donde las pistas son fragmentos de libros leídos.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Generosidad'
+                        },
+                        {
+                            nombre: 'Taller de spoken word',
+                            descripcion: 'Crean e interpretan textos poéticos para ser dichos en voz alta.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Valentía'
+                        }
+                    ],
+                    cierre: {
+                        nombre: 'Slam de poesía (Día Mundial de la Poesía)',
+                        descripcion: 'Los estudiantes escriben poemas y los interpretan frente al grupo. El público vota.',
+                        frecuencia: 'Anual',
+                        virtud: 'Valentía'
+                    }
+                },
+                'docentes': {
+                    anclas: [
+                        {
+                            nombre: 'Lectura en voz alta entre colegas',
+                            descripcion: 'Un docente lee en voz alta un texto breve al inicio del CTE. Los demás escuchan y comparten impresiones.',
+                            frecuencia: 'CTE',
+                            virtud: 'Vínculo'
+                        },
+                        {
+                            nombre: 'Cartelera de docentes lectores',
+                            descripcion: 'Un espacio en la sala de maestros donde cada docente recomienda un libro con una breve reseña.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Generosidad'
+                        }
+                    ],
+                    banco: [
+                        {
+                            nombre: 'El libro que me transformó',
+                            descripcion: 'Cada mes, un docente comparte en cinco minutos el libro que marcó su vida como lector.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Honestidad'
+                        },
+                        {
+                            nombre: 'Tertulia pedagógica',
+                            descripcion: 'Lectura y discusión de un artículo o capítulo sobre didáctica de la lectura.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Perseverancia'
+                        },
+                        {
+                            nombre: 'Escritura de la práctica',
+                            descripcion: 'Cada docente escribe un breve registro de una experiencia lectora exitosa en su aula.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Responsabilidad'
+                        },
+                        {
+                            nombre: 'Círculo de lectores docentes',
+                            descripcion: 'El colectivo elige un libro literario para leer durante el trimestre. Se comenta en una sesión final.',
+                            frecuencia: 'Trimestral',
+                            virtud: 'Comunidad'
+                        },
+                        {
+                            nombre: 'Club de traducción pedagógica',
+                            descripcion: 'Los docentes eligen un texto breve en otro idioma sobre educación, lo traducen y lo comentan.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Curiosidad'
+                        },
+                        {
+                            nombre: 'Maratón de lectura docente',
+                            descripcion: 'Jornada donde cada docente lee un fragmento de su libro favorito frente a la comunidad escolar.',
+                            frecuencia: 'Anual',
+                            virtud: 'Comunidad'
+                        }
+                    ],
+                    cierre: {
+                        nombre: 'Círculo de lectores docentes',
+                        descripcion: 'El colectivo elige un libro literario para leer durante el trimestre. Se comenta en una sesión final.',
+                        frecuencia: 'Trimestral',
+                        virtud: 'Comunidad'
+                    }
+                }
+            }
         },
+
+        /* ======================================================
+           RUTA 3: LEO PARA ARGUMENTAR
+           Niveles no disponibles: inicial, preescolar, primaria-baja
+           (no tiene actividades propias para estas edades)
+           ====================================================== */
         ruta3: {
             id: 'ruta3',
             numero: 3,
             nombre: 'LEO para argumentar',
             lema: 'LEO para aprender a decir lo que pensamos, con razones y con respeto.',
-            necesidad: 'Dificultad para expresar opiniones fundamentadas. Las y los estudiantes opinan, pero no siempre argumentan; confunden opinión con hecho; no citan evidencias.',
-            etapas: ['Etapa 4 (9-11 años)', 'Etapa 5 (12-14 años) · principal', 'Etapa 6 (15-17 años)'],
+            proposito: 'Pensar críticamente, argumentar con evidencia y dialogar con respeto. Que las y los estudiantes distingan hechos de opiniones, citen evidencias, escuchen posturas distintas y formen opinión propia.',
+            criterios: [
+                'Que planteen temas controversiales o dilemas éticos.',
+                'Que permitan identificar argumentos y contraargumentos.',
+                'Que inviten a citar evidencias del texto.',
+                'Que cultiven juicio, veracidad, civilidad, pensamiento crítico.'
+            ],
             virtudes: ['Juicio', 'Veracidad', 'Civilidad', 'Pensamiento crítico'],
-            niveles: ['primaria-alta', 'secundaria', 'bachillerato'],
-            actividadesEsenciales: [
-                { nombre: 'Noticias del mundo', nivel: 'Primaria alta', frecuencia: 'Semanal' },
-                { nombre: 'Debate de posturas', nivel: 'Primaria alta y Secundaria', frecuencia: 'Quincenal' },
-                { nombre: 'Lectura para debate', nivel: 'Secundaria', frecuencia: 'Semanal' }
-            ],
-            actividadesOpcionales: [
-                { nombre: 'El debate del libro', nivel: 'Primaria alta', frecuencia: 'Quincenal' },
-                { nombre: 'Tertulia literaria', nivel: 'Primaria alta y Secundaria', frecuencia: 'Mensual' },
-                { nombre: 'Debate de citas', nivel: 'Secundaria', frecuencia: 'Quincenal' },
-                { nombre: 'Ensayo de 500 palabras', nivel: 'Secundaria', frecuencia: 'Mensual' },
-                { nombre: 'Juicio a un personaje', nivel: 'Secundaria', frecuencia: 'Trimestral' }
-            ],
-            indicadores: {
-                cuanti: 'Porcentaje de estudiantes que mejoran su nivel de pensamiento crítico en Jalisco Avanza (meta: reducir 10% anual en nivel "En desarrollo").',
-                cuali: 'Distinguen hechos de opiniones, citan evidencias, escuchan posturas distintas con respeto, formulan preguntas críticas, argumentan oralmente y por escrito.'
-            },
+            preguntaOrientadora: '¿Necesitamos que argumenten con evidencia?',
+            subtituloPregunta: 'Atiende: pensamiento crítico, evidencia, diálogo respetuoso.',
             duracion: 'Todo el ciclo escolar, con énfasis en el segundo y tercer trimestre.',
-            conexionVagones: 'Texto argumentativo, texto informativo, narrativa, texto multimodal.',
-            conexionFamilia: 'Debate en casa, carta para familias con preguntas para argumentar, noticias en familia.'
+            datosJustificacion: {
+                primaria: {
+                    ua: 'UA 1 · Analizar la estructura de los textos',
+                    porcentaje: 45.1,
+                    grado: '6°',
+                    texto: 'En 6° de primaria, solo el 45.1% analiza la estructura de los textos. La argumentación con evidencia es una de las habilidades más deficitarias al cierre de primaria.'
+                },
+                secundaria: {
+                    ua: 'UA 1 · Analizar la estructura de los textos',
+                    porcentaje: 47.9,
+                    grado: '3°',
+                    texto: 'En 3° de secundaria, solo el 47.9% analiza la estructura de los textos. Formar el juicio crítico es una prioridad de la educación básica.'
+                }
+            },
+            niveles: {
+                'inicial': {
+                    disponible: false,
+                    razonNoDisponible: 'La argumentación con evidencia no es pertinente para bebés de 0 a 2 años. Las actividades que aparecen en el documento consolidado son las mismas que la Ruta 1 (comprender). Te sugerimos elegir Ruta 1 (comprender) o Ruta 2 (imaginar) para este nivel.'
+                },
+                'preescolar': {
+                    disponible: false,
+                    razonNoDisponible: 'La argumentación formal no es pertinente para preescolar. Las actividades del documento consolidado son una mezcla de Ruta 1 y Ruta 2. Te sugerimos elegir Ruta 1 (comprender) o Ruta 2 (imaginar) para este nivel.'
+                },
+                'primaria-baja': {
+                    disponible: false,
+                    razonNoDisponible: 'La argumentación con evidencia se trabaja a partir de primaria alta. Las actividades del documento consolidado son las mismas que la Ruta 1. Te sugerimos elegir Ruta 1 (comprender) o Ruta 2 (imaginar) para este nivel.'
+                },
+                'primaria-alta': {
+                    anclas: [
+                        {
+                            nombre: 'Noticias del mundo',
+                            descripcion: 'Cada semana, un estudiante trae una noticia, la lee y la comenta con el grupo.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Pensamiento crítico'
+                        },
+                        {
+                            nombre: 'Debate de posturas',
+                            descripcion: 'A partir de un texto, defienden posturas opuestas con argumentos.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Pensamiento crítico / Civilidad'
+                        }
+                    ],
+                    banco: [
+                        {
+                            nombre: 'El debate del libro',
+                            descripcion: 'Dos estudiantes defienden por qué su libro favorito es mejor, con argumentos y sin descalificar.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Respeto'
+                        },
+                        {
+                            nombre: 'Tertulia literaria',
+                            descripcion: 'Conversación mensual sobre un libro leído por todos, compartiendo impresiones y reflexiones.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Respeto'
+                        },
+                        {
+                            nombre: 'Reseña en 100 palabras',
+                            descripcion: 'Escriben una reseña de exactamente 100 palabras después de leer un libro.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Claridad'
+                        },
+                        {
+                            nombre: 'Cartas a personajes',
+                            descripcion: 'Después de leer un libro, escriben una carta a uno de los personajes.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Empatía'
+                        },
+                        {
+                            nombre: 'Entrevista a un personaje',
+                            descripcion: 'Por parejas, un estudiante asume el rol de un personaje y el otro lo entrevista.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Empatía'
+                        },
+                        {
+                            nombre: 'Construir un personaje',
+                            descripcion: 'Crean un personaje a partir de preguntas guía y escriben una historia con él.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Empatía'
+                        },
+                        {
+                            nombre: 'Noticias de mi comunidad',
+                            descripcion: 'Escriben crónicas breves sobre eventos de su comunidad para un periódico escolar.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Responsabilidad'
+                        }
+                    ],
+                    cierre: {
+                        nombre: 'Debate de posturas',
+                        descripcion: 'A partir de un texto, defienden posturas opuestas con argumentos.',
+                        frecuencia: 'Quincenal',
+                        virtud: 'Pensamiento crítico / Civilidad'
+                    }
+                },
+                'secundaria': {
+                    anclas: [
+                        {
+                            nombre: 'Lectura para debate',
+                            descripcion: 'Leen un texto breve sobre un tema polémico, toman postura y debaten.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Pensamiento crítico'
+                        },
+                        {
+                            nombre: 'Debate de citas',
+                            descripcion: 'Defienden o refutan una cita de un autor que les tocó al azar.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Pensamiento crítico'
+                        }
+                    ],
+                    banco: [
+                        {
+                            nombre: 'Ensayo de 500 palabras',
+                            descripcion: 'A partir de una pregunta disparadora, escriben un ensayo breve con estructura.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Claridad'
+                        },
+                        {
+                            nombre: 'Juicio a un personaje',
+                            descripcion: 'Organizan un juicio a un personaje de una novela con fiscales, defensores y jurado.',
+                            frecuencia: 'Trimestral',
+                            virtud: 'Juicio'
+                        },
+                        {
+                            nombre: 'Escritura de reseñas literarias',
+                            descripcion: 'Después de leer un libro, escriben una reseña y la comparten.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Honestidad'
+                        },
+                        {
+                            nombre: 'Manifiesto lector',
+                            descripcion: 'Escriben su manifiesto personal como lectores: qué leen, por qué, qué nunca leerían.',
+                            frecuencia: 'Trimestral',
+                            virtud: 'Honestidad'
+                        },
+                        {
+                            nombre: 'Carta a mi yo lector del pasado',
+                            descripcion: 'Escriben una carta a sí mismos cuando eran niños sobre lo que la lectura les ha dado.',
+                            frecuencia: 'Anual',
+                            virtud: 'Empatía'
+                        },
+                        {
+                            nombre: 'Club de traducción de canciones',
+                            descripcion: 'Eligen una canción en otro idioma, la traducen y analizan la letra.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Curiosidad'
+                        },
+                        {
+                            nombre: 'Cineminuto literario',
+                            descripcion: 'En un minuto, un estudiante cuenta de qué trata un libro y por qué lo recomienda.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Claridad'
+                        }
+                    ],
+                    cierre: {
+                        nombre: 'Juicio a un personaje',
+                        descripcion: 'Organizan un juicio a un personaje de una novela con fiscales, defensores y jurado.',
+                        frecuencia: 'Trimestral',
+                        virtud: 'Juicio'
+                    }
+                },
+                'docentes': {
+                    anclas: [
+                        {
+                            nombre: 'Lectura en voz alta entre colegas',
+                            descripcion: 'Un docente lee en voz alta un texto breve al inicio del CTE. Los demás escuchan y comparten impresiones.',
+                            frecuencia: 'CTE',
+                            virtud: 'Vínculo'
+                        },
+                        {
+                            nombre: 'Tertulia pedagógica',
+                            descripcion: 'Lectura y discusión de un artículo o capítulo sobre didáctica de la lectura.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Perseverancia'
+                        }
+                    ],
+                    banco: [
+                        {
+                            nombre: 'El libro que me transformó',
+                            descripcion: 'Cada mes, un docente comparte en cinco minutos el libro que marcó su vida como lector.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Honestidad'
+                        },
+                        {
+                            nombre: 'Escritura de la práctica',
+                            descripcion: 'Cada docente escribe un breve registro de una experiencia lectora exitosa en su aula.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Responsabilidad'
+                        },
+                        {
+                            nombre: 'Círculo de lectores docentes',
+                            descripcion: 'El colectivo elige un libro literario para leer durante el trimestre. Se comenta en una sesión final.',
+                            frecuencia: 'Trimestral',
+                            virtud: 'Comunidad'
+                        },
+                        {
+                            nombre: 'Club de traducción pedagógica',
+                            descripcion: 'Los docentes eligen un texto breve en otro idioma sobre educación, lo traducen y lo comentan.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Curiosidad'
+                        },
+                        {
+                            nombre: 'Maratón de lectura docente',
+                            descripcion: 'Jornada donde cada docente lee un fragmento de su libro favorito frente a la comunidad escolar.',
+                            frecuencia: 'Anual',
+                            virtud: 'Comunidad'
+                        },
+                        {
+                            nombre: 'Cartelera de docentes lectores',
+                            descripcion: 'Un espacio en la sala de maestros donde cada docente recomienda un libro con una breve reseña.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Generosidad'
+                        }
+                    ],
+                    cierre: {
+                        nombre: 'Círculo de lectores docentes',
+                        descripcion: 'El colectivo elige un libro literario para leer durante el trimestre. Se comenta en una sesión final.',
+                        frecuencia: 'Trimestral',
+                        virtud: 'Comunidad'
+                    }
+                }
+            }
         },
+
+        /* ======================================================
+           RUTA 4: LEO PARA CREAR
+           Nivel no disponible: inicial
+           (no tiene actividades propias para 0-2 años)
+           ====================================================== */
         ruta4: {
             id: 'ruta4',
             numero: 4,
             nombre: 'LEO para crear',
             lema: 'LEO para sembrar palabras y cosechar mundos.',
-            necesidad: 'Poca producción escrita creativa. Las y los estudiantes leen, pero no siempre escriben; cuando escriben, lo hacen por obligación, sin disfrute, sin voz propia.',
-            etapas: ['Etapa 2 (3-5 años)', 'Etapa 3 (6-8 años)', 'Etapa 4 (9-11 años) · principal', 'Etapa 5 (12-14 años)', 'Etapa 6 (15-17 años)'],
+            proposito: 'Producir textos propios, expresarse, crear, encontrar la propia voz. Que las y los estudiantes no solo lean, sino que escriban con disfrute, con intención estética, con voz propia.',
+            criterios: [
+                'Que inviten a producir textos propios.',
+                'Que conecten lectura y escritura.',
+                'Que cultiven creatividad, honestidad, perseverancia, claridad.'
+            ],
             virtudes: ['Creatividad', 'Honestidad', 'Perseverancia', 'Claridad'],
-            niveles: ['preescolar', 'primaria-baja', 'primaria-alta', 'secundaria', 'bachillerato'],
-            actividadesEsenciales: [
-                { nombre: 'Juegos de escritura creativa', nivel: 'Primaria baja', frecuencia: 'Semanal' },
-                { nombre: 'Club de escritores', nivel: 'Primaria alta', frecuencia: 'Semanal' },
-                { nombre: 'Escritura de microrrelatos', nivel: 'Primaria alta y Secundaria', frecuencia: 'Quincenal' }
-            ],
-            actividadesOpcionales: [
-                { nombre: 'Dibujo mi cuento', nivel: 'Preescolar', frecuencia: 'Semanal' },
-                { nombre: 'Cantamos y escribimos', nivel: 'Preescolar', frecuencia: 'Semanal' },
-                { nombre: 'Historias con tres imágenes', nivel: 'Preescolar', frecuencia: 'Semanal' },
-                { nombre: 'Poema colectivo', nivel: 'Primaria alta', frecuencia: 'Mensual' },
-                { nombre: 'Contraportada', nivel: 'Secundaria', frecuencia: 'Quincenal' }
-            ],
-            indicadores: {
-                cuanti: 'Porcentaje de estudiantes que producen textos propios de manera regular (portafolio de escritura).',
-                cuali: 'Escriben por iniciativa propia, comparten sus textos, revisan y mejoran, experimentan con géneros y formatos, encuentran su propia voz.'
-            },
+            preguntaOrientadora: '¿Necesitamos que produzcan textos propios?',
+            subtituloPregunta: 'Atiende: escritura creativa, voz propia, producción de textos.',
             duracion: 'Todo el ciclo escolar, con énfasis en el segundo y tercer trimestre.',
-            conexionVagones: 'Narrativa, poesía, texto multimodal, texto dramático.',
-            conexionFamilia: 'Escritura en familia, carta para familias con actividades, el libro viajero con página nueva.'
+            datosJustificacion: {
+                primaria: {
+                    ua: 'UA 3 · Localizar y extraer información',
+                    porcentaje: 47.9,
+                    grado: '6°',
+                    texto: 'En 6° de primaria, solo el 47.9% localiza y extrae información. La producción escrita propia es la cara complementaria de la comprensión lectora.'
+                },
+                secundaria: {
+                    ua: 'UA 1 · Analizar la estructura de los textos',
+                    porcentaje: 47.9,
+                    grado: '3°',
+                    texto: 'En 3° de secundaria, solo el 47.9% analiza la estructura de los textos. Producir textos propios consolida la comprensión de la estructura textual.'
+                }
+            },
+            niveles: {
+                'inicial': {
+                    disponible: false,
+                    razonNoDisponible: 'La producción de textos propios no aplica para bebés de 0 a 2 años. Las actividades del documento consolidado son las mismas que la Ruta 1 (comprender). Te sugerimos elegir Ruta 1 (comprender) o Ruta 2 (imaginar) para este nivel.'
+                },
+                'preescolar': {
+                    anclas: [
+                        {
+                            nombre: 'Dibujo mi cuento',
+                            descripcion: 'Después de escuchar un cuento, los niños dibujan lo que más les gustó. La educadora escribe lo que dictan.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Atención'
+                        },
+                        {
+                            nombre: 'Cantamos y escribimos',
+                            descripcion: 'Los niños cantan una canción breve y dictan la letra para que la educadora la escriba.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Vínculo'
+                        }
+                    ],
+                    banco: [
+                        {
+                            nombre: 'Historias con tres imágenes',
+                            descripcion: 'La educadora muestra tres imágenes sin relación. Los niños inventan una historia que las conecte.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Creatividad'
+                        },
+                        {
+                            nombre: 'Cuentos con títeres de palito',
+                            descripcion: 'Después de leer un cuento, los niños lo representan con títeres de palito.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Creatividad'
+                        },
+                        {
+                            nombre: 'Palabras que vuelan',
+                            descripcion: 'La educadora dice una palabra y los niños responden con otra que se les ocurra.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Creatividad'
+                        },
+                        {
+                            nombre: 'Dictado de palabras cariñosas',
+                            descripcion: 'Los niños dicen palabras bonitas. La educadora las escribe y ellos las copian o dibujan.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Vínculo'
+                        },
+                        {
+                            nombre: 'El tren de los nombres',
+                            descripcion: 'Cada niño escribe su nombre en un vagón de papel. Se forma un tren y se leen en voz alta.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Comunidad'
+                        },
+                        {
+                            nombre: 'Cuentos con objetos cotidianos',
+                            descripcion: 'La educadora narra una historia usando objetos cotidianos. Los niños crean las suyas.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Creatividad'
+                        },
+                        {
+                            nombre: 'El tendedero de cuentos',
+                            descripcion: 'Después de leer un cuento, los niños dibujan escenas y las cuelgan en orden en un tendedero.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Claridad'
+                        }
+                    ],
+                    cierre: {
+                        nombre: 'Fiesta de cuentos (Día del Niño)',
+                        descripcion: 'Jornada de narración oral con participación de familias. Cada familia comparte un cuento.',
+                        frecuencia: 'Anual',
+                        virtud: 'Comunidad'
+                    }
+                },
+                'primaria-baja': {
+                    anclas: [
+                        {
+                            nombre: 'Juegos de escritura creativa',
+                            descripcion: 'A partir de consignas breves, escriben finales alternativos, cartas a personajes, nuevas aventuras.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Creatividad'
+                        },
+                        {
+                            nombre: 'Diario de lecturas',
+                            descripcion: 'Cada estudiante registra los libros leídos, escribe una frase y hace un dibujo.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Claridad'
+                        }
+                    ],
+                    banco: [
+                        {
+                            nombre: 'La ruleta de los cuentos',
+                            descripcion: 'Una ruleta con personajes, lugares y objetos. Crean un cuento con los tres elementos.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Creatividad'
+                        },
+                        {
+                            nombre: 'Dictado creativo',
+                            descripcion: 'El docente dicta el inicio de una historia. Los estudiantes la completan.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Creatividad'
+                        },
+                        {
+                            nombre: 'El museo de los personajes',
+                            descripcion: 'Dibujan un personaje de un libro leído y escriben tres datos sobre él. Se exhiben.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Comunidad'
+                        },
+                        {
+                            nombre: 'Recomendación estelar',
+                            descripcion: 'Cada viernes, un estudiante recomienda un libro al grupo explicando por qué.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Generosidad'
+                        },
+                        {
+                            nombre: 'Palabras que crecen',
+                            descripcion: 'A partir de una palabra base, agregan letras para formar nuevas palabras.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Curiosidad'
+                        },
+                        {
+                            nombre: 'Fichero de palabras nuevas',
+                            descripcion: 'Cada estudiante anota palabras nuevas que encuentra al leer, con definición.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Curiosidad'
+                        },
+                        {
+                            nombre: 'Lectura en parejas con cambio de voz',
+                            descripcion: 'En parejas, leen un diálogo con diferentes emociones.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Empatía'
+                        }
+                    ],
+                    cierre: {
+                        nombre: 'Círculo de lectores',
+                        descripcion: 'Conversación mensual sobre un libro leído en común con preguntas abiertas.',
+                        frecuencia: 'Mensual',
+                        virtud: 'Respeto'
+                    }
+                },
+                'primaria-alta': {
+                    anclas: [
+                        {
+                            nombre: 'Club de escritores',
+                            descripcion: 'Espacio semanal para escribir y compartir textos propios. El docente escribe junto con ellos.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Honestidad'
+                        },
+                        {
+                            nombre: 'Escritura de microrrelatos',
+                            descripcion: 'A partir de una imagen, frase o palabra, escriben un microrrelato de máximo 150 palabras.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Creatividad'
+                        }
+                    ],
+                    banco: [
+                        {
+                            nombre: 'Poema colectivo',
+                            descripcion: 'Cada estudiante escribe un verso. Se juntan todos y se arma un poema colectivo.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Comunidad'
+                        },
+                        {
+                            nombre: 'Construir un personaje',
+                            descripcion: 'Crean un personaje a partir de preguntas guía y escriben una historia con él.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Empatía'
+                        },
+                        {
+                            nombre: 'Cartas a personajes',
+                            descripcion: 'Después de leer un libro, escriben una carta a uno de los personajes.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Empatía'
+                        },
+                        {
+                            nombre: 'Diccionario de autor',
+                            descripcion: 'Cada estudiante elige cinco palabras que definan su estilo como escritor.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Honestidad'
+                        },
+                        {
+                            nombre: 'Carta al autor',
+                            descripcion: 'Escriben una carta al autor de un libro contándole qué les pareció.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Empatía'
+                        },
+                        {
+                            nombre: 'Mapa de mi historia',
+                            descripcion: 'Dibujan un mapa del lugar donde transcurre el libro que están leyendo.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Creatividad'
+                        },
+                        {
+                            nombre: 'Reseña en 100 palabras',
+                            descripcion: 'Escriben una reseña de exactamente 100 palabras después de leer un libro.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Claridad'
+                        }
+                    ],
+                    cierre: {
+                        nombre: 'Maratón de lectura',
+                        descripcion: 'Jornada completa dedicada a la lectura en todos los espacios de la escuela.',
+                        frecuencia: 'Trimestral',
+                        virtud: 'Comunidad'
+                    }
+                },
+                'secundaria': {
+                    anclas: [
+                        {
+                            nombre: 'Club de escritores',
+                            descripcion: 'Espacio semanal para escribir y compartir textos propios. El docente escribe junto con ellos.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Honestidad'
+                        },
+                        {
+                            nombre: 'Escritura de microrrelatos',
+                            descripcion: 'A partir de una imagen, frase o palabra, escriben un microrrelato de máximo 150 palabras.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Creatividad'
+                        }
+                    ],
+                    banco: [
+                        {
+                            nombre: 'Podcast literario',
+                            descripcion: 'Graban un breve podcast recomendando un libro, con música y efectos de sonido.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Creatividad'
+                        },
+                        {
+                            nombre: 'Cadáver exquisito',
+                            descripcion: 'En grupo, cada estudiante escribe una línea sin ver lo que escribió el anterior.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Creatividad'
+                        },
+                        {
+                            nombre: 'Contraportada',
+                            descripcion: 'Escriben la contraportada de un libro que aún no existe, con título, sinopsis y frase gancho.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Creatividad'
+                        },
+                        {
+                            nombre: 'Taller de spoken word',
+                            descripcion: 'Crean e interpretan textos poéticos para ser dichos en voz alta.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Valentía'
+                        },
+                        {
+                            nombre: 'Manifiesto lector',
+                            descripcion: 'Escriben su manifiesto personal como lectores: qué leen, por qué, qué nunca leerían.',
+                            frecuencia: 'Trimestral',
+                            virtud: 'Honestidad'
+                        },
+                        {
+                            nombre: 'Carta a mi yo lector del pasado',
+                            descripcion: 'Escriben una carta a sí mismos cuando eran niños sobre lo que la lectura les ha dado.',
+                            frecuencia: 'Anual',
+                            virtud: 'Empatía'
+                        },
+                        {
+                            nombre: 'Club de traducción de canciones',
+                            descripcion: 'Eligen una canción en otro idioma, la traducen y analizan la letra.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Curiosidad'
+                        }
+                    ],
+                    cierre: {
+                        nombre: 'Slam de poesía (Día Mundial de la Poesía)',
+                        descripcion: 'Los estudiantes escriben poemas y los interpretan frente al grupo. El público vota.',
+                        frecuencia: 'Anual',
+                        virtud: 'Valentía'
+                    }
+                },
+                'docentes': {
+                    anclas: [
+                        {
+                            nombre: 'Escritura de la práctica',
+                            descripcion: 'Cada docente escribe un breve registro de una experiencia lectora exitosa en su aula.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Responsabilidad'
+                        },
+                        {
+                            nombre: 'Cartelera de docentes lectores',
+                            descripcion: 'Un espacio en la sala de maestros donde cada docente recomienda un libro con una breve reseña.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Generosidad'
+                        }
+                    ],
+                    banco: [
+                        {
+                            nombre: 'El libro que me transformó',
+                            descripcion: 'Cada mes, un docente comparte en cinco minutos el libro que marcó su vida como lector.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Honestidad'
+                        },
+                        {
+                            nombre: 'Tertulia pedagógica',
+                            descripcion: 'Lectura y discusión de un artículo o capítulo sobre didáctica de la lectura.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Perseverancia'
+                        },
+                        {
+                            nombre: 'Círculo de lectores docentes',
+                            descripcion: 'El colectivo elige un libro literario para leer durante el trimestre. Se comenta en una sesión final.',
+                            frecuencia: 'Trimestral',
+                            virtud: 'Comunidad'
+                        },
+                        {
+                            nombre: 'Club de traducción pedagógica',
+                            descripcion: 'Los docentes eligen un texto breve en otro idioma sobre educación, lo traducen y lo comentan.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Curiosidad'
+                        },
+                        {
+                            nombre: 'Maratón de lectura docente',
+                            descripcion: 'Jornada donde cada docente lee un fragmento de su libro favorito frente a la comunidad escolar.',
+                            frecuencia: 'Anual',
+                            virtud: 'Comunidad'
+                        },
+                        {
+                            nombre: 'Lectura en voz alta entre colegas',
+                            descripcion: 'Un docente lee en voz alta un texto breve al inicio del CTE. Los demás escuchan y comparten impresiones.',
+                            frecuencia: 'CTE',
+                            virtud: 'Vínculo'
+                        }
+                    ],
+                    cierre: {
+                        nombre: 'Círculo de lectores docentes',
+                        descripcion: 'El colectivo elige un libro literario para leer durante el trimestre. Se comenta en una sesión final.',
+                        frecuencia: 'Trimestral',
+                        virtud: 'Comunidad'
+                    }
+                }
+            }
         },
+
+        /* ======================================================
+           RUTA 5: LEO EN COMUNIDAD
+           ====================================================== */
         ruta5: {
             id: 'ruta5',
             numero: 5,
             nombre: 'LEO en comunidad',
             lema: 'LEO para tejer la red que nos sostiene.',
-            necesidad: 'Poca participación de las familias y la comunidad en la formación lectora. La lectura se concibe como una actividad solitaria, escolar, individual.',
-            etapas: ['Etapa 1 (0-2 años)', 'Etapa 2 (3-5 años)', 'Etapa 3 (6-8 años)', 'Etapa 4 (9-11 años) · principal', 'Etapa 5 (12-14 años)', 'Etapa 6 (15-17 años)'],
+            proposito: 'Construir un ecosistema lector donde la escuela, la familia, la comunidad y el entorno digital se articulen para que la lectura ocurra, se profundice y se celebre en todos los espacios de vida.',
+            criterios: [
+                'Que conecten con la comunidad y las familias.',
+                'Que inviten a leer en voz alta, a compartir, a conversar.',
+                'Que cultiven vínculo, empatía, generosidad, comunidad.'
+            ],
             virtudes: ['Vínculo', 'Empatía', 'Generosidad', 'Comunidad'],
-            niveles: ['inicial', 'preescolar', 'primaria-baja', 'primaria-alta', 'secundaria'],
-            actividadesEsenciales: [
-                { nombre: 'Lector invitado', nivel: 'Primaria baja', frecuencia: 'Semanal' },
-                { nombre: 'Lectura compartida en parejas', nivel: 'Preescolar', frecuencia: 'Semanal' },
-                { nombre: 'Círculo de lectores docentes', nivel: 'Docentes', frecuencia: 'Trimestral' }
-            ],
-            actividadesOpcionales: [
-                { nombre: 'El libro viajero', nivel: 'Preescolar y Primaria baja', frecuencia: 'Semanal' },
-                { nombre: 'Fiesta de cuentos (Día del Niño)', nivel: 'Preescolar', frecuencia: 'Anual' },
-                { nombre: 'Maratón de lectura', nivel: 'Primaria alta', frecuencia: 'Trimestral' },
-                { nombre: 'Tertulia literaria', nivel: 'Primaria alta y Secundaria', frecuencia: 'Mensual' },
-                { nombre: 'Semana de autores jaliscienses', nivel: 'Primaria alta', frecuencia: 'Anual' }
-            ],
-            indicadores: {
-                cuanti: 'Porcentaje de familias que reportan leer con sus hijos al menos tres veces por semana (meta: incrementar en 20 puntos porcentuales respecto a la línea base).',
-                cuali: 'Las familias participan, los estudiantes comparten lo que leen, la comunidad se involucra, los estudiantes recomiendan libros, la escuela se convierte en espacio de encuentro.'
-            },
+            preguntaOrientadora: '¿Necesitamos fortalecer el vínculo con familias y comunidad?',
+            subtituloPregunta: 'Atiende: ecosistema lector, participación familiar, lectura compartida.',
             duracion: 'Todo el ciclo escolar, con énfasis en el primer y tercer trimestre.',
-            conexionVagones: 'Narrativa, poesía, texto oral, texto multimodal.',
-            conexionFamilia: 'Lectura en familia, carta para familias, fiesta de la palabra, guía para acompañar la lectura en casa.'
+            datosJustificacion: {
+                primaria: {
+                    ua: 'UA 2 · Integrar información y realizar inferencias',
+                    porcentaje: 44.9,
+                    grado: '6°',
+                    texto: 'En 6° de primaria, solo el 44.9% integra información y realiza inferencias. La lectura compartida en familia es uno de los predictores más fuertes de la comprensión lectora.'
+                },
+                secundaria: {
+                    ua: 'UA 3 · Localizar y extraer información',
+                    porcentaje: 51.9,
+                    grado: '3°',
+                    texto: 'En 3° de secundaria, solo el 51.9% localiza y extrae información. Fortalecer el vínculo escuela-familia-comunidad amplía las oportunidades de lectura significativa.'
+                }
+            },
+            niveles: {
+                'inicial': {
+                    anclas: [
+                        {
+                            nombre: 'Cantos y arrullos',
+                            descripcion: 'La educadora canta nanas y canciones de cuna mientras mece al bebé.',
+                            frecuencia: 'Diaria',
+                            virtud: 'Vínculo'
+                        },
+                        {
+                            nombre: 'Lectura de imágenes con señalamiento',
+                            descripcion: 'La educadora muestra libros con imágenes grandes, señala y nombra cada elemento.',
+                            frecuencia: 'Diaria',
+                            virtud: 'Atención'
+                        }
+                    ],
+                    banco: [
+                        {
+                            nombre: 'Juego de espejo sonoro',
+                            descripcion: 'La educadora emite sonidos y espera a que el bebé los imite.',
+                            frecuencia: 'Diaria',
+                            virtud: 'Vínculo'
+                        },
+                        {
+                            nombre: 'Baño de palabras',
+                            descripcion: 'La educadora describe en voz alta todo lo que hace durante el cuidado del bebé.',
+                            frecuencia: 'Diaria',
+                            virtud: 'Vínculo'
+                        },
+                        {
+                            nombre: 'Ritmo y movimiento con palabras',
+                            descripcion: 'La educadora recita rimas marcando el ritmo con palmadas o moviendo al bebé suavemente.',
+                            frecuencia: 'Diaria',
+                            virtud: 'Vínculo'
+                        },
+                        {
+                            nombre: 'Narración con títeres de dedo',
+                            descripcion: 'La educadora narra pequeñas historias usando títeres de dedo.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Atención'
+                        },
+                        {
+                            nombre: 'Sonidos que cuentan',
+                            descripcion: 'La educadora asocia sonidos cotidianos con pequeñas historias.',
+                            frecuencia: 'Diaria',
+                            virtud: 'Atención'
+                        }
+                    ],
+                    cierre: {
+                        nombre: 'Fiesta de nanas y arrullos (Día de las Madres)',
+                        descripcion: 'Invitación a familias para compartir nanas y cantos tradicionales con sus bebés.',
+                        frecuencia: 'Anual',
+                        virtud: 'Comunidad'
+                    }
+                },
+                'preescolar': {
+                    anclas: [
+                        {
+                            nombre: 'Lectura compartida en parejas',
+                            descripcion: 'Un niño mayor lee a uno menor. La educadora supervisa y apoya.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Generosidad'
+                        },
+                        {
+                            nombre: 'El libro viajero',
+                            descripcion: 'Un libro álbum viaja cada fin de semana a una familia. El lunes, el niño cuenta lo que leyó.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Vínculo'
+                        }
+                    ],
+                    banco: [
+                        {
+                            nombre: 'El tren de los nombres',
+                            descripcion: 'Cada niño escribe su nombre en un vagón de papel. Se forma un tren y se leen en voz alta.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Comunidad'
+                        },
+                        {
+                            nombre: 'Lectura de imágenes',
+                            descripcion: 'Los niños "leen" las ilustraciones de libros sin texto, construyendo hipótesis narrativas.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Atención'
+                        },
+                        {
+                            nombre: 'El mural de las emociones',
+                            descripcion: 'Después de leer un cuento, los niños dibujan su cara expresando una emoción del personaje.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Empatía'
+                        },
+                        {
+                            nombre: 'Ofrenda de palabras (Día de Muertos)',
+                            descripcion: 'Los niños dibujan y dictan recuerdos de familiares. Se colocan en una ofrenda del aula.',
+                            frecuencia: 'Anual',
+                            virtud: 'Empatía'
+                        },
+                        {
+                            nombre: 'Cuentos con títeres de palito',
+                            descripcion: 'Después de leer un cuento, los niños lo representan con títeres de palito.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Creatividad'
+                        },
+                        {
+                            nombre: 'Cantamos y escribimos',
+                            descripcion: 'Los niños cantan una canción breve y dictan la letra para que la educadora la escriba.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Vínculo'
+                        }
+                    ],
+                    cierre: {
+                        nombre: 'Fiesta de cuentos (Día del Niño)',
+                        descripcion: 'Jornada de narración oral con participación de familias. Cada familia comparte un cuento.',
+                        frecuencia: 'Anual',
+                        virtud: 'Comunidad'
+                    }
+                },
+                'primaria-baja': {
+                    anclas: [
+                        {
+                            nombre: 'Lector invitado',
+                            descripcion: 'Cada semana, un familiar o miembro de la comunidad lee en voz alta al grupo.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Vínculo'
+                        },
+                        {
+                            nombre: 'Lectura en voz alta diaria',
+                            descripcion: 'El docente lee en voz alta un texto literario al inicio de la jornada.',
+                            frecuencia: 'Diaria',
+                            virtud: 'Perseverancia'
+                        }
+                    ],
+                    banco: [
+                        {
+                            nombre: 'El libro viajero',
+                            descripcion: 'Un libro álbum viaja cada fin de semana a una familia. El lunes, el niño cuenta lo que leyó.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Vínculo'
+                        },
+                        {
+                            nombre: 'Recomendación estelar',
+                            descripcion: 'Cada viernes, un estudiante recomienda un libro al grupo explicando por qué.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Generosidad'
+                        },
+                        {
+                            nombre: 'El museo de los personajes',
+                            descripcion: 'Dibujan un personaje de un libro leído y escriben tres datos sobre él. Se exhiben.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Comunidad'
+                        },
+                        {
+                            nombre: 'Lectura en parejas con cambio de voz',
+                            descripcion: 'En parejas, leen un diálogo con diferentes emociones.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Empatía'
+                        },
+                        {
+                            nombre: 'Círculo de lectores',
+                            descripcion: 'Conversación mensual sobre un libro leído en común con preguntas abiertas.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Respeto'
+                        },
+                        {
+                            nombre: 'Palabras en el aire',
+                            descripcion: 'El docente dice una categoría. Los estudiantes dicen palabras en cadena sin repetir.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Atención'
+                        },
+                        {
+                            nombre: 'Dibujo dictado',
+                            descripcion: 'El docente lee un texto descriptivo. Los estudiantes dibujan lo que escuchan y comparan.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Claridad'
+                        }
+                    ],
+                    cierre: {
+                        nombre: 'Periódico mural del Día del Libro',
+                        descripcion: 'Elaboración colectiva de un periódico mural con recomendaciones de libros y textos creativos.',
+                        frecuencia: 'Anual',
+                        virtud: 'Comunidad'
+                    }
+                },
+                'primaria-alta': {
+                    anclas: [
+                        {
+                            nombre: 'Tertulia literaria',
+                            descripcion: 'Conversación mensual sobre un libro leído por todos, compartiendo impresiones.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Respeto'
+                        },
+                        {
+                            nombre: 'Maratón de lectura',
+                            descripcion: 'Jornada completa dedicada a la lectura en todos los espacios de la escuela.',
+                            frecuencia: 'Trimestral',
+                            virtud: 'Comunidad'
+                        }
+                    ],
+                    banco: [
+                        {
+                            nombre: 'El árbol de los libros',
+                            descripcion: 'Un árbol dibujado en el mural. Cada estudiante coloca una hoja con el título que leyó.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Comunidad'
+                        },
+                        {
+                            nombre: 'Noticias de mi comunidad',
+                            descripcion: 'Escriben crónicas breves sobre eventos de su comunidad para un periódico escolar.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Responsabilidad'
+                        },
+                        {
+                            nombre: 'Poema colectivo',
+                            descripcion: 'Cada estudiante escribe un verso. Se juntan todos y se arma un poema colectivo.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Comunidad'
+                        },
+                        {
+                            nombre: 'Semana de autores jaliscienses',
+                            descripcion: 'Cada día se lee y comenta un texto de un autor jalisciense. El cierre incluye cartas a los autores.',
+                            frecuencia: 'Anual',
+                            virtud: 'Comunidad'
+                        },
+                        {
+                            nombre: 'Entrevista a un personaje',
+                            descripcion: 'Por parejas, un estudiante asume el rol de un personaje y el otro lo entrevista.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Empatía'
+                        },
+                        {
+                            nombre: 'Cartas a personajes',
+                            descripcion: 'Después de leer un libro, escriben una carta a uno de los personajes.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Empatía'
+                        },
+                        {
+                            nombre: 'El debate del libro',
+                            descripcion: 'Dos estudiantes defienden por qué su libro favorito es mejor, con argumentos y sin descalificar.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Respeto'
+                        }
+                    ],
+                    cierre: {
+                        nombre: 'Maratón de lectura',
+                        descripcion: 'Jornada completa dedicada a la lectura en todos los espacios de la escuela.',
+                        frecuencia: 'Trimestral',
+                        virtud: 'Comunidad'
+                    }
+                },
+                'secundaria': {
+                    anclas: [
+                        {
+                            nombre: 'Club de lectura juvenil',
+                            descripcion: 'Se reúnen voluntariamente para leer y conversar sobre libros.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Vínculo'
+                        },
+                        {
+                            nombre: 'Círculo de silencio lector',
+                            descripcion: 'Veinte minutos de lectura individual en absoluto silencio. Al final, escriben una frase.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Autodisciplina'
+                        }
+                    ],
+                    banco: [
+                        {
+                            nombre: 'Tertulia literaria',
+                            descripcion: 'Conversación mensual sobre un libro leído por todos, compartiendo impresiones.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Respeto'
+                        },
+                        {
+                            nombre: 'Mapa del tesoro literario',
+                            descripcion: 'Diseñan un mapa del tesoro donde las pistas son fragmentos de libros leídos.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Generosidad'
+                        },
+                        {
+                            nombre: 'Podcast literario',
+                            descripcion: 'Graban un breve podcast recomendando un libro, con música y efectos de sonido.',
+                            frecuencia: 'Quincenal',
+                            virtud: 'Creatividad'
+                        },
+                        {
+                            nombre: 'Carta a mi yo lector del pasado',
+                            descripcion: 'Escriben una carta a sí mismos cuando eran niños sobre lo que la lectura les ha dado.',
+                            frecuencia: 'Anual',
+                            virtud: 'Empatía'
+                        },
+                        {
+                            nombre: 'Manifiesto lector',
+                            descripcion: 'Escriben su manifiesto personal como lectores: qué leen, por qué, qué nunca leerían.',
+                            frecuencia: 'Trimestral',
+                            virtud: 'Honestidad'
+                        },
+                        {
+                            nombre: 'Cineminuto literario',
+                            descripcion: 'En un minuto, un estudiante cuenta de qué trata un libro y por qué lo recomienda.',
+                            frecuencia: 'Semanal',
+                            virtud: 'Claridad'
+                        },
+                        {
+                            nombre: 'Taller de spoken word',
+                            descripcion: 'Crean e interpretan textos poéticos para ser dichos en voz alta.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Valentía'
+                        }
+                    ],
+                    cierre: {
+                        nombre: 'Slam de poesía (Día Mundial de la Poesía)',
+                        descripcion: 'Los estudiantes escriben poemas y los interpretan frente al grupo. El público vota.',
+                        frecuencia: 'Anual',
+                        virtud: 'Valentía'
+                    }
+                },
+                'docentes': {
+                    anclas: [
+                        {
+                            nombre: 'Lectura en voz alta entre colegas',
+                            descripcion: 'Un docente lee en voz alta un texto breve al inicio del CTE. Los demás escuchan y comparten impresiones.',
+                            frecuencia: 'CTE',
+                            virtud: 'Vínculo'
+                        },
+                        {
+                            nombre: 'Círculo de lectores docentes',
+                            descripcion: 'El colectivo elige un libro literario para leer durante el trimestre. Se comenta en una sesión final.',
+                            frecuencia: 'Trimestral',
+                            virtud: 'Comunidad'
+                        }
+                    ],
+                    banco: [
+                        {
+                            nombre: 'El libro que me transformó',
+                            descripcion: 'Cada mes, un docente comparte en cinco minutos el libro que marcó su vida como lector.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Honestidad'
+                        },
+                        {
+                            nombre: 'Tertulia pedagógica',
+                            descripcion: 'Lectura y discusión de un artículo o capítulo sobre didáctica de la lectura.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Perseverancia'
+                        },
+                        {
+                            nombre: 'Escritura de la práctica',
+                            descripcion: 'Cada docente escribe un breve registro de una experiencia lectora exitosa en su aula.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Responsabilidad'
+                        },
+                        {
+                            nombre: 'Cartelera de docentes lectores',
+                            descripcion: 'Un espacio en la sala de maestros donde cada docente recomienda un libro con una breve reseña.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Generosidad'
+                        },
+                        {
+                            nombre: 'Club de traducción pedagógica',
+                            descripcion: 'Los docentes eligen un texto breve en otro idioma sobre educación, lo traducen y lo comentan.',
+                            frecuencia: 'Mensual',
+                            virtud: 'Curiosidad'
+                        },
+                        {
+                            nombre: 'Maratón de lectura docente',
+                            descripcion: 'Jornada donde cada docente lee un fragmento de su libro favorito frente a la comunidad escolar.',
+                            frecuencia: 'Anual',
+                            virtud: 'Comunidad'
+                        }
+                    ],
+                    cierre: {
+                        nombre: 'Círculo de lectores docentes',
+                        descripcion: 'El colectivo elige un libro literario para leer durante el trimestre. Se comenta en una sesión final.',
+                        frecuencia: 'Trimestral',
+                        virtud: 'Comunidad'
+                    }
+                }
+            }
         }
     },
 
@@ -530,94 +2228,23 @@ const DATOS = {
        ======================================================== */
     voces: {
         estudiantes: [
-            {
-                id: 'p1',
-                pregunta: '¿A la mayoría de los estudiantes les gusta leer?',
-                opciones: ['Mucho', 'Algo', 'Poco', 'Nada'],
-                dimension: 'gusto'
-            },
-            {
-                id: 'p2',
-                pregunta: '¿Con qué frecuencia leen por gusto?',
-                opciones: ['Diario', 'Semanal', 'Mensual', 'Casi nunca'],
-                dimension: 'frecuencia'
-            },
-            {
-                id: 'p3',
-                pregunta: '¿Qué tipos de texto prefieren?',
-                opciones: ['Cuentos', 'Cómics', 'Poemas', 'Noticias', 'Libros informativos', 'Revistas', 'Otros'],
-                dimension: 'diversidad',
-                multiple: true
-            },
-            {
-                id: 'p4',
-                pregunta: '¿Dónde leen con más frecuencia?',
-                opciones: ['Aula', 'Casa', 'Biblioteca', 'Patio', 'Espacios comunitarios', 'Otros'],
-                dimension: 'espacios',
-                multiple: true
-            },
-            {
-                id: 'p5',
-                pregunta: '¿Con quién comparten lo que leen?',
-                opciones: ['Solos', 'Compañeros', 'Docentes', 'Familia', 'Amigos', 'Otros'],
-                dimension: 'lecturaCompartida',
-                multiple: true
-            }
+            { id: 'p1', pregunta: '¿A la mayoría de los estudiantes les gusta leer?', opciones: ['Mucho', 'Algo', 'Poco', 'Nada'], dimension: 'gusto' },
+            { id: 'p2', pregunta: '¿Con qué frecuencia leen por gusto?', opciones: ['Diario', 'Semanal', 'Mensual', 'Casi nunca'], dimension: 'frecuencia' },
+            { id: 'p3', pregunta: '¿Qué tipos de texto prefieren?', opciones: ['Cuentos', 'Cómics', 'Poemas', 'Noticias', 'Libros informativos', 'Revistas', 'Otros'], dimension: 'diversidad', multiple: true },
+            { id: 'p4', pregunta: '¿Dónde leen con más frecuencia?', opciones: ['Aula', 'Casa', 'Biblioteca', 'Patio', 'Espacios comunitarios', 'Otros'], dimension: 'espacios', multiple: true },
+            { id: 'p5', pregunta: '¿Con quién comparten lo que leen?', opciones: ['Solos', 'Compañeros', 'Docentes', 'Familia', 'Amigos', 'Otros'], dimension: 'lecturaCompartida', multiple: true }
         ],
         familias: [
-            {
-                id: 'p6',
-                pregunta: '¿Con qué frecuencia leen las familias con sus hijos?',
-                opciones: ['Diario', 'Semanal', 'Mensual', 'Casi nunca'],
-                dimension: 'lecturaFamilia'
-            },
-            {
-                id: 'p7',
-                pregunta: '¿Cuántos libros hay en casa, en promedio?',
-                opciones: ['0-5', '6-15', '16-30', 'Más de 30'],
-                dimension: 'librosCasa'
-            },
-            {
-                id: 'p8',
-                pregunta: '¿Las familias participan en actividades de lectura?',
-                opciones: ['Mucho', 'Algo', 'Poco', 'Nada'],
-                dimension: 'participacionFamiliar'
-            },
-            {
-                id: 'p9',
-                pregunta: '¿Qué tipos de texto leen las familias?',
-                opciones: ['Cuentos', 'Noticias', 'Revistas', 'Libros', 'Textos escolares', 'Redes sociales', 'Otros'],
-                dimension: 'diversidad',
-                multiple: true
-            }
+            { id: 'p6', pregunta: '¿Con qué frecuencia leen las familias con sus hijos?', opciones: ['Diario', 'Semanal', 'Mensual', 'Casi nunca'], dimension: 'lecturaFamilia' },
+            { id: 'p7', pregunta: '¿Cuántos libros hay en casa, en promedio?', opciones: ['0-5', '6-15', '16-30', 'Más de 30'], dimension: 'librosCasa' },
+            { id: 'p8', pregunta: '¿Las familias participan en actividades de lectura?', opciones: ['Mucho', 'Algo', 'Poco', 'Nada'], dimension: 'participacionFamiliar' },
+            { id: 'p9', pregunta: '¿Qué tipos de texto leen las familias?', opciones: ['Cuentos', 'Noticias', 'Revistas', 'Libros', 'Textos escolares', 'Redes sociales', 'Otros'], dimension: 'diversidad', multiple: true }
         ],
         docentes: [
-            {
-                id: 'p10',
-                pregunta: '¿Los docentes usan la biblioteca escolar?',
-                opciones: ['Mucho', 'Algo', 'Poco', 'Nada'],
-                dimension: 'biblioteca'
-            },
-            {
-                id: 'p11',
-                pregunta: '¿Cuánto tiempo semanal dedican a lectura en el aula?',
-                opciones: ['Menos de 30 min', '30-60 min', '1-2 horas', 'Más de 2 horas'],
-                dimension: 'tiempoAula'
-            },
-            {
-                id: 'p12',
-                pregunta: '¿Qué materiales de lectura tienen disponibles?',
-                opciones: ['Libros de texto', 'Libros de biblioteca', 'Cuentos', 'Revistas', 'Periódicos', 'Material digital', 'Materiales propios', 'Otros'],
-                dimension: 'materiales',
-                multiple: true
-            },
-            {
-                id: 'p13',
-                pregunta: '¿Qué obstáculos enfrentan para fomentar la lectura?',
-                opciones: ['Falta de materiales', 'Falta de tiempo', 'Falta de espacio', 'Poco interés de estudiantes', 'Poca participación de familias', 'Otros'],
-                dimension: 'obstaculos',
-                multiple: true
-            }
+            { id: 'p10', pregunta: '¿Los docentes usan la biblioteca escolar?', opciones: ['Mucho', 'Algo', 'Poco', 'Nada'], dimension: 'biblioteca' },
+            { id: 'p11', pregunta: '¿Cuánto tiempo semanal dedican a lectura en el aula?', opciones: ['Menos de 30 min', '30-60 min', '1-2 horas', 'Más de 2 horas'], dimension: 'tiempoAula' },
+            { id: 'p12', pregunta: '¿Qué materiales de lectura tienen disponibles?', opciones: ['Libros de texto', 'Libros de biblioteca', 'Cuentos', 'Revistas', 'Periódicos', 'Material digital', 'Materiales propios', 'Otros'], dimension: 'materiales', multiple: true },
+            { id: 'p13', pregunta: '¿Qué obstáculos enfrentan para fomentar la lectura?', opciones: ['Falta de materiales', 'Falta de tiempo', 'Falta de espacio', 'Poco interés de estudiantes', 'Poca participación de familias', 'Otros'], dimension: 'obstaculos', multiple: true }
         ]
     },
 
@@ -661,39 +2288,35 @@ const DATOS = {
         ],
         mensajeVocesOmitidas: 'Esta sección es omitible, pero te recomendamos llenarla ahora o en la siguiente ocasión para tener un diagnóstico más completo del ecosistema lector.',
         alertaMasDe5Rojos: 'Hay más de 5 dimensiones en 🔴 Atención prioritaria. Te recomendamos enfocar los esfuerzos en las más críticas.',
-        alertaMasDe3Rutas: 'Han seleccionado más de 3 rutas para un trimestre. Consideren priorizar para no dispersar los esfuerzos.'
+        alertaRutaUnica: 'Han seleccionado una ruta para el trimestre. Si quieren trabajar más de una, consideren distribuirla en otro trimestre.'
     },
 
     /* ========================================================
        13. MOMENTO 3: HOJA DE RUTA TRIMESTRAL
        ======================================================== */
     momento3: {
-        // Meses del trimestre
         meses: [
             { id: 'septiembre', nombre: 'Septiembre', numero: 9 },
             { id: 'octubre', nombre: 'Octubre', numero: 10 },
             { id: 'noviembre', nombre: 'Noviembre', numero: 11 }
         ],
-        // Semanas por mes (para calendarización)
         semanas: {
             septiembre: ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4'],
             octubre: ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4'],
             noviembre: ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4']
         },
-        // Tipos de actividad (periodicidad según guía española)
         tiposActividad: [
-            { id: 'ordinaria', nombre: 'Ordinaria', descripcion: 'Se realiza de manera cotidiana (diaria o semanal).', color: 'verde' },
-            { id: 'periodica', nombre: 'Periódica', descripcion: 'Se realiza quincenal o mensualmente.', color: 'amarillo' },
-            { id: 'extraordinaria', nombre: 'Extraordinaria', descripcion: 'Se realiza una vez al trimestre o al año.', color: 'rojo' }
+            { id: 'ancla', nombre: 'Ancla', descripcion: 'Actividad obligatoria, permanente todo el trimestre.', color: 'carmesi' },
+            { id: 'banco', nombre: 'Banco', descripcion: 'Actividad seleccionada del banco de la ruta.', color: 'naranja' },
+            { id: 'cierre', nombre: 'Cierre', descripcion: 'Actividad especial que integra lo trabajado en el trimestre.', color: 'verde' },
+            { id: 'personalizada', nombre: 'Personalizada', descripcion: 'Actividad agregada por el colectivo.', color: 'gris' }
         ],
-        // Estados de implementación (para la bitácora)
         estadosImplementacion: [
             { id: 'no-iniciada', nombre: 'No iniciada', color: 'gris' },
             { id: 'en-proceso', nombre: 'En proceso', color: 'amarillo' },
             { id: 'completada', nombre: 'Completada', color: 'verde' },
             { id: 'reprogramada', nombre: 'Reprogramada', color: 'rojo' }
         ],
-        // Roles para responsables
         roles: [
             'Director(a)',
             'ATP / Supervisor',
@@ -705,7 +2328,6 @@ const DATOS = {
             'Familia / Tutor',
             'Comunidad'
         ],
-        // Tipos de evidencia para la bitácora
         tiposEvidencia: [
             'Fotografía',
             'Video',
@@ -716,7 +2338,6 @@ const DATOS = {
             'Lista de asistencia',
             'Otro'
         ],
-        // Preguntas guía para la bitácora (evaluación formativa)
         preguntasBitacora: [
             '¿Qué actividad se realizó?',
             '¿Quiénes participaron?',
@@ -728,7 +2349,7 @@ const DATOS = {
     },
 
     /* ========================================================
-       14. MODO DEMO (Ejemplo "Primaria Benito Juárez")
+       14. MODO DEMO
        ======================================================== */
     demo: {
         escuela: 'Escuela Primaria Benito Juárez',
@@ -743,54 +2364,9 @@ const DATOS = {
         atp: 'Juan Pérez Ramírez',
         fechaCTE: '2026-09-25',
         modoLlenado: 'colectivo',
-        rutasSeleccionadas: ['ruta1', 'ruta4', 'ruta5'],
-        actividades: [
-            {
-                rutaId: 'ruta1',
-                actividad: 'Lectura en voz alta diaria',
-                mes: 'septiembre',
-                semana: 'Semana 1',
-                responsable: 'Docente de grupo',
-                tipo: 'ordinaria',
-                estado: 'completada'
-            },
-            {
-                rutaId: 'ruta1',
-                actividad: 'Círculo de lectura semanal',
-                mes: 'septiembre',
-                semana: 'Semana 2',
-                responsable: 'Docente de Lengua y Literatura',
-                tipo: 'ordinaria',
-                estado: 'en-proceso'
-            },
-            {
-                rutaId: 'ruta4',
-                actividad: 'Club de escritores',
-                mes: 'octubre',
-                semana: 'Semana 1',
-                responsable: 'Docente de grupo',
-                tipo: 'ordinaria',
-                estado: 'no-iniciada'
-            },
-            {
-                rutaId: 'ruta5',
-                actividad: 'Lector invitado',
-                mes: 'octubre',
-                semana: 'Semana 3',
-                responsable: 'Familia / Tutor',
-                tipo: 'periodica',
-                estado: 'no-iniciada'
-            },
-            {
-                rutaId: 'ruta5',
-                actividad: 'Maratón de lectura',
-                mes: 'noviembre',
-                semana: 'Semana 2',
-                responsable: 'Bibliotecario(a)',
-                tipo: 'extraordinaria',
-                estado: 'no-iniciada'
-            }
-        ]
+        rutaSeleccionada: 'ruta1',
+        bancoSeleccionado: ['Círculo de lectura semanal', 'Reseña en 100 palabras'],
+        cierreMes: 'noviembre'
     }
 };
 
