@@ -7,17 +7,13 @@ window.Momento1 = {
 
     /* ===== ESTADO LOCAL ===== */
     completado: false,
-    presentacionAbierta: false,
 
     /* ===== CONTENIDO DEL ENCUADRE ===== */
     secciones: [
         {
-            {
-    id: 'que-es-leer',
-    titulo: '¿Qué es leer?',
-    icono: 'fa-book-open',
-    ...
-}
+            id: 'que-es-leer',
+            titulo: '¿Qué es leer?',
+            icono: 'fa-book-open',
             contenido: `
                 <p>La lectura, antes que todo, es una <strong>práctica social</strong>. Leemos en la calle, en el camión,
                 en la cocina, en el parque, en el trabajo o donde sea que estemos. Leer forma parte de la vida
@@ -34,7 +30,7 @@ window.Momento1 = {
         {
             id: 'para-que-leemos',
             titulo: '¿Para qué se lee en la comunidad educativa?',
-            icono: '🎯',
+            icono: 'fa-bullseye',
             contenido: `
                 <p>Leemos por muchas razones: para aprender, para informarnos, para trabajar, para realizar una tarea,
                 para tener un momento de ocio o, simplemente, para disfrutar.</p>
@@ -51,7 +47,7 @@ window.Momento1 = {
         {
             id: 'que-es-plan-lector',
             titulo: '¿Qué es un Plan Lector?',
-            icono: '📋',
+            icono: 'fa-clipboard-list',
             contenido: `
                 <p>Un Plan Lector es un <strong>proyecto</strong> que busca formar más y mejores lectoras y lectores.
                 No es solo un listado de libros ni una serie de actividades aisladas.</p>
@@ -85,7 +81,7 @@ window.Momento1 = {
         {
             id: 'logica-fractal',
             titulo: 'La lógica fractal',
-            icono: '🌀',
+            icono: 'fa-circle-notch',
             contenido: `
                 <p>Un fractal es un patrón que se repite a distintas escalas. En la naturaleza lo vemos en los árboles,
                 los ríos, las nubes. En la lectura, la lógica fractal significa que <strong>lo que ocurre con cada lector
@@ -100,7 +96,7 @@ window.Momento1 = {
         {
             id: 'ecosistema-lector',
             titulo: 'El Ecosistema Lector',
-            icono: '🌐',
+            icono: 'fa-globe',
             contenido: `
                 <p>El Ecosistema Lector es la red dinámica de personas, recursos, instituciones y prácticas que
                 interactúan para que la lectura ocurra, se profundice y se celebre en todos los espacios de vida
@@ -118,7 +114,7 @@ window.Momento1 = {
         {
             id: 'formacion-caracter',
             titulo: 'La Formación del Carácter',
-            icono: '🌟',
+            icono: 'fa-star',
             contenido: `
                 <p>La Formación del Carácter se incorpora como un componente transversal que orienta las experiencias
                 de lectura, escritura, diálogo y participación. Se resume en la premisa:</p>
@@ -135,7 +131,7 @@ window.Momento1 = {
         {
             id: 'lectura-experiencia',
             titulo: 'La lectura como experiencia',
-            icono: '✨',
+            icono: 'fa-sparkles',
             contenido: `
                 <p>Siguiendo a Jorge Larrosa, la experiencia es <strong>lo que nos pasa</strong>, lo que nos afecta,
                 nos produce afectos, nos deja huellas.</p>
@@ -150,7 +146,7 @@ window.Momento1 = {
         {
             id: 'plan-lector-guia',
             titulo: 'El Plan Lector como guía',
-            icono: '🧭',
+            icono: 'fa-compass',
             contenido: `
                 <p>Un Plan Lector es el documento en el que se incorpora el conjunto de objetivos, metodologías y
                 actividades que se desarrollan en el centro educativo para garantizar la adquisición de la
@@ -186,8 +182,13 @@ window.Momento1 = {
 
     /* ===== RENDER PRINCIPAL ===== */
     render() {
+        console.log('Momento1.render() ejecutándose');
+
         const contenedor = document.getElementById('contenido-momento1');
-        if (!contenedor) return;
+        if (!contenedor) {
+            console.error('No se encontró #contenido-momento1');
+            return;
+        }
 
         contenedor.innerHTML = `
             <div class="momento1-contenedor">
@@ -200,6 +201,7 @@ window.Momento1 = {
         `;
 
         this.attachEventos();
+        console.log('Momento1 renderizado correctamente');
     },
 
     /* ===== HEADER ===== */
@@ -263,7 +265,7 @@ window.Momento1 = {
 
         return `
             <div class="momento1-datos">
-               <h2><i class="fas fa-chart-bar"></i> ¿Por qué actuar? Los datos de Jalisco Avanza 2025</h2>
+                <h2><i class="fas fa-chart-bar"></i> ¿Por qué actuar? Los datos de Jalisco Avanza 2025</h2>
                 <p>
                     Los resultados de la prueba Jalisco Avanza 2025 en Lectura nos muestran un panorama
                     que exige acción. Observa los datos por grado:
@@ -284,54 +286,55 @@ window.Momento1 = {
 
     /* ===== SECCIONES DEL ENCUADRE ===== */
     renderSecciones() {
-    return `
-        <div class="momento1-secciones">
-            <h2><i class="fas fa-compass"></i> Nuestro marco común</h2>
-            <div class="acordeon">
-                ${this.secciones.map((sec, index) => `
-                    <div class="acordeon-item ${index === 0 ? 'abierto' : ''}" data-id="${sec.id}">
-                        <button class="acordeon-header" data-id="${sec.id}">
-                            <span class="acordeon-icono"><i class="fas ${sec.icono}"></i></span>
-                            <span class="acordeon-titulo">${sec.titulo}</span>
-                            <span class="acordeon-flecha"><i class="fas fa-chevron-down"></i></span>
-                        </button>
-                        <div class="acordeon-contenido">
-                            ${sec.contenido}
+        return `
+            <div class="momento1-secciones">
+                <h2><i class="fas fa-compass"></i> Nuestro marco común</h2>
+                <div class="acordeon">
+                    ${this.secciones.map((sec, index) => `
+                        <div class="acordeon-item ${index === 0 ? 'abierto' : ''}" data-id="${sec.id}">
+                            <button class="acordeon-header" data-id="${sec.id}">
+                                <span class="acordeon-icono"><i class="fas ${sec.icono}"></i></span>
+                                <span class="acordeon-titulo">${sec.titulo}</span>
+                                <span class="acordeon-flecha"><i class="fas fa-chevron-down"></i></span>
+                            </button>
+                            <div class="acordeon-contenido">
+                                ${sec.contenido}
+                            </div>
                         </div>
-                    </div>
-                `).join('')}
+                    `).join('')}
+                </div>
             </div>
-        </div>
-    `;
-},,
+        `;
+    },
 
     /* ===== ACCIONES ===== */
     renderAcciones() {
-    return `
-        <div class="momento1-acciones">
-            <button class="btn btn-primario" id="btn-presentacion-momento1">
-                <i class="fas fa-desktop"></i> Abrir presentación HTML
-            </button>
-            <button class="btn btn-secundario" id="btn-completar-momento1">
-                <i class="fas fa-check-circle"></i> He comprendido el encuadre
-            </button>
-        </div>
-        ${this.renderNavegacion()}
-    `;
-},
+        return `
+            <div class="momento1-acciones">
+                <button class="btn btn-primario" id="btn-presentacion-momento1">
+                    <i class="fas fa-desktop"></i> Abrir presentación HTML
+                </button>
+                <button class="btn btn-secundario" id="btn-completar-momento1">
+                    <i class="fas fa-check-circle"></i> He comprendido el encuadre
+                </button>
+            </div>
+            ${this.renderNavegacion()}
+        `;
+    },
 
-renderNavegacion() {
-    return `
-        <div class="navegacion-momentos">
-            <button class="btn btn-secundario" id="btn-anterior-momento">
-                <i class="fas fa-arrow-left"></i> Anterior
-            </button>
-            <button class="btn btn-primario" id="btn-siguiente-momento">
-                Siguiente <i class="fas fa-arrow-right"></i>
-            </button>
-        </div>
-    `;
-},
+    /* ===== NAVEGACIÓN ENTRE MOMENTOS ===== */
+    renderNavegacion() {
+        return `
+            <div class="navegacion-momentos">
+                <button class="btn btn-secundario" id="btn-anterior-momento">
+                    <i class="fas fa-arrow-left"></i> Anterior
+                </button>
+                <button class="btn btn-primario" id="btn-siguiente-momento">
+                    Siguiente <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        `;
+    },
 
     /* ===== EVENTOS ===== */
     attachEventos() {
@@ -339,13 +342,10 @@ renderNavegacion() {
         document.querySelectorAll('.acordeon-header').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const item = e.currentTarget.closest('.acordeon-item');
-                const id = item.dataset.id;
                 const estaAbierto = item.classList.contains('abierto');
 
-                // Cerrar todos
                 document.querySelectorAll('.acordeon-item').forEach(i => i.classList.remove('abierto'));
 
-                // Abrir el seleccionado si no estaba abierto
                 if (!estaAbierto) {
                     item.classList.add('abierto');
                 }
@@ -365,43 +365,50 @@ renderNavegacion() {
         if (btnCompletar) {
             btnCompletar.addEventListener('click', () => {
                 this.completado = true;
-                if (window.Estado) {
+                if (window.Estado && Estado.setProgreso) {
                     Estado.setProgreso('momento1', 100);
                 }
-                this.mostrarToast('✅ Encuadre completado');
-                btnCompletar.textContent = '✅ Encuadre completado';
+                if (window.App) App.mostrarToast('Encuadre completado');
                 btnCompletar.disabled = true;
+                btnCompletar.innerHTML = '<i class="fas fa-check-circle"></i> Encuadre completado';
+            });
+        }
+
+        // Navegación: Anterior
+        const btnAnterior = document.getElementById('btn-anterior-momento');
+        if (btnAnterior) {
+            btnAnterior.addEventListener('click', () => {
+                if (window.App) App.cambiarMomento(0);
+            });
+        }
+
+        // Navegación: Siguiente
+        const btnSiguiente = document.getElementById('btn-siguiente-momento');
+        if (btnSiguiente) {
+            btnSiguiente.addEventListener('click', () => {
+                if (window.App) App.cambiarMomento(2);
             });
         }
     },
-// Navegación
-const btnAnterior = document.getElementById('btn-anterior-momento');
-if (btnAnterior) {
-    btnAnterior.addEventListener('click', () => {
-        if (window.App) App.cambiarMomento(0);
-    });
-}
 
-const btnSiguiente = document.getElementById('btn-siguiente-momento');
-if (btnSiguiente) {
-    btnSiguiente.addEventListener('click', () => {
-        if (window.App) App.cambiarMomento(2);
-    });
-}
     /* ===== PRESENTACIÓN HTML ===== */
     abrirPresentacion() {
         const overlay = document.createElement('div');
         overlay.className = 'presentacion-overlay';
         overlay.innerHTML = `
             <div class="presentacion-contenedor">
-                <button class="presentacion-cerrar" id="cerrar-presentacion">✕</button>
+                <button class="presentacion-cerrar" id="cerrar-presentacion"><i class="fas fa-times"></i></button>
                 <div class="presentacion-diapositivas" id="presentacion-diapositivas">
                     ${this.renderDiapositivas()}
                 </div>
                 <div class="presentacion-controles">
-                    <button class="btn btn-secundario" id="diapositiva-anterior">← Anterior</button>
+                    <button class="btn btn-secundario" id="diapositiva-anterior">
+                        <i class="fas fa-arrow-left"></i> Anterior
+                    </button>
                     <span class="presentacion-contador" id="presentacion-contador">1 / ${this.totalDiapositivas()}</span>
-                    <button class="btn btn-primario" id="diapositiva-siguiente">Siguiente →</button>
+                    <button class="btn btn-primario" id="diapositiva-siguiente">
+                        Siguiente <i class="fas fa-arrow-right"></i>
+                    </button>
                 </div>
             </div>
         `;
@@ -416,7 +423,6 @@ if (btnSiguiente) {
         const diapositivas = [
             {
                 titulo: 'Plan Lector Jalisco LEO',
-                subtitulo: 'Encuadre · Nuestro marco común',
                 contenido: `
                     <div class="diapositiva-portada">
                         <h1>Plan Lector Jalisco LEO</h1>
@@ -518,7 +524,7 @@ if (btnSiguiente) {
     },
 
     totalDiapositivas() {
-        return document.querySelectorAll('.diapositiva').length;
+        return 10;
     },
 
     attachEventosPresentacion() {
@@ -537,7 +543,6 @@ if (btnSiguiente) {
             siguiente.addEventListener('click', () => this.cambiarDiapositiva(1));
         }
 
-        // Cerrar con ESC
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') this.cerrarPresentacion();
             if (e.key === 'ArrowLeft') this.cambiarDiapositiva(-1);
@@ -577,19 +582,5 @@ if (btnSiguiente) {
         if (overlay) {
             overlay.remove();
         }
-    },
-
-    /* ===== TOAST ===== */
-    mostrarToast(mensaje) {
-        if (window.App && App.mostrarToast) {
-            App.mostrarToast(mensaje);
-        } else {
-            console.log(mensaje);
-        }
     }
 };
-
-// Inicialización
-document.addEventListener('DOMContentLoaded', () => {
-    // Nada que cargar por ahora
-});
