@@ -463,5 +463,5 @@ const SECCION3 = (function() {
 
 })();
 if (typeof window !== 'undefined') {
-    window.SECCION1 = SECCION1;
+    window.SECCION3 = SECCION3;
 }
