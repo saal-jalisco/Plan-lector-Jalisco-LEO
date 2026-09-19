@@ -263,7 +263,7 @@ window.Momento1 = {
 
         return `
             <div class="momento1-datos">
-                <h2>📊 ¿Por qué actuar? Los datos de Jalisco Avanza 2025</h2>
+               <h2><i class="fas fa-chart-bar"></i> ¿Por qué actuar? Los datos de Jalisco Avanza 2025</h2>
                 <p>
                     Los resultados de la prueba Jalisco Avanza 2025 en Lectura nos muestran un panorama
                     que exige acción. Observa los datos por grado:
@@ -283,7 +283,6 @@ window.Momento1 = {
     },
 
     /* ===== SECCIONES DEL ENCUADRE ===== */
-    renderSecciones() {
     renderSecciones() {
     return `
         <div class="momento1-secciones">
@@ -308,17 +307,31 @@ window.Momento1 = {
 
     /* ===== ACCIONES ===== */
     renderAcciones() {
-        return `
-            <div class="momento1-acciones">
-                <button class="btn btn-primario" id="btn-presentacion-momento1">
-                    📽️ Abrir presentación HTML
-                </button>
-                <button class="btn btn-secundario" id="btn-completar-momento1">
-                    ✅ He comprendido el encuadre
-                </button>
-            </div>
-        `;
-    },
+    return `
+        <div class="momento1-acciones">
+            <button class="btn btn-primario" id="btn-presentacion-momento1">
+                <i class="fas fa-desktop"></i> Abrir presentación HTML
+            </button>
+            <button class="btn btn-secundario" id="btn-completar-momento1">
+                <i class="fas fa-check-circle"></i> He comprendido el encuadre
+            </button>
+        </div>
+        ${this.renderNavegacion()}
+    `;
+},
+
+renderNavegacion() {
+    return `
+        <div class="navegacion-momentos">
+            <button class="btn btn-secundario" id="btn-anterior-momento">
+                <i class="fas fa-arrow-left"></i> Anterior
+            </button>
+            <button class="btn btn-primario" id="btn-siguiente-momento">
+                Siguiente <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+    `;
+},
 
     /* ===== EVENTOS ===== */
     attachEventos() {
@@ -361,7 +374,20 @@ window.Momento1 = {
             });
         }
     },
+// Navegación
+const btnAnterior = document.getElementById('btn-anterior-momento');
+if (btnAnterior) {
+    btnAnterior.addEventListener('click', () => {
+        if (window.App) App.cambiarMomento(0);
+    });
+}
 
+const btnSiguiente = document.getElementById('btn-siguiente-momento');
+if (btnSiguiente) {
+    btnSiguiente.addEventListener('click', () => {
+        if (window.App) App.cambiarMomento(2);
+    });
+}
     /* ===== PRESENTACIÓN HTML ===== */
     abrirPresentacion() {
         const overlay = document.createElement('div');
