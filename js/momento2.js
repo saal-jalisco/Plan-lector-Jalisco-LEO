@@ -1,15 +1,16 @@
 /* ============================================================
    PLAN LECTOR JALISCO LEO
    momento2.js — Contenedor del Termómetro Lector
-   v1.1 — Fix de IDs (contenido-seccion-N con guion)
+   v1.2 — A PRUEBA DE ERRORES: se adapta al ID que cada sección
+   espere (con o sin guion antes del número).
    ============================================================ */
 
 const MOMENTO2 = (function() {
 
+    console.log('🚀 MOMENTO2 v1.2 cargado — con adaptación automática de IDs');
+
     /* ========================================================
-       CONFIGURACIÓN DE SECCIONES
-       ✏️ Los IDs de la izquierda se usan internamente.
-       El módulo busca el contenedor #contenido-seccion-{N} en el DOM.
+       CONFIGURACIÓN
        ======================================================== */
     const SECCIONES = [
         { id: 'seccion1', numero: 1, nombre: 'Identificación',       icono: 'fa-id-card',           modulo: 'SECCION1' },
@@ -43,9 +44,6 @@ const MOMENTO2 = (function() {
         inicializado = true;
     }
 
-    /* ========================================================
-       RENDER PÚBLICO
-       ======================================================== */
     function render() {
         if (!inicializado || !contenedor || !document.body.contains(contenedor)) {
             init();
@@ -115,7 +113,10 @@ const MOMENTO2 = (function() {
     }
 
     /* ========================================================
-       CARGAR SECCIÓN — FIX: id con guion (contenido-seccion-N)
+       CARGAR SECCIÓN — A PRUEBA DE ERRORES
+       Crea el div con el ID estándar (con guion) y además
+       parcha temporalmente getElementById para que, si la
+       sección busca un ID distinto, igual lo encuentre.
        ======================================================== */
     function cargarSeccion(secId) {
         const contenedorSec = document.getElementById('contenido-seccion-actual');
@@ -124,9 +125,15 @@ const MOMENTO2 = (function() {
         const secDef = SECCIONES.find(s => s.id === secId);
         if (!secDef) return;
 
-        // ⬇️ FIX: creamos el div con el ID que las secciones esperan
-        //    Ejemplo: contenido-seccion-1 (con guion antes del número)
-        contenedorSec.innerHTML = `<div id="contenido-seccion-${secDef.numero}" class="seccion-wrapper"></div>`;
+        // ID estándar que usamos internamente (con guion)
+        const idEstandar = `contenido-seccion-${secDef.numero}`;
+
+        // IDs alternativos que las secciones podrían buscar
+        const idAlternativo = `contenido-seccion${secDef.numero}`;
+        const idAlternativo2 = `seccion-${secDef.numero}`;
+        const idAlternativo3 = `seccion${secDef.numero}`;
+
+        contenedorSec.innerHTML = `<div id="${idEstandar}" class="seccion-wrapper"></div>`;
 
         const modulo = (typeof window !== 'undefined' ? window[secDef.modulo] : null);
 
@@ -136,15 +143,33 @@ const MOMENTO2 = (function() {
                     <i class="fas fa-exclamation-triangle"></i>
                     <strong>Sección no disponible:</strong>
                     No se encontró <code>window.${secDef.modulo}</code>.
-                    Verifica que el archivo <code>${secId}.js</code> esté cargado
-                    y que termine con <code>window.${secDef.modulo} = ${secDef.modulo};</code>.
+                    Verifica que el archivo esté cargado y termine con
+                    <code>window.${secDef.modulo} = ${secDef.modulo};</code>.
                 </div>
             `;
             console.warn(`⚠️ MOMENTO2: No se encontró window.${secDef.modulo}`);
             return;
         }
 
+        // ====================================================
+        // PATCH TEMPORAL de getElementById
+        // Si la sección busca un ID con formato distinto al nuestro,
+        // lo redirigimos al div que sí creamos.
+        // ====================================================
+        const originalGetById = document.getElementById.bind(document);
+        document.getElementById = function(id) {
+            const el = originalGetById(id);
+            if (el) return el;
+            // Fallback: buscar variantes
+            if (id === idEstandar || id === idAlternativo ||
+                id === idAlternativo2 || id === idAlternativo3) {
+                return originalGetById(idEstandar);
+            }
+            return null;
+        };
+
         try {
+            console.log(`📦 MOMENTO2: Cargando ${secDef.modulo} en #${idEstandar}`);
             modulo.init();
         } catch (e) {
             console.error(`❌ Error al inicializar ${secDef.modulo}:`, e);
@@ -154,6 +179,9 @@ const MOMENTO2 = (function() {
                     <strong>Error:</strong> ${e.message}
                 </div>
             `;
+        } finally {
+            // SIEMPRE restaurar el original
+            document.getElementById = originalGetById;
         }
     }
 
@@ -198,9 +226,6 @@ const MOMENTO2 = (function() {
         return SECCIONES.findIndex(s => s.id === seccionActual);
     }
 
-    /* ========================================================
-       TOAST (defensivo)
-       ======================================================== */
     function mostrarToast(mensaje, tipo) {
         if (typeof APP !== 'undefined' && typeof APP.mostrarToast === 'function') {
             APP.mostrarToast(mensaje, tipo);
@@ -209,9 +234,6 @@ const MOMENTO2 = (function() {
         }
     }
 
-    /* ========================================================
-       API PÚBLICA
-       ======================================================== */
     return {
         init,
         render,
@@ -222,11 +244,9 @@ const MOMENTO2 = (function() {
 
 })();
 
-/* ============================================================
-   EXPOSICIÓN A WINDOW
-   ============================================================ */
 if (typeof window !== 'undefined') {
     window.MOMENTO2 = MOMENTO2;
     window.Momento2 = MOMENTO2;
-    console.log('✅ MOMENTO2 expuesto en window');
+    window.MOMENTO2_VERSION = '1.2';
+    console.log('✅ MOMENTO2 expuesto en window (v1.2)');
 }
