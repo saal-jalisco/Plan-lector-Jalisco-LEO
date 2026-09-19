@@ -3,7 +3,7 @@
    momento1.js — Encuadre (Nuestro marco común)
    ============================================================ */
 
-const Momento1 = {
+window.Momento1 = {
 
     /* ===== ESTADO LOCAL ===== */
     completado: false,
