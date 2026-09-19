@@ -284,26 +284,27 @@ window.Momento1 = {
 
     /* ===== SECCIONES DEL ENCUADRE ===== */
     renderSecciones() {
-        return `
-            <div class="momento1-secciones">
-                <h2>🧭 Nuestro marco común</h2>
-                <div class="acordeon">
-                    ${this.secciones.map((sec, index) => `
-                        <div class="acordeon-item ${index === 0 ? 'abierto' : ''}" data-id="${sec.id}">
-                            <button class="acordeon-header" data-id="${sec.id}">
-                                <span class="acordeon-icono">${sec.icono}</span>
-                                <span class="acordeon-titulo">${sec.titulo}</span>
-                                <span class="acordeon-flecha">▼</span>
-                            </button>
-                            <div class="acordeon-contenido">
-                                ${sec.contenido}
-                            </div>
+    renderSecciones() {
+    return `
+        <div class="momento1-secciones">
+            <h2><i class="fas fa-compass"></i> Nuestro marco común</h2>
+            <div class="acordeon">
+                ${this.secciones.map((sec, index) => `
+                    <div class="acordeon-item ${index === 0 ? 'abierto' : ''}" data-id="${sec.id}">
+                        <button class="acordeon-header" data-id="${sec.id}">
+                            <span class="acordeon-icono"><i class="fas ${sec.icono}"></i></span>
+                            <span class="acordeon-titulo">${sec.titulo}</span>
+                            <span class="acordeon-flecha"><i class="fas fa-chevron-down"></i></span>
+                        </button>
+                        <div class="acordeon-contenido">
+                            ${sec.contenido}
                         </div>
-                    `).join('')}
-                </div>
+                    </div>
+                `).join('')}
             </div>
-        `;
-    },
+        </div>
+    `;
+},,
 
     /* ===== ACCIONES ===== */
     renderAcciones() {
