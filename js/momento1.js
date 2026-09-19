@@ -12,11 +12,14 @@ window.Momento1 = {
     /* ===== CONTENIDO DEL ENCUADRE ===== */
     secciones: [
         {
-            id: 'que-es-leer',
-            titulo: '¿Qué es leer?',
-            icono: '📖',
+            {
+    id: 'que-es-leer',
+    titulo: '¿Qué es leer?',
+    icono: 'fa-book-open',
+    ...
+}
             contenido: `
-                <p>La lectura, antes que todo, es una <strong>práctica social</strong>. Leemos en la calle, en el bus,
+                <p>La lectura, antes que todo, es una <strong>práctica social</strong>. Leemos en la calle, en el camión,
                 en la cocina, en el parque, en el trabajo o donde sea que estemos. Leer forma parte de la vida
                 cotidiana, a veces se realiza automáticamente, otras veces resulta de una acción planificada,
                 en función de un propósito específico.</p>
