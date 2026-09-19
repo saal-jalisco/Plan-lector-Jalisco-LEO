@@ -4,321 +4,97 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plan Lector Jalisco LEO</title>
-
-    <!-- ===== FUENTES ===== -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <!-- ===== FONT AWESOME ===== -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-    <!-- ===== HTML2CANVAS (para exportar semáforo como imagen) ===== -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-    <!-- ===== CSS ===== -->
     <link rel="stylesheet" href="css/estilos.css">
     <link rel="stylesheet" href="css/print.css" media="print">
-
-    <!-- ===== DATOS PRECARGADOS ===== -->
-    <script src="js/datos.js" defer></script>
-
-    <!-- ===== GESTIÓN DE ESTADO ===== -->
-    <script src="js/estado.js" defer></script>
-
-    <!-- ===== MOMENTO 2: TERMÓMETRO LECTOR ===== -->
-    <script src="js/seccion1.js" defer></script>
-    <script src="js/seccion2.js" defer></script>
-    <script src="js/seccion3.js" defer></script>
-    <script src="js/seccion4.js" defer></script>
-    <script src="js/seccion5.js" defer></script>
-    <script src="js/seccion6.js" defer></script>
-    <script src="js/acta.js" defer></script>
-
-    <!-- ===== MOMENTO 3: HOJA DE RUTA TRIMESTRAL ===== -->
-    <script src="js/momento3.js" defer></script>
-    <script src="js/momento3-1-seleccion.js" defer></script>
-    <script src="js/momento3-2-calendarizacion.js" defer></script>
-    <script src="js/momento3-3-responsables.js" defer></script>
-    <script src="js/momento3-4-bitacora.js" defer></script>
-
-    <!-- ===== MODO DEMO ===== -->
-    <script src="js/demo.js" defer></script>
-
-    <!-- ===== APP (navegación + guardado) ===== -->
-    <script src="js/app.js" defer></script>
 </head>
 <body>
 
-<!-- ============================================================
-     CONTENEDOR PRINCIPAL
-     ============================================================ -->
-<div class="app-container">
-
-    <!-- ===== ENCABEZADO ===== -->
+    <!-- ===== HEADER ===== -->
     <header class="app-header">
-        <div class="header-top">
-            <div class="header-titulo">
-                <span class="overline">Jalisco LEO · Estrategia Estatal de Lectura, Escritura y Oralidad</span>
-                <h1><i class="fas fa-book-open-reader"></i> Plan Lector Jalisco LEO</h1>
-                <p class="subtitulo">Asistente para diseñar, implementar y evaluar tu Plan Lector trimestral</p>
+        <div class="header-contenido">
+            <div class="header-logo">
+                <span class="logo-icono">📖</span>
+                <div class="logo-texto">
+                    <h1>Plan Lector</h1>
+                    <p>Jalisco LEO</p>
+                </div>
             </div>
             <div class="header-acciones">
-                <button id="btn-modo-demo" class="btn btn-naranja" title="Modo Demo">
-                    <i class="fas fa-play-circle"></i> Modo Demo
-                </button>
-                <button id="btn-guardar-borrador" class="btn btn-secundario" title="Guardar borrador">
-                    <i class="fas fa-floppy-disk"></i> Guardar
-                </button>
-                <button id="btn-cargar-borrador" class="btn btn-secundario" title="Cargar borrador">
-                    <i class="fas fa-folder-open"></i> Cargar
-                </button>
-                <button id="btn-reiniciar" class="btn btn-peligro" title="Reiniciar todo">
-                    <i class="fas fa-rotate-left"></i> Reiniciar
-                </button>
+                <button class="btn btn-secundario" id="btn-demo">🎬 Modo Demo</button>
+                <button class="btn btn-secundario" id="btn-guardar-borrador">💾 Guardar borrador</button>
+                <button class="btn btn-primario" id="btn-exportar">📄 Exportar PDF</button>
             </div>
         </div>
-
-        <!-- ===== PESTAÑAS DE MOMENTOS ===== -->
-        <nav class="momentos-nav" aria-label="Momentos del Plan Lector">
-            <ul id="lista-momentos">
-                <li class="momento" data-momento="momento0">
-                    <span class="momento-numero">0</span>
-                    <span class="momento-nombre">Preparación</span>
-                </li>
-                <li class="momento" data-momento="momento1">
-                    <span class="momento-numero">1</span>
-                    <span class="momento-nombre">Encuadre</span>
-                </li>
-                <li class="momento" data-momento="momento2">
-                    <span class="momento-numero">2</span>
-                    <span class="momento-nombre">Termómetro Lector</span>
-                </li>
-                <li class="momento activo" data-momento="momento3">
-                    <span class="momento-numero">3</span>
-                    <span class="momento-nombre">Hoja de Ruta Trimestral ★</span>
-                </li>
-                <li class="momento" data-momento="momento4">
-                    <span class="momento-numero">4</span>
-                    <span class="momento-nombre">Cierre y Acuerdos</span>
-                </li>
-                <li class="momento" data-momento="momento5">
-                    <span class="momento-numero">5</span>
-                    <span class="momento-nombre">Evaluación y Documentación</span>
-                </li>
-            </ul>
-            <div class="barra-progreso">
-                <div id="barra-progreso-relleno" class="barra-progreso-relleno" style="width: 0%;"></div>
-            </div>
-        </nav>
     </header>
 
-    <!-- ===== CONTENIDO ===== -->
+    <!-- ===== NAVEGACIÓN POR MOMENTOS ===== -->
+    <nav class="momentos-nav">
+        <button class="momento-tab" data-momento="0">0. Preparación</button>
+        <button class="momento-tab" data-momento="1">1. Encuadre</button>
+        <button class="momento-tab" data-momento="2">2. Termómetro Lector</button>
+        <button class="momento-tab activo" data-momento="3">3. Hoja de Ruta</button>
+        <button class="momento-tab" data-momento="4">4. Cierre y Acuerdos</button>
+        <button class="momento-tab" data-momento="5">5. Evaluación y Documentación</button>
+    </nav>
+
+    <!-- ===== CONTENEDOR PRINCIPAL ===== -->
     <main class="app-main">
 
-        <!-- ============================================================
-             MOMENTO 0: PREPARACIÓN (placeholder, se implementa en Chat 6)
-             ============================================================ -->
-        <section id="momento0" class="momento-contenido">
-            <div class="seccion-header">
-                <h2><i class="fas fa-clipboard-list"></i> Momento 0: Preparación</h2>
-                <p class="seccion-descripcion">Recoge los insumos antes del CTE.</p>
-            </div>
-            <div class="caja-info">
-                <i class="fas fa-hammer"></i>
-                <strong>En construcción.</strong> Este momento se implementará en el Chat 6.
+        <!-- MOMENTO 0 -->
+        <section id="contenido-momento0" class="momento-contenido"></section>
+
+        <!-- MOMENTO 1 -->
+        <section id="contenido-momento1" class="momento-contenido"></section>
+
+        <!-- MOMENTO 2 -->
+        <section id="contenido-momento2" class="momento-contenido">
+            <div class="placeholder-momento">
+                <h2>Termómetro Lector</h2>
+                <p>Aquí se cargarán las 7 secciones del diagnóstico.</p>
             </div>
         </section>
 
-        <!-- ============================================================
-             MOMENTO 1: ENCUADRE (placeholder, se implementa en Chat 6)
-             ============================================================ -->
-        <section id="momento1" class="momento-contenido">
-            <div class="seccion-header">
-                <h2><i class="fas fa-chalkboard"></i> Momento 1: Encuadre</h2>
-                <p class="seccion-descripcion">Comprensión compartida de la estrategia.</p>
-            </div>
-            <div class="caja-info">
-                <i class="fas fa-hammer"></i>
-                <strong>En construcción.</strong> Este momento se implementará en el Chat 6.
+        <!-- MOMENTO 3 -->
+        <section id="contenido-momento3" class="momento-contenido activo">
+            <div class="placeholder-momento">
+                <h2>Hoja de Ruta Trimestral</h2>
+                <p>Aquí se cargarán las 4 sub-secciones del Momento 3.</p>
+                <p><em>(Pendiente de ajustar según el documento consolidado de rutas)</em></p>
             </div>
         </section>
 
-        <!-- ============================================================
-             MOMENTO 2: TERMÓMETRO LECTOR
-             ============================================================ -->
-        <section id="momento2" class="momento-contenido">
-            <div class="seccion-header">
-                <h2><i class="fas fa-temperature-half"></i> Momento 2: Termómetro Lector</h2>
-                <p class="seccion-descripcion">Diagnóstico de la situación lectora de tu escuela.</p>
-            </div>
-
-            <!-- Sub-pestañas del Termómetro -->
-            <nav class="sub-nav" aria-label="Secciones del Termómetro">
-                <ul id="lista-pasos">
-                    <li class="paso activo" data-paso="1">
-                        <span class="paso-numero">1</span>
-                        <span class="paso-nombre">Identificación</span>
-                    </li>
-                    <li class="paso" data-paso="2">
-                        <span class="paso-numero">2</span>
-                        <span class="paso-nombre">Línea Base</span>
-                    </li>
-                    <li class="paso" data-paso="3">
-                        <span class="paso-numero">3</span>
-                        <span class="paso-nombre">SAAL</span>
-                    </li>
-                    <li class="paso" data-paso="4">
-                        <span class="paso-numero">4</span>
-                        <span class="paso-nombre">Voces</span>
-                    </li>
-                    <li class="paso" data-paso="5">
-                        <span class="paso-numero">5</span>
-                        <span class="paso-nombre">Termómetro</span>
-                    </li>
-                    <li class="paso" data-paso="6">
-                        <span class="paso-numero">6</span>
-                        <span class="paso-nombre">Rutas</span>
-                    </li>
-                    <li class="paso" data-paso="7">
-                        <span class="paso-numero">📄</span>
-                        <span class="paso-nombre">Acta</span>
-                    </li>
-                </ul>
-            </nav>
-
-            <!-- Secciones del Termómetro -->
-            <div class="seccion-termometro activa" data-seccion="1" id="seccion-1">
-                <div class="seccion-contenido" id="contenido-seccion-1">
-                    <div class="cargando">
-                        <i class="fas fa-spinner fa-spin"></i> Cargando sección...
-                    </div>
-                </div>
-            </div>
-
-            <div class="seccion-termometro" data-seccion="2" id="seccion-2">
-                <div class="seccion-contenido" id="contenido-seccion-2">
-                    <div class="cargando">
-                        <i class="fas fa-spinner fa-spin"></i> Cargando sección...
-                    </div>
-                </div>
-            </div>
-
-            <div class="seccion-termometro" data-seccion="3" id="seccion-3">
-                <div class="seccion-contenido" id="contenido-seccion-3">
-                    <div class="cargando">
-                        <i class="fas fa-spinner fa-spin"></i> Cargando sección...
-                    </div>
-                </div>
-            </div>
-
-            <div class="seccion-termometro" data-seccion="4" id="seccion-4">
-                <div class="seccion-contenido" id="contenido-seccion-4">
-                    <div class="cargando">
-                        <i class="fas fa-spinner fa-spin"></i> Cargando sección...
-                    </div>
-                </div>
-            </div>
-
-            <div class="seccion-termometro" data-seccion="5" id="seccion-5">
-                <div class="seccion-contenido" id="contenido-seccion-5">
-                    <div class="cargando">
-                        <i class="fas fa-spinner fa-spin"></i> Cargando sección...
-                    </div>
-                </div>
-            </div>
-
-            <div class="seccion-termometro" data-seccion="6" id="seccion-6">
-                <div class="seccion-contenido" id="contenido-seccion-6">
-                    <div class="cargando">
-                        <i class="fas fa-spinner fa-spin"></i> Cargando sección...
-                    </div>
-                </div>
-            </div>
-
-            <div class="seccion-termometro" data-seccion="7" id="seccion-7">
-                <div class="seccion-contenido" id="contenido-acta">
-                    <div class="cargando">
-                        <i class="fas fa-spinner fa-spin"></i> Cargando Acta...
-                    </div>
-                </div>
+        <!-- MOMENTO 4 -->
+        <section id="contenido-momento4" class="momento-contenido">
+            <div class="placeholder-momento">
+                <h2>Cierre y Acuerdos</h2>
+                <p>Aquí se cargará el Acta de Acuerdos.</p>
             </div>
         </section>
 
-        <!-- ============================================================
-             MOMENTO 3: HOJA DE RUTA TRIMESTRAL ★ (EL CORAZÓN)
-             ============================================================ -->
-        <section id="momento3" class="momento-contenido activo">
-            <div id="contenido-momento3">
-                <div class="cargando">
-                    <i class="fas fa-spinner fa-spin"></i> Cargando Hoja de Ruta Trimestral...
-                </div>
-            </div>
-        </section>
-
-        <!-- ============================================================
-             MOMENTO 4: CIERRE Y ACUERDOS (placeholder, se implementa en Chat 6)
-             ============================================================ -->
-        <section id="momento4" class="momento-contenido">
-            <div class="seccion-header">
-                <h2><i class="fas fa-handshake"></i> Momento 4: Cierre y Acuerdos</h2>
-                <p class="seccion-descripcion">Define compromisos y próximos pasos.</p>
-            </div>
-            <div class="caja-info">
-                <i class="fas fa-hammer"></i>
-                <strong>En construcción.</strong> Este momento se implementará en el Chat 6.
-            </div>
-        </section>
-
-        <!-- ============================================================
-             MOMENTO 5: EVALUACIÓN Y DOCUMENTACIÓN (placeholder, Chat 6)
-             ============================================================ -->
-        <section id="momento5" class="momento-contenido">
-            <div class="seccion-header">
-                <h2><i class="fas fa-chart-line"></i> Momento 5: Evaluación y Documentación</h2>
-                <p class="seccion-descripcion">Registra lo realizado y sus resultados.</p>
-            </div>
-            <div class="caja-info">
-                <i class="fas fa-hammer"></i>
-                <strong>En construcción.</strong> Este momento se implementará en el Chat 6.
+        <!-- MOMENTO 5 -->
+        <section id="contenido-momento5" class="momento-contenido">
+            <div class="placeholder-momento">
+                <h2>Evaluación y Documentación</h2>
+                <p>Aquí se cargará la Bitácora y los mecanismos de seguimiento.</p>
             </div>
         </section>
 
     </main>
 
-    <!-- ===== NAVEGACIÓN INFERIOR DEL TERMÓMETRO ===== -->
+    <!-- ===== FOOTER ===== -->
     <footer class="app-footer">
-        <div class="navegacion">
-            <button id="btn-volver" class="btn btn-secundario" disabled>
-                <i class="fas fa-arrow-left"></i> Volver
-            </button>
-
-            <div class="indicador-paso">
-                Paso <span id="paso-actual">1</span> de <span id="paso-total">7</span>
-            </div>
-
-            <button id="btn-continuar" class="btn btn-primario">
-                Guardar y continuar <i class="fas fa-arrow-right"></i>
-            </button>
-        </div>
+        <p>Plan Lector Jalisco LEO · Estrategia Estatal de Lectura, Escritura y Oralidad</p>
     </footer>
 
-</div>
+    <!-- ===== TOAST CONTAINER ===== -->
+    <div id="toast-container" class="toast-container"></div>
 
-<!-- ===== NOTIFICACIONES (toasts) ===== -->
-<div id="toast-container" class="toast-container"></div>
-
-<!-- ===== MODAL DE CONFIRMACIÓN ===== -->
-<div id="modal-confirmacion" class="modal-overlay" style="display: none;">
-    <div class="modal">
-        <h3 id="modal-titulo">Confirmar acción</h3>
-        <div id="modal-mensaje">¿Estás segura?</div>
-        <div class="modal-acciones">
-            <button id="modal-cancelar" class="btn btn-secundario">Cancelar</button>
-            <button id="modal-aceptar" class="btn btn-primario">Aceptar</button>
-        </div>
-    </div>
-</div>
+    <!-- ===== SCRIPTS ===== -->
+    <script src="js/estado.js"></script>
+    <script src="js/datos.js"></script>
+    <script src="js/momento0.js"></script>
+    <script src="js/momento1.js"></script>
+    <script src="js/app.js"></script>
 
 </body>
 </html>
