@@ -3,7 +3,7 @@
    momento0.js — Preparación (Insumos para el diagnóstico)
    ============================================================ */
 
-const Momento0 = {
+window.Momento0 = {
 
     /* ===== ESTADO LOCAL ===== */
     insumos: {
