@@ -523,5 +523,5 @@ const SECCION2 = (function() {
 
 })();
 if (typeof window !== 'undefined') {
-    window.SECCION1 = SECCION1;
+    window.SECCION2 = SECCION2;
 }
