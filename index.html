@@ -4,8 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plan Lector Jalisco LEO</title>
-    <link rel="stylesheet" href="css/estilos.css">
-    <link rel="stylesheet" href="css/print.css" media="print">
+
+    <!-- ===== FONT AWESOME ===== -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- ===== GOOGLE FONTS: Fraunces + Inter ===== -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- ===== ESTILOS ===== -->
+    <link rel="stylesheet" href="estilos.css">
+    <link rel="stylesheet" href="print.css" media="print">
 </head>
 <body>
 
@@ -13,26 +23,32 @@
     <header class="app-header">
         <div class="header-contenido">
             <div class="header-logo">
-                <span class="logo-icono">📖</span>
+                <span class="logo-icono"><i class="fas fa-book-open"></i></span>
                 <div class="logo-texto">
                     <h1>Plan Lector</h1>
                     <p>Jalisco LEO</p>
                 </div>
             </div>
             <div class="header-acciones">
-                <button class="btn btn-secundario" id="btn-demo">🎬 Modo Demo</button>
-                <button class="btn btn-secundario" id="btn-guardar-borrador">💾 Guardar borrador</button>
-                <button class="btn btn-primario" id="btn-exportar">📄 Exportar PDF</button>
+                <button class="btn btn-secundario" id="btn-demo">
+                    <i class="fas fa-play-circle"></i> Modo Demo
+                </button>
+                <button class="btn btn-secundario" id="btn-guardar-borrador">
+                    <i class="fas fa-save"></i> Guardar borrador
+                </button>
+                <button class="btn btn-primario" id="btn-exportar">
+                    <i class="fas fa-file-pdf"></i> Exportar PDF
+                </button>
             </div>
         </div>
     </header>
 
     <!-- ===== NAVEGACIÓN POR MOMENTOS ===== -->
     <nav class="momentos-nav">
-        <button class="momento-tab" data-momento="0">0. Preparación</button>
+        <button class="momento-tab activo" data-momento="0">0. Preparación</button>
         <button class="momento-tab" data-momento="1">1. Encuadre</button>
         <button class="momento-tab" data-momento="2">2. Termómetro Lector</button>
-        <button class="momento-tab activo" data-momento="3">3. Hoja de Ruta</button>
+        <button class="momento-tab" data-momento="3">3. Hoja de Ruta</button>
         <button class="momento-tab" data-momento="4">4. Cierre y Acuerdos</button>
         <button class="momento-tab" data-momento="5">5. Evaluación y Documentación</button>
     </nav>
@@ -40,13 +56,9 @@
     <!-- ===== CONTENEDOR PRINCIPAL ===== -->
     <main class="app-main">
 
-        <!-- MOMENTO 0 -->
-        <section id="contenido-momento0" class="momento-contenido"></section>
-
-        <!-- MOMENTO 1 -->
+        <section id="contenido-momento0" class="momento-contenido activo"></section>
         <section id="contenido-momento1" class="momento-contenido"></section>
 
-        <!-- MOMENTO 2 -->
         <section id="contenido-momento2" class="momento-contenido">
             <div class="placeholder-momento">
                 <h2>Termómetro Lector</h2>
@@ -54,16 +66,13 @@
             </div>
         </section>
 
-        <!-- MOMENTO 3 -->
-        <section id="contenido-momento3" class="momento-contenido activo">
+        <section id="contenido-momento3" class="momento-contenido">
             <div class="placeholder-momento">
                 <h2>Hoja de Ruta Trimestral</h2>
                 <p>Aquí se cargarán las 4 sub-secciones del Momento 3.</p>
-                <p><em>(Pendiente de ajustar según el documento consolidado de rutas)</em></p>
             </div>
         </section>
 
-        <!-- MOMENTO 4 -->
         <section id="contenido-momento4" class="momento-contenido">
             <div class="placeholder-momento">
                 <h2>Cierre y Acuerdos</h2>
@@ -71,7 +80,6 @@
             </div>
         </section>
 
-        <!-- MOMENTO 5 -->
         <section id="contenido-momento5" class="momento-contenido">
             <div class="placeholder-momento">
                 <h2>Evaluación y Documentación</h2>
@@ -90,11 +98,11 @@
     <div id="toast-container" class="toast-container"></div>
 
     <!-- ===== SCRIPTS ===== -->
-    <script src="js/estado.js"></script>
-    <script src="js/datos.js"></script>
-    <script src="js/momento0.js"></script>
-    <script src="js/momento1.js"></script>
-    <script src="js/app.js"></script>
+    <script src="estado.js"></script>
+    <script src="datos.js"></script>
+    <script src="momento0.js"></script>
+    <script src="momento1.js"></script>
+    <script src="app.js"></script>
 
 </body>
 </html>
