@@ -517,3 +517,6 @@ const SECCION6 = (function() {
     return { init, renderizar, validar };
 
 })();
+if (typeof window !== 'undefined') {
+    window.SECCION6 = SECCION6;
+}
