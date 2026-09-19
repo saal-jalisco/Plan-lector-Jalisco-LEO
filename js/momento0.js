@@ -46,6 +46,7 @@ window.Momento0 = {
                 ${this.renderListas()}
                 ${this.renderAcciones()}
                 ${this.renderNotaOrientadora()}
+                ${this.renderNavegacion()}
             </div>
         `;
 
@@ -85,15 +86,15 @@ window.Momento0 = {
     /* ===== LISTAS DE INSUMOS ===== */
     renderListas() {
         const categorias = [
-            { key: 'documentales', titulo: '📄 Insumos documentales', icono: '📄' },
-            { key: 'infraestructura', titulo: '🏫 Insumos de infraestructura', icono: '🏫' },
-            { key: 'humanos', titulo: '👥 Insumos humanos', icono: '👥' },
-            { key: 'pedagogicos', titulo: '📚 Insumos pedagógicos', icono: '📚' }
+            { key: 'documentales', titulo: 'Insumos documentales', icono: 'fa-file-alt' },
+            { key: 'infraestructura', titulo: 'Insumos de infraestructura', icono: 'fa-school' },
+            { key: 'humanos', titulo: 'Insumos humanos', icono: 'fa-users' },
+            { key: 'pedagogicos', titulo: 'Insumos pedagógicos', icono: 'fa-book' }
         ];
 
         return categorias.map(cat => `
             <div class="momento0-categoria">
-                <h2>${cat.titulo}</h2>
+                <h2><i class="fas ${cat.icono}"></i> ${cat.titulo}</h2>
                 <ul class="momento0-lista">
                     ${this.insumos[cat.key].map(item => `
                         <li class="momento0-item ${item.listo ? 'listo' : ''}" data-id="${item.id}" data-categoria="${cat.key}">
@@ -113,10 +114,10 @@ window.Momento0 = {
         return `
             <div class="momento0-acciones">
                 <button class="btn btn-primario" id="btn-guardar-momento0">
-                    💾 Guardar estado de preparación
+                    <i class="fas fa-save"></i> Guardar estado de preparación
                 </button>
                 <button class="btn btn-secundario" id="btn-marcar-todo-momento0">
-                    ✅ Marcar todo como listo
+                    <i class="fas fa-check-double"></i> Marcar todo como listo
                 </button>
             </div>
         `;
@@ -126,7 +127,7 @@ window.Momento0 = {
     renderNotaOrientadora() {
         return `
             <div class="caja-info momento0-nota">
-                <h3>📌 Nota orientadora</h3>
+                <h3><i class="fas fa-thumbtack"></i> Nota orientadora</h3>
                 <p>
                     Esta lista está basada en las guías de elaboración de Planes de Fomento de la
                     Lectura (Primaria y Secundaria) y en la Estrategia Jalisco LEO. No es necesario
@@ -138,6 +139,20 @@ window.Momento0 = {
                     <strong>Micrositio Jalisco LEO</strong> estarán disponibles durante el primer
                     trimestre del ciclo escolar.
                 </p>
+            </div>
+        `;
+    },
+
+    /* ===== NAVEGACIÓN ENTRE MOMENTOS ===== */
+    renderNavegacion() {
+        return `
+            <div class="navegacion-momentos">
+                <button class="btn btn-secundario" disabled>
+                    <i class="fas fa-arrow-left"></i> Anterior
+                </button>
+                <button class="btn btn-primario" id="btn-siguiente-momento">
+                    Siguiente <i class="fas fa-arrow-right"></i>
+                </button>
             </div>
         `;
     },
@@ -154,7 +169,6 @@ window.Momento0 = {
                     item.listo = e.target.checked;
                     e.target.closest('.momento0-item').classList.toggle('listo', item.listo);
                 }
-                this.actualizarProgreso();
             });
         });
 
@@ -163,7 +177,7 @@ window.Momento0 = {
         if (btnGuardar) {
             btnGuardar.addEventListener('click', () => {
                 this.guardarEstado();
-                this.mostrarToast('✅ Estado de preparación guardado');
+                if (window.App) App.mostrarToast('Estado de preparación guardado');
             });
         }
 
@@ -175,59 +189,33 @@ window.Momento0 = {
                     this.insumos[cat].forEach(item => item.listo = true);
                 });
                 this.render();
-                this.actualizarProgreso();
-                this.mostrarToast('✅ Todos los insumos marcados como listos');
+                if (window.App) App.mostrarToast('Todos los insumos marcados como listos');
             });
         }
-    },
 
-    /* ===== PROGRESO ===== */
-    actualizarProgreso() {
-        const total = Object.values(this.insumos).flat().length;
-        const listos = Object.values(this.insumos).flat().filter(i => i.listo).length;
-        const porcentaje = Math.round((listos / total) * 100);
-
-        // Actualizar barra de progreso si existe
-        const barra = document.getElementById('barra-progreso-momento0');
-        if (barra) {
-            barra.style.width = `${porcentaje}%`;
-            barra.textContent = `${porcentaje}%`;
-        }
-
-        // Guardar en estado global
-        if (window.Estado) {
-            Estado.setProgreso('momento0', porcentaje);
+        // Siguiente
+        const btnSiguiente = document.getElementById('btn-siguiente-momento');
+        if (btnSiguiente) {
+            btnSiguiente.addEventListener('click', () => {
+                if (window.App) App.cambiarMomento(1);
+            });
         }
     },
 
     /* ===== GUARDAR ESTADO ===== */
     guardarEstado() {
-        if (window.Estado) {
+        if (window.Estado && Estado.setDatos) {
             Estado.setDatos('momento0', this.insumos);
         }
     },
 
     /* ===== CARGAR ESTADO ===== */
     cargarEstado() {
-        if (window.Estado) {
+        if (window.Estado && Estado.getDatos) {
             const datos = Estado.getDatos('momento0');
             if (datos) {
                 this.insumos = datos;
             }
         }
-    },
-
-    /* ===== TOAST ===== */
-    mostrarToast(mensaje) {
-        if (window.App && App.mostrarToast) {
-            App.mostrarToast(mensaje);
-        } else {
-            console.log(mensaje);
-        }
     }
 };
-
-// Inicialización
-document.addEventListener('DOMContentLoaded', () => {
-    Momento0.cargarEstado();
-});
