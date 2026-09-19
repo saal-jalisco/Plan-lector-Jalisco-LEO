@@ -363,3 +363,6 @@ const SECCION4 = (function() {
     return { init, renderizar, validar };
 
 })();
+if (typeof window !== 'undefined') {
+    window.SECCION4 = SECCION4;
+}
