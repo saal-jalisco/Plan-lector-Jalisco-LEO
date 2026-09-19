@@ -522,3 +522,6 @@ const SECCION2 = (function() {
     return { init, renderizar, validar };
 
 })();
+if (typeof window !== 'undefined') {
+    window.SECCION1 = SECCION1;
+}
