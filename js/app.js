@@ -9,16 +9,14 @@ const App = {
 
     /* ===== INICIALIZACIÓN ===== */
     init() {
-        console.log('🚂 App.init() — Iniciando Plan Lector Jalisco LEO');
-        console.log('📦 Módulos disponibles:');
+        console.log('App.init() — Iniciando Plan Lector Jalisco LEO');
+        console.log('Módulos disponibles:');
         console.log('   - Momento0:', typeof window.Momento0);
         console.log('   - Momento1:', typeof window.Momento1);
 
         this.attachNavegacion();
         this.attachAccionesHeader();
-        this.attachDemo();
 
-        // Cargar el momento inicial SIEMPRE como 0
         this.momentoActual = 0;
         this.cambiarMomento(0);
     },
@@ -34,23 +32,21 @@ const App = {
     },
 
     cambiarMomento(numero) {
-        // Actualizar tabs
+        if (numero < 0 || numero > 5) return;
+
         document.querySelectorAll('.momento-tab').forEach(tab => {
             tab.classList.toggle('activo', parseInt(tab.dataset.momento, 10) === numero);
         });
 
-        // Ocultar todos los contenidos
         document.querySelectorAll('.momento-contenido').forEach(sec => {
             sec.classList.remove('activo');
         });
 
-        // Mostrar el contenido del momento
         const contenedor = document.getElementById(`contenido-momento${numero}`);
         if (contenedor) {
             contenedor.classList.add('activo');
         }
 
-        // Cargar el momento
         this.cargarMomento(numero);
         this.momentoActual = numero;
 
@@ -58,8 +54,6 @@ const App = {
     },
 
     cargarMomento(numero) {
-        console.log(`🔄 Cargando Momento ${numero}...`);
-
         try {
             switch (numero) {
                 case 0:
@@ -68,50 +62,36 @@ const App = {
                             window.Momento0.cargarEstado();
                         }
                         window.Momento0.render();
-                        console.log('✅ Momento 0 renderizado');
-                    } else {
-                        console.error('❌ Momento0 no está definido o no tiene render()');
                     }
                     break;
                 case 1:
                     if (window.Momento1 && typeof window.Momento1.render === 'function') {
                         window.Momento1.render();
-                        console.log('✅ Momento 1 renderizado');
-                    } else {
-                        console.error('❌ Momento1 no está definido o no tiene render()');
                     }
                     break;
                 case 2:
                     if (window.Momento2 && typeof window.Momento2.render === 'function') {
                         window.Momento2.render();
-                    } else {
-                        console.warn('⚠️ Momento2 no implementado aún');
                     }
                     break;
                 case 3:
                     if (window.Momento3 && typeof window.Momento3.render === 'function') {
                         window.Momento3.render();
-                    } else {
-                        console.warn('⚠️ Momento3 no implementado aún');
                     }
                     break;
                 case 4:
                     if (window.Momento4 && typeof window.Momento4.render === 'function') {
                         window.Momento4.render();
-                    } else {
-                        console.warn('⚠️ Momento4 no implementado aún');
                     }
                     break;
                 case 5:
                     if (window.Momento5 && typeof window.Momento5.render === 'function') {
                         window.Momento5.render();
-                    } else {
-                        console.warn('⚠️ Momento5 no implementado aún');
                     }
                     break;
             }
         } catch (error) {
-            console.error(`❌ Error al cargar Momento ${numero}:`, error);
+            console.error(`Error al cargar Momento ${numero}:`, error);
         }
     },
 
@@ -120,7 +100,7 @@ const App = {
         const btnGuardar = document.getElementById('btn-guardar-borrador');
         if (btnGuardar) {
             btnGuardar.addEventListener('click', () => {
-                this.mostrarToast('💾 Borrador guardado correctamente');
+                this.mostrarToast('Borrador guardado correctamente');
             });
         }
 
@@ -130,14 +110,11 @@ const App = {
                 window.print();
             });
         }
-    },
 
-    /* ===== MODO DEMO ===== */
-    attachDemo() {
         const btnDemo = document.getElementById('btn-demo');
         if (btnDemo) {
             btnDemo.addEventListener('click', () => {
-                this.mostrarToast('🎬 Modo Demo próximamente');
+                this.mostrarToast('Modo Demo próximamente');
             });
         }
     },
