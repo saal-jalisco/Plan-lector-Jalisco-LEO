@@ -1,15 +1,11 @@
 /* ============================================================
    PLAN LECTOR JALISCO LEO
    momento3-2-calendarizacion.js — Sub-sección 3.2: Calendarización
-   Auto-genera actividades desde 3.1 (anclas + banco + cierre).
-   v2.0 — Adaptado a 1 ruta por trimestre
+   v2.1 — Quita re-sincronizar (automático) + modal funcional
    ============================================================ */
 
 const MOMENTO3_2 = (function() {
 
-    /* ========================================================
-       REFERENCIAS
-       ======================================================== */
     let contenedor = null;
     let filtroMes = 'todos';
     let filtroTipo = 'todos';
@@ -19,7 +15,7 @@ const MOMENTO3_2 = (function() {
     const MESES_VALIDOS = ['septiembre', 'octubre', 'noviembre'];
 
     /* ========================================================
-       HELPERS DEFENSIVOS
+       HELPERS
        ======================================================== */
     function obtenerM3() {
         if (typeof ESTADO !== 'undefined' && typeof ESTADO.obtenerSeccion === 'function') {
@@ -43,9 +39,7 @@ const MOMENTO3_2 = (function() {
                     actividades
                 });
             }
-        } catch (e) {
-            console.warn('⚠️ No se pudo guardar calendarización:', e);
-        }
+        } catch (e) { console.warn('⚠️ No se pudo guardar:', e); }
     }
 
     function guardarNotas(notas) {
@@ -74,7 +68,7 @@ const MOMENTO3_2 = (function() {
     }
 
     /* ========================================================
-       SINCRONIZAR ACTIVIDADES DESDE 3.1
+       SINCRONIZAR ACTIVIDADES DESDE 3.1 (AUTOMÁTICO)
        ======================================================== */
     function sincronizarActividades() {
         const m3 = obtenerM3();
@@ -92,10 +86,9 @@ const MOMENTO3_2 = (function() {
         const existentes = m3.calendarizacion.actividades || [];
         const nuevas = [];
 
-        // 1. ANCLAS (permanentes)
+        // ANCLAS
         (nivelData.anclas || []).forEach(a => {
-            const existe = existentes.some(e => e.tipo === 'ancla' && e.nombre === a.nombre);
-            if (!existe) {
+            if (!existentes.some(e => e.tipo === 'ancla' && e.nombre === a.nombre)) {
                 nuevas.push({
                     id: generarId(),
                     rutaId,
@@ -112,13 +105,12 @@ const MOMENTO3_2 = (function() {
             }
         });
 
-        // 2. BANCO (seleccionado en 3.1)
+        // BANCO
         const bancoSel = sel.bancoSeleccionado || [];
         bancoSel.forEach(nombre => {
             const act = (nivelData.banco || []).find(b => b.nombre === nombre);
             if (!act) return;
-            const existe = existentes.some(e => e.tipo === 'banco' && e.nombre === act.nombre);
-            if (!existe) {
+            if (!existentes.some(e => e.tipo === 'banco' && e.nombre === act.nombre)) {
                 nuevas.push({
                     id: generarId(),
                     rutaId,
@@ -135,31 +127,27 @@ const MOMENTO3_2 = (function() {
             }
         });
 
-        // 3. CIERRE
+        // CIERRE
         const cierre = nivelData.cierre;
-        if (cierre) {
-            const existe = existentes.some(e => e.tipo === 'cierre' && e.nombre === cierre.nombre);
-            if (!existe) {
-                nuevas.push({
-                    id: generarId(),
-                    rutaId,
-                    nombre: cierre.nombre,
-                    descripcion: cierre.descripcion,
-                    tipo: 'cierre',
-                    frecuencia: cierre.frecuencia,
-                    virtud: cierre.virtud,
-                    mes: sel.cierreMes || 'noviembre',
-                    semana: '',
-                    estado: 'no-iniciada',
-                    notas: ''
-                });
-            }
+        if (cierre && !existentes.some(e => e.tipo === 'cierre' && e.nombre === cierre.nombre)) {
+            nuevas.push({
+                id: generarId(),
+                rutaId,
+                nombre: cierre.nombre,
+                descripcion: cierre.descripcion,
+                tipo: 'cierre',
+                frecuencia: cierre.frecuencia,
+                virtud: cierre.virtud,
+                mes: sel.cierreMes || 'noviembre',
+                semana: '',
+                estado: 'no-iniciada',
+                notas: ''
+            });
         }
 
         if (nuevas.length > 0) {
-            const todas = [...existentes, ...nuevas];
-            guardarActividades(todas);
-            console.log(`✅ MOMENTO3_2: ${nuevas.length} actividad(es) sincronizada(s) desde 3.1`);
+            guardarActividades([...existentes, ...nuevas]);
+            console.log(`✅ MOMENTO3_2: ${nuevas.length} actividad(es) sincronizada(s)`);
         }
     }
 
@@ -170,16 +158,13 @@ const MOMENTO3_2 = (function() {
         contenedor = cont || document.getElementById('contenido-sub-seccion');
         if (!contenedor) return;
 
-        // 1. Sincronizar con 3.1
         sincronizarActividades();
 
-        // 2. Leer datos
         const m3 = obtenerM3();
         const sel = m3.seleccionRutas || {};
         const ruta = sel.rutaId && typeof DATOS !== 'undefined' ? DATOS.rutasLEO[sel.rutaId] : null;
         const actividades = m3.calendarizacion.actividades || [];
 
-        // 3. Guardas
         if (!ruta) {
             contenedor.innerHTML = `
                 <div class="sub-seccion">
@@ -196,10 +181,7 @@ const MOMENTO3_2 = (function() {
             return;
         }
 
-        // 4. Aplicar filtros
         const filtradas = aplicarFiltros(actividades);
-
-        // 5. Contadores
         const contadores = calcularContadores(actividades);
 
         contenedor.innerHTML = `
@@ -209,12 +191,11 @@ const MOMENTO3_2 = (function() {
                     <h3><i class="fas fa-calendar-days"></i> 3.2 Calendarización</h3>
                     <p class="seccion-descripcion">
                         Distribuye las actividades del trimestre. Las <strong>anclas</strong> son permanentes,
-                        el <strong>banco</strong> lo distribuiste según la frecuencia y el <strong>cierre</strong>
+                        el <strong>banco</strong> lo distribuyes libremente y el <strong>cierre</strong>
                         va al final del trimestre.
                     </p>
                 </div>
 
-                <!-- ===== INFO ===== -->
                 <div class="caja-info">
                     <i class="fas fa-info-circle"></i>
                     <strong>Ruta:</strong> ${ruta.nombre} ·
@@ -225,31 +206,21 @@ const MOMENTO3_2 = (function() {
                     ${contadores.todo > 0 ? ` · <strong>Todo el trimestre:</strong> ${contadores.todo}` : ''}
                 </div>
 
-                <!-- ===== ALERTA SI FALTAN ACTIVIDADES ===== -->
-                ${actividades.length === 0 ? `
-                    <div class="caja-alerta">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        No hay actividades. Verifica tu selección en el paso 3.1 o agrega actividades manualmente.
-                    </div>
-                ` : ''}
-
-                <!-- ===== BOTONES DE ACCIÓN ===== -->
+                <!-- ===== ACCIONES ===== -->
                 <div class="form-bloque">
-                    <div class="flex-between" style="flex-wrap: wrap; gap: 0.5rem;">
-                        <h3 style="margin: 0;"><i class="fas fa-tools"></i> Acciones</h3>
-                        <div class="flex gap-1" style="flex-wrap: wrap;">
-                            <button type="button" class="btn btn-sm btn-secundario" id="btn-sincronizar">
-                                <i class="fas fa-sync-alt"></i> Re-sincronizar desde 3.1
-                            </button>
-                            <button type="button" class="btn btn-sm btn-primario" id="btn-agregar-actividad">
-                                <i class="fas fa-plus"></i> Nueva actividad personalizada
-                            </button>
+                    <div class="acciones-momento3-2">
+                        <div>
+                            <h3 style="margin: 0 0 0.25rem;"><i class="fas fa-circle-info"></i> Cómo funciona</h3>
+                            <p class="ayuda" style="margin: 0;">
+                                Las actividades se sincronizan automáticamente desde el paso <strong>3.1</strong>.
+                                Usa el lápiz <i class="fas fa-pen"></i> para cambiar el mes, semana o estado.
+                                Usa el bote de basura <i class="fas fa-trash"></i> para quitar actividades (excepto anclas).
+                            </p>
                         </div>
+                        <button type="button" class="btn btn-sm btn-primario" id="btn-agregar-actividad">
+                            <i class="fas fa-plus"></i> Nueva actividad personalizada
+                        </button>
                     </div>
-                    <p class="ayuda" style="margin-top: 0.5rem;">
-                        <strong>Re-sincronizar</strong> agrega las actividades que falten desde 3.1.
-                        No borra tus ediciones.
-                    </p>
                 </div>
 
                 <!-- ===== FILTROS ===== -->
@@ -290,7 +261,6 @@ const MOMENTO3_2 = (function() {
                         </div>
                     </div>
 
-                    <!-- ===== VISTA ===== -->
                     <div class="form-bloque">
                         <div class="flex-between mb-2">
                             <h3 style="margin: 0;"><i class="fas fa-table-cells-large"></i> Calendario del trimestre</h3>
@@ -306,9 +276,13 @@ const MOMENTO3_2 = (function() {
 
                         ${vistaActual === 'meses' ? renderizarVistaMeses(filtradas) : renderizarVistaLista(filtradas)}
                     </div>
-                ` : ''}
+                ` : `
+                    <div class="caja-info">
+                        <i class="fas fa-info-circle"></i>
+                        No hay actividades. Selecciona una ruta en el paso 3.1 o agrega una personalizada.
+                    </div>
+                `}
 
-                <!-- ===== NOTAS ===== -->
                 <div class="form-bloque">
                     <h3><i class="fas fa-comment-dots"></i> Notas del colectivo</h3>
                     <p class="ayuda">Opcional. Acuerdos sobre la distribución, ajustes, etc.</p>
@@ -319,7 +293,6 @@ const MOMENTO3_2 = (function() {
                     </div>
                 </div>
 
-                <!-- ===== RESUMEN ===== -->
                 <div class="caja-${actividades.length > 0 ? 'exito' : 'info'}">
                     <i class="fas fa-${actividades.length > 0 ? 'check-circle' : 'info-circle'}"></i>
                     ${actividades.length > 0
@@ -334,10 +307,9 @@ const MOMENTO3_2 = (function() {
     }
 
     /* ========================================================
-       VISTA POR MESES
+       VISTAS
        ======================================================== */
     function renderizarVistaMeses(actividades) {
-        // Primero las "todo el trimestre", luego los 3 meses
         const todo = actividades.filter(a => a.mes === 'todo');
         const porMes = {
             septiembre: actividades.filter(a => a.mes === 'septiembre'),
@@ -384,16 +356,9 @@ const MOMENTO3_2 = (function() {
         if (actividades.length === 0) {
             return '<p class="ayuda" style="text-align: center; padding: 1rem;">No hay actividades que coincidan con los filtros.</p>';
         }
-        return `
-            <div class="lista-actividades">
-                ${actividades.map(a => renderizarTarjetaActividad(a)).join('')}
-            </div>
-        `;
+        return `<div class="lista-actividades">${actividades.map(a => renderizarTarjetaActividad(a)).join('')}</div>`;
     }
 
-    /* ========================================================
-       TARJETA DE ACTIVIDAD
-       ======================================================== */
     function renderizarTarjetaActividad(a) {
         const tipoDef = (typeof DATOS !== 'undefined')
             ? DATOS.momento3.tiposActividad.find(t => t.id === a.tipo)
@@ -443,7 +408,7 @@ const MOMENTO3_2 = (function() {
     }
 
     /* ========================================================
-       FILTROS
+       FILTROS Y CONTADORES
        ======================================================== */
     function aplicarFiltros(actividades) {
         return actividades.filter(a => {
@@ -464,146 +429,116 @@ const MOMENTO3_2 = (function() {
     }
 
     /* ========================================================
-       EVENTOS
+       MODAL — Helper genérico
        ======================================================== */
-    function suscribirEventos() {
-        // Filtros
-        const fMes = document.getElementById('filtro-mes');
-        if (fMes) fMes.addEventListener('change', e => { filtroMes = e.target.value; renderizar(); });
-
-        const fTipo = document.getElementById('filtro-tipo');
-        if (fTipo) fTipo.addEventListener('change', e => { filtroTipo = e.target.value; renderizar(); });
-
-        const fEstado = document.getElementById('filtro-estado');
-        if (fEstado) fEstado.addEventListener('change', e => { filtroEstado = e.target.value; renderizar(); });
-
-        // Vistas
-        const bMeses = document.getElementById('btn-vista-meses');
-        if (bMeses) bMeses.addEventListener('click', () => { vistaActual = 'meses'; renderizar(); });
-
-        const bLista = document.getElementById('btn-vista-lista');
-        if (bLista) bLista.addEventListener('click', () => { vistaActual = 'lista'; renderizar(); });
-
-        // Re-sincronizar
-        const bSync = document.getElementById('btn-sincronizar');
-        if (bSync) {
-            bSync.addEventListener('click', () => {
-                sincronizarActividades();
-                mostrarToast('Sincronización completa.', 'exito');
-                renderizar();
-            });
+    function abrirModal({ titulo, contenidoHTML, textoAceptar, onAceptar }) {
+        const modal = document.getElementById('modal-confirmacion');
+        if (!modal) {
+            console.error('❌ No existe #modal-confirmacion en el HTML');
+            mostrarToast('Error: modal no disponible.', 'error');
+            return;
         }
 
-        // Agregar personalizada
-        const bAgregar = document.getElementById('btn-agregar-actividad');
-        if (bAgregar) bAgregar.addEventListener('click', abrirModalNuevaActividad);
+        document.getElementById('modal-titulo').textContent = titulo;
+        document.getElementById('modal-mensaje').innerHTML = contenidoHTML;
 
-        // Editar
-        contenedor.querySelectorAll('.btn-editar-actividad').forEach(btn => {
-            btn.addEventListener('click', e => abrirModalEditarActividad(e.currentTarget.dataset.actividad));
+        const btnAceptar = document.getElementById('modal-aceptar');
+        const btnCancelar = document.getElementById('modal-cancelar');
+        const btnCerrar = document.getElementById('modal-cerrar');
+
+        btnAceptar.textContent = textoAceptar || 'Aceptar';
+
+        const cerrar = () => { modal.style.display = 'none'; };
+
+        // Clonar para limpiar listeners
+        const nuevoAceptar = btnAceptar.cloneNode(true);
+        const nuevoCancelar = btnCancelar.cloneNode(true);
+        const nuevoCerrar = btnCerrar.cloneNode(true);
+        btnAceptar.replaceWith(nuevoAceptar);
+        btnCancelar.replaceWith(nuevoCancelar);
+        btnCerrar.replaceWith(nuevoCerrar);
+
+        nuevoCancelar.addEventListener('click', cerrar);
+        nuevoCerrar.addEventListener('click', cerrar);
+        nuevoAceptar.addEventListener('click', () => {
+            const resultado = onAceptar();
+            if (resultado !== false) cerrar();
         });
 
-        // Eliminar
-        contenedor.querySelectorAll('.btn-eliminar-actividad').forEach(btn => {
-            btn.addEventListener('click', e => confirmarEliminar(e.currentTarget.dataset.actividad));
-        });
-
-        // Notas
-        const notas = document.getElementById('notas-calendarizacion');
-        if (notas) {
-            notas.addEventListener('input', e => guardarNotas(e.target.value));
-        }
+        modal.style.display = 'flex';
     }
 
     /* ========================================================
        MODAL: NUEVA ACTIVIDAD PERSONALIZADA
        ======================================================== */
     function abrirModalNuevaActividad() {
-        const modal = document.getElementById('modal-confirmacion');
-        if (!modal) {
-            mostrarToast('No hay modal disponible.', 'error');
-            return;
-        }
         const m3 = obtenerM3();
         const rutaId = m3.seleccionRutas?.rutaId;
 
-        document.getElementById('modal-titulo').textContent = 'Nueva actividad personalizada';
-        document.getElementById('modal-mensaje').innerHTML = `
-            <div class="form-grupo">
-                <label>Nombre <span class="obligatorio">*</span></label>
-                <input type="text" id="new-nombre" placeholder="Ej. Lectura en el patio">
-            </div>
-            <div class="form-grupo">
-                <label>Descripción</label>
-                <textarea id="new-descripcion" rows="2" placeholder="Breve descripción de la actividad…"></textarea>
-            </div>
-            <div class="form-fila">
+        abrirModal({
+            titulo: 'Nueva actividad personalizada',
+            textoAceptar: 'Agregar',
+            contenidoHTML: `
                 <div class="form-grupo">
-                    <label>Mes</label>
-                    <select id="new-mes">
-                        <option value="septiembre">Septiembre</option>
-                        <option value="octubre">Octubre</option>
-                        <option value="noviembre">Noviembre</option>
-                    </select>
+                    <label>Nombre <span class="obligatorio">*</span></label>
+                    <input type="text" id="new-nombre" placeholder="Ej. Lectura en el patio">
                 </div>
                 <div class="form-grupo">
-                    <label>Semana</label>
-                    <select id="new-semana">
-                        <option value="">— Sin especificar —</option>
-                        <option value="Semana 1">Semana 1</option>
-                        <option value="Semana 2">Semana 2</option>
-                        <option value="Semana 3">Semana 3</option>
-                        <option value="Semana 4">Semana 4</option>
-                    </select>
+                    <label>Descripción</label>
+                    <textarea id="new-descripcion" rows="2" placeholder="Breve descripción…"></textarea>
                 </div>
-            </div>
-            <div class="form-grupo">
-                <label>Frecuencia</label>
-                <input type="text" id="new-frecuencia" placeholder="Ej. Semanal, Quincenal…">
-            </div>
-            <div class="form-grupo">
-                <label>Notas</label>
-                <textarea id="new-notas" rows="2" placeholder="Observaciones…"></textarea>
-            </div>
-        `;
+                <div class="form-fila">
+                    <div class="form-grupo">
+                        <label>Mes</label>
+                        <select id="new-mes">
+                            <option value="septiembre">Septiembre</option>
+                            <option value="octubre">Octubre</option>
+                            <option value="noviembre">Noviembre</option>
+                        </select>
+                    </div>
+                    <div class="form-grupo">
+                        <label>Semana</label>
+                        <select id="new-semana">
+                            <option value="">— Sin especificar —</option>
+                            <option value="Semana 1">Semana 1</option>
+                            <option value="Semana 2">Semana 2</option>
+                            <option value="Semana 3">Semana 3</option>
+                            <option value="Semana 4">Semana 4</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-grupo">
+                    <label>Frecuencia</label>
+                    <input type="text" id="new-frecuencia" placeholder="Ej. Semanal, Quincenal…">
+                </div>
+                <div class="form-grupo">
+                    <label>Notas</label>
+                    <textarea id="new-notas" rows="2"></textarea>
+                </div>
+            `,
+            onAceptar: () => {
+                const nombre = document.getElementById('new-nombre').value.trim();
+                if (!nombre) { mostrarToast('El nombre es obligatorio.', 'error'); return false; }
 
-        const btnAceptar = document.getElementById('modal-aceptar');
-        const btnCancelar = document.getElementById('modal-cancelar');
-        btnAceptar.textContent = 'Agregar';
-        btnCancelar.textContent = 'Cancelar';
-
-        const nuevoAceptar = btnAceptar.cloneNode(true);
-        const nuevoCancelar = btnCancelar.cloneNode(true);
-        btnAceptar.replaceWith(nuevoAceptar);
-        btnCancelar.replaceWith(nuevoCancelar);
-
-        modal.style.display = 'flex';
-
-        nuevoCancelar.addEventListener('click', () => { modal.style.display = 'none'; });
-
-        nuevoAceptar.addEventListener('click', () => {
-            const nombre = document.getElementById('new-nombre').value.trim();
-            if (!nombre) { alert('El nombre es obligatorio.'); return; }
-
-            const m3Actual = obtenerM3();
-            const actividades = [...(m3Actual.calendarizacion.actividades || [])];
-            actividades.push({
-                id: generarId(),
-                rutaId: rutaId || null,
-                nombre,
-                descripcion: document.getElementById('new-descripcion').value.trim(),
-                tipo: 'personalizada',
-                frecuencia: document.getElementById('new-frecuencia').value.trim(),
-                virtud: '',
-                mes: document.getElementById('new-mes').value,
-                semana: document.getElementById('new-semana').value,
-                estado: 'no-iniciada',
-                notas: document.getElementById('new-notas').value.trim()
-            });
-            guardarActividades(actividades);
-            modal.style.display = 'none';
-            mostrarToast('Actividad agregada.', 'exito');
-            renderizar();
+                const m3Actual = obtenerM3();
+                const actividades = [...(m3Actual.calendarizacion.actividades || [])];
+                actividades.push({
+                    id: generarId(),
+                    rutaId: rutaId || null,
+                    nombre,
+                    descripcion: document.getElementById('new-descripcion').value.trim(),
+                    tipo: 'personalizada',
+                    frecuencia: document.getElementById('new-frecuencia').value.trim(),
+                    virtud: '',
+                    mes: document.getElementById('new-mes').value,
+                    semana: document.getElementById('new-semana').value,
+                    estado: 'no-iniciada',
+                    notas: document.getElementById('new-notas').value.trim()
+                });
+                guardarActividades(actividades);
+                mostrarToast('Actividad agregada.', 'exito');
+                renderizar();
+            }
         });
     }
 
@@ -611,95 +546,79 @@ const MOMENTO3_2 = (function() {
        MODAL: EDITAR ACTIVIDAD
        ======================================================== */
     function abrirModalEditarActividad(actividadId) {
-        const modal = document.getElementById('modal-confirmacion');
-        if (!modal) return;
-
         const m3 = obtenerM3();
         const act = (m3.calendarizacion.actividades || []).find(a => a.id === actividadId);
         if (!act) return;
 
         const esAncla = act.tipo === 'ancla';
 
-        document.getElementById('modal-titulo').textContent = 'Editar actividad';
-        document.getElementById('modal-mensaje').innerHTML = `
-            <div class="form-grupo">
-                <label>Nombre</label>
-                <input type="text" id="edit-nombre" value="${act.nombre}" ${esAncla ? 'disabled' : ''}>
-                ${esAncla ? '<span class="ayuda">Las anclas no se pueden renombrar.</span>' : ''}
-            </div>
-            <div class="form-fila">
+        abrirModal({
+            titulo: esAncla ? 'Editar ancla (solo estado y notas)' : 'Editar actividad',
+            textoAceptar: 'Guardar',
+            contenidoHTML: `
                 <div class="form-grupo">
-                    <label>Mes</label>
-                    <select id="edit-mes" ${esAncla ? 'disabled' : ''}>
-                        ${esAncla ? `<option value="todo" selected>Todo el trimestre</option>` : `
-                            <option value="septiembre" ${act.mes === 'septiembre' ? 'selected' : ''}>Septiembre</option>
-                            <option value="octubre" ${act.mes === 'octubre' ? 'selected' : ''}>Octubre</option>
-                            <option value="noviembre" ${act.mes === 'noviembre' ? 'selected' : ''}>Noviembre</option>
-                        `}
+                    <label>Nombre</label>
+                    <input type="text" id="edit-nombre" value="${act.nombre}" ${esAncla ? 'disabled' : ''}>
+                    ${esAncla ? '<span class="ayuda">Las anclas no se pueden renombrar.</span>' : ''}
+                </div>
+                <div class="form-fila">
+                    <div class="form-grupo">
+                        <label>Mes ${esAncla ? '' : '<span class="obligatorio">*</span>'}</label>
+                        <select id="edit-mes" ${esAncla ? 'disabled' : ''}>
+                            ${esAncla ? `<option value="todo" selected>Todo el trimestre</option>` : `
+                                <option value="septiembre" ${act.mes === 'septiembre' ? 'selected' : ''}>Septiembre</option>
+                                <option value="octubre" ${act.mes === 'octubre' ? 'selected' : ''}>Octubre</option>
+                                <option value="noviembre" ${act.mes === 'noviembre' ? 'selected' : ''}>Noviembre</option>
+                            `}
+                        </select>
+                    </div>
+                    <div class="form-grupo">
+                        <label>Semana</label>
+                        <select id="edit-semana" ${esAncla ? 'disabled' : ''}>
+                            <option value="">— Sin especificar —</option>
+                            <option value="Semana 1" ${act.semana === 'Semana 1' ? 'selected' : ''}>Semana 1</option>
+                            <option value="Semana 2" ${act.semana === 'Semana 2' ? 'selected' : ''}>Semana 2</option>
+                            <option value="Semana 3" ${act.semana === 'Semana 3' ? 'selected' : ''}>Semana 3</option>
+                            <option value="Semana 4" ${act.semana === 'Semana 4' ? 'selected' : ''}>Semana 4</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-grupo">
+                    <label>Estado</label>
+                    <select id="edit-estado">
+                        <option value="no-iniciada" ${act.estado === 'no-iniciada' ? 'selected' : ''}>No iniciada</option>
+                        <option value="en-proceso" ${act.estado === 'en-proceso' ? 'selected' : ''}>En proceso</option>
+                        <option value="completada" ${act.estado === 'completada' ? 'selected' : ''}>Completada</option>
+                        <option value="reprogramada" ${act.estado === 'reprogramada' ? 'selected' : ''}>Reprogramada</option>
                     </select>
                 </div>
                 <div class="form-grupo">
-                    <label>Semana</label>
-                    <select id="edit-semana" ${esAncla ? 'disabled' : ''}>
-                        <option value="">— Sin especificar —</option>
-                        <option value="Semana 1" ${act.semana === 'Semana 1' ? 'selected' : ''}>Semana 1</option>
-                        <option value="Semana 2" ${act.semana === 'Semana 2' ? 'selected' : ''}>Semana 2</option>
-                        <option value="Semana 3" ${act.semana === 'Semana 3' ? 'selected' : ''}>Semana 3</option>
-                        <option value="Semana 4" ${act.semana === 'Semana 4' ? 'selected' : ''}>Semana 4</option>
-                    </select>
+                    <label>Notas</label>
+                    <textarea id="edit-notas" rows="2">${act.notas || ''}</textarea>
                 </div>
-            </div>
-            <div class="form-grupo">
-                <label>Estado</label>
-                <select id="edit-estado">
-                    <option value="no-iniciada" ${act.estado === 'no-iniciada' ? 'selected' : ''}>No iniciada</option>
-                    <option value="en-proceso" ${act.estado === 'en-proceso' ? 'selected' : ''}>En proceso</option>
-                    <option value="completada" ${act.estado === 'completada' ? 'selected' : ''}>Completada</option>
-                    <option value="reprogramada" ${act.estado === 'reprogramada' ? 'selected' : ''}>Reprogramada</option>
-                </select>
-            </div>
-            <div class="form-grupo">
-                <label>Notas</label>
-                <textarea id="edit-notas" rows="2">${act.notas || ''}</textarea>
-            </div>
-        `;
-
-        const btnAceptar = document.getElementById('modal-aceptar');
-        const btnCancelar = document.getElementById('modal-cancelar');
-        btnAceptar.textContent = 'Guardar';
-        btnCancelar.textContent = 'Cancelar';
-
-        const nuevoAceptar = btnAceptar.cloneNode(true);
-        const nuevoCancelar = btnCancelar.cloneNode(true);
-        btnAceptar.replaceWith(nuevoAceptar);
-        btnCancelar.replaceWith(nuevoCancelar);
-
-        modal.style.display = 'flex';
-
-        nuevoCancelar.addEventListener('click', () => { modal.style.display = 'none'; });
-
-        nuevoAceptar.addEventListener('click', () => {
-            const m3Actual = obtenerM3();
-            const actividades = (m3Actual.calendarizacion.actividades || []).map(a => {
-                if (a.id !== actividadId) return a;
-                return {
-                    ...a,
-                    nombre: esAncla ? a.nombre : document.getElementById('edit-nombre').value.trim(),
-                    mes: esAncla ? 'todo' : document.getElementById('edit-mes').value,
-                    semana: esAncla ? '' : document.getElementById('edit-semana').value,
-                    estado: document.getElementById('edit-estado').value,
-                    notas: document.getElementById('edit-notas').value.trim()
-                };
-            });
-            guardarActividades(actividades);
-            modal.style.display = 'none';
-            mostrarToast('Actividad actualizada.', 'exito');
-            renderizar();
+            `,
+            onAceptar: () => {
+                const m3Actual = obtenerM3();
+                const actividades = (m3Actual.calendarizacion.actividades || []).map(a => {
+                    if (a.id !== actividadId) return a;
+                    return {
+                        ...a,
+                        nombre: esAncla ? a.nombre : document.getElementById('edit-nombre').value.trim(),
+                        mes: esAncla ? 'todo' : document.getElementById('edit-mes').value,
+                        semana: esAncla ? '' : document.getElementById('edit-semana').value,
+                        estado: document.getElementById('edit-estado').value,
+                        notas: document.getElementById('edit-notas').value.trim()
+                    };
+                });
+                guardarActividades(actividades);
+                mostrarToast('Actividad actualizada.', 'exito');
+                renderizar();
+            }
         });
     }
 
     /* ========================================================
-       CONFIRMAR ELIMINAR
+       MODAL: CONFIRMAR ELIMINAR
        ======================================================== */
     function confirmarEliminar(actividadId) {
         const m3 = obtenerM3();
@@ -710,42 +629,59 @@ const MOMENTO3_2 = (function() {
             return;
         }
 
-        if (typeof APP !== 'undefined' && typeof APP.mostrarModalConfirmacion === 'function') {
-            APP.mostrarModalConfirmacion(
-                'Eliminar actividad',
-                `¿Eliminar "${act.nombre}"? Esta acción no se puede deshacer.`,
-                () => {
-                    const m3Actual = obtenerM3();
-                    const actividades = (m3Actual.calendarizacion.actividades || []).filter(a => a.id !== actividadId);
-                    guardarActividades(actividades);
-                    mostrarToast('Actividad eliminada.', 'info');
-                    renderizar();
-                }
-            );
-        } else {
-            if (confirm(`¿Eliminar "${act.nombre}"?`)) {
+        abrirModal({
+            titulo: 'Eliminar actividad',
+            textoAceptar: 'Sí, eliminar',
+            contenidoHTML: `<p>¿Eliminar <strong>"${act.nombre}"</strong>? Esta acción no se puede deshacer.</p>`,
+            onAceptar: () => {
                 const m3Actual = obtenerM3();
                 const actividades = (m3Actual.calendarizacion.actividades || []).filter(a => a.id !== actividadId);
                 guardarActividades(actividades);
+                mostrarToast('Actividad eliminada.', 'info');
                 renderizar();
             }
-        }
+        });
     }
 
     /* ========================================================
-       API PÚBLICA
+       EVENTOS
        ======================================================== */
-    return {
-        renderizar,
-        sincronizarActividades
-    };
+    function suscribirEventos() {
+        const fMes = document.getElementById('filtro-mes');
+        if (fMes) fMes.addEventListener('change', e => { filtroMes = e.target.value; renderizar(); });
+
+        const fTipo = document.getElementById('filtro-tipo');
+        if (fTipo) fTipo.addEventListener('change', e => { filtroTipo = e.target.value; renderizar(); });
+
+        const fEstado = document.getElementById('filtro-estado');
+        if (fEstado) fEstado.addEventListener('change', e => { filtroEstado = e.target.value; renderizar(); });
+
+        const bMeses = document.getElementById('btn-vista-meses');
+        if (bMeses) bMeses.addEventListener('click', () => { vistaActual = 'meses'; renderizar(); });
+
+        const bLista = document.getElementById('btn-vista-lista');
+        if (bLista) bLista.addEventListener('click', () => { vistaActual = 'lista'; renderizar(); });
+
+        const bAgregar = document.getElementById('btn-agregar-actividad');
+        if (bAgregar) bAgregar.addEventListener('click', abrirModalNuevaActividad);
+
+        contenedor.querySelectorAll('.btn-editar-actividad').forEach(btn => {
+            btn.addEventListener('click', e => abrirModalEditarActividad(e.currentTarget.dataset.actividad));
+        });
+
+        contenedor.querySelectorAll('.btn-eliminar-actividad').forEach(btn => {
+            btn.addEventListener('click', e => confirmarEliminar(e.currentTarget.dataset.actividad));
+        });
+
+        const notas = document.getElementById('notas-calendarizacion');
+        if (notas) notas.addEventListener('input', e => guardarNotas(e.target.value));
+    }
+
+    return { renderizar, sincronizarActividades };
 
 })();
 
-/* ============================================================
-   EXPOSICIÓN A WINDOW
-   ============================================================ */
 if (typeof window !== 'undefined') {
     window.MOMENTO3_2 = MOMENTO3_2;
-    console.log('✅ MOMENTO3_2 expuesto en window');
+    console.log('✅ MOMENTO3_2 expuesto en window (v2.1)');
 }
