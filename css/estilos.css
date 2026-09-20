@@ -1326,3 +1326,63 @@ tbody tr:nth-child(even) {
     .flujo-pasos { flex-direction: column; align-items: stretch; }
     .flujo-flecha { display: none; }
 }
+/* ============================================================
+   MOMENTO 3-2 — Calendario del trimestre
+   ============================================================ */
+.calendario-trimestre {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.calendario-mes {
+    background: var(--fila-alterna);
+    border-radius: var(--radio-md);
+    border: 1px solid var(--gris-claro);
+    padding: 0.75rem;
+}
+
+.calendario-mes-todo {
+    grid-column: 1 / -1;
+    background: #FFF5F7;
+    border-color: var(--carmesi);
+}
+
+.calendario-mes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--gris-claro);
+}
+
+.calendario-mes-header h4 {
+    color: var(--carmesi);
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.calendario-mes-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.tarjeta-actividad {
+    background: var(--blanco);
+    border: 1px solid var(--gris-claro);
+    border-left: 3px solid var(--naranja);
+    border-radius: var(--radio-sm);
+    padding: 0.75rem;
+}
+
+.lista-actividades {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
