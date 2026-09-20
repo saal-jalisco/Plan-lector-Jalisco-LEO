@@ -1386,3 +1386,85 @@ tbody tr:nth-child(even) {
     gap: 0.5rem;
     margin-top: 1rem;
 }
+/* ============================================================
+   MODAL DE CONFIRMACIÓN
+   ============================================================ */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 1500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.modal-caja {
+    background: var(--blanco);
+    border-radius: var(--radio-lg);
+    max-width: 560px;
+    width: 100%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--sombra-media);
+    overflow: hidden;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 2px solid var(--gris-claro);
+}
+
+.modal-header h3 {
+    color: var(--carmesi);
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.modal-cerrar {
+    background: none;
+    border: none;
+    font-size: 1.75rem;
+    line-height: 1;
+    color: var(--gris-medio);
+    cursor: pointer;
+    padding: 0;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.modal-cerrar:hover { background: var(--crema); color: var(--carmesi); }
+
+.modal-cuerpo {
+    padding: 1.25rem 1.5rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--gris-claro);
+    background: var(--fila-alterna);
+}
+
+/* ============================================================
+   PATCH — Acciones de 3.2 simplificadas
+   ============================================================ */
+.acciones-momento3-2 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
