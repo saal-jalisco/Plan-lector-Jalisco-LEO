@@ -110,18 +110,31 @@ const MOMENTO4 = (function() {
         };
     }
 
-    function guardarM4(cambios) {
+        function guardarM4(cambios) {
         if (typeof ESTADO === 'undefined') return;
+
         const m4 = getM4();
-        const nuevo = { ...m4, ...cambios };
+        const nuevo = {
+            acuerdos: m4.acuerdos || [],
+            proximosPasos: m4.proximosPasos || '',
+            fechaCompromiso: m4.fechaCompromiso || '',
+            fechaProximoSeguimiento: m4.fechaProximoSeguimiento || '',
+            convocaProximo: m4.convocaProximo || '',
+            firmas: m4.firmas || { director: '', atp: '', docentes: [] }
+        };
+        // Aplicar cambios
+        Object.keys(cambios || {}).forEach(k => { nuevo[k] = cambios[k]; });
+
+        console.log('💾 MOMENTO4: guardarM4()');
+        console.log('   → cambios:', cambios);
+        console.log('   → resultado:', nuevo);
+
         try {
-            if (typeof ESTADO.actualizarCampo === 'function') {
-                ESTADO.actualizarCampo('momento4', 'acuerdos', nuevo.acuerdos);
-                ESTADO.actualizarCampo('momento4', 'proximosPasos', nuevo.proximosPasos);
-                ESTADO.actualizarCampo('momento4', 'fechaCompromiso', nuevo.fechaCompromiso);
-                ESTADO.actualizarCampo('momento4', 'fechaProximoSeguimiento', nuevo.fechaProximoSeguimiento);
-                ESTADO.actualizarCampo('momento4', 'convocaProximo', nuevo.convocaProximo);
-                ESTADO.actualizarCampo('momento4', 'firmas', nuevo.firmas);
+            if (typeof ESTADO.actualizarSeccion === 'function') {
+                ESTADO.actualizarSeccion('momento4', nuevo);
+                console.log('   → guardado en ESTADO ✅');
+            } else {
+                console.warn('   → ESTADO.actualizarSeccion no disponible ❌');
             }
         } catch (e) {
             console.warn('⚠️ MOMENTO4: no se pudo guardar:', e);
