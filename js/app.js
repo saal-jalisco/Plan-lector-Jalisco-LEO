@@ -1,6 +1,7 @@
 /* ============================================================
    PLAN LECTOR JALISCO LEO
    app.js — Navegación por momentos y utilidades globales
+   v2.0 — Toast con tipos + Modo Demo + window.App expuesto
    ============================================================ */
 
 const App = {
@@ -13,13 +14,22 @@ const App = {
         console.log('Módulos disponibles:');
         console.log('   - Momento0:', typeof window.Momento0);
         console.log('   - Momento1:', typeof window.Momento1);
+        console.log('   - Momento2:', typeof window.Momento2);
+        console.log('   - Momento3:', typeof window.Momento3);
+        console.log('   - Momento4:', typeof window.Momento4);
+        console.log('   - Momento5:', typeof window.Momento5);
+        console.log('   - PRODUCTOS:', typeof window.PRODUCTOS);
+        console.log('   - DEMO:', typeof window.DEMO);
 
         this.attachNavegacion();
         this.attachAccionesHeader();
-        this.attachNavegacionGlobal();  // ← NUEVO: listener global
+        this.attachNavegacionGlobal();
 
         this.momentoActual = 0;
         this.cambiarMomento(0);
+
+        // Marcar el botón demo si ya estábamos en modo demo
+        this.actualizarBotonDemo();
     },
 
     /* ===== NAVEGACIÓN POR PESTAÑAS ===== */
@@ -32,10 +42,7 @@ const App = {
         });
     },
 
-    /* ===== NAVEGACIÓN GLOBAL (Anterior / Siguiente) =====
-       Un solo listener en document que atrapa clics en botones
-       con id="btn-siguiente-momento" o id="btn-anterior-momento",
-       sin importar cuándo se creen. */
+    /* ===== NAVEGACIÓN GLOBAL (Anterior / Siguiente) ===== */
     attachNavegacionGlobal() {
         document.addEventListener('click', (e) => {
             const btnSiguiente = e.target.closest('#btn-siguiente-momento');
@@ -153,42 +160,156 @@ const App = {
         const btnGuardar = document.getElementById('btn-guardar-borrador');
         if (btnGuardar) {
             btnGuardar.addEventListener('click', () => {
-                this.mostrarToast('Borrador guardado correctamente');
+                if (typeof ESTADO !== 'undefined' && typeof ESTADO.guardarBorradorManual === 'function') {
+                    const ok = ESTADO.guardarBorradorManual();
+                    if (ok) {
+                        this.mostrarToast('Borrador guardado correctamente.', 'exito');
+                    } else {
+                        this.mostrarToast('No se pudo guardar el borrador.', 'error');
+                    }
+                } else {
+                    this.mostrarToast('Borrador guardado correctamente.', 'exito');
+                }
             });
         }
 
         const btnExportar = document.getElementById('btn-exportar');
         if (btnExportar) {
             btnExportar.addEventListener('click', () => {
-                window.print();
+                this.mostrarToast('Usa los botones de cada momento para exportar productos específicos.', 'info');
             });
         }
 
         const btnDemo = document.getElementById('btn-demo');
         if (btnDemo) {
-            btnDemo.addEventListener('click', () => {
-                this.mostrarToast('Modo Demo próximamente');
-            });
+            btnDemo.addEventListener('click', () => this.manejarBotonDemo());
+        }
+    },
+
+    /* ===== MODO DEMO ===== */
+    manejarBotonDemo() {
+        const enDemo = this.estaEnModoDemo();
+
+        if (enDemo) {
+            // Salir del modo demo → limpiar
+            if (confirm('Esto va a borrar los datos de demo y dejar la app en blanco.\n\n¿Continuar?')) {
+                if (typeof DEMO !== 'undefined' && typeof DEMO.limpiar === 'function') {
+                    DEMO.limpiar();
+                } else if (typeof ESTADO !== 'undefined' && typeof ESTADO.reiniciar === 'function') {
+                    ESTADO.reiniciar();
+                }
+                this.actualizarBotonDemo();
+                this.cambiarMomento(0);
+                this.mostrarToast('Modo demo desactivado. La app está en blanco.', 'info');
+            }
+        } else {
+            // Cargar demo
+            if (confirm('Esto va a reemplazar los datos actuales con datos de ejemplo.\n\n¿Continuar?')) {
+                if (typeof DEMO !== 'undefined' && typeof DEMO.cargar === 'function') {
+                    const ok = DEMO.cargar();
+                    if (ok) {
+                        this.actualizarBotonDemo();
+                        this.cambiarMomento(2); // Llévalo al termómetro, que es vistoso
+                        this.mostrarToast('Modo demo activado. Explora la app con datos de ejemplo.', 'exito');
+                    } else {
+                        this.mostrarToast('No se pudo cargar el modo demo.', 'error');
+                    }
+                } else {
+                    this.mostrarToast('El módulo DEMO aún no está disponible.', 'error');
+                }
+            }
+        }
+    },
+
+    estaEnModoDemo() {
+        try {
+            return localStorage.getItem('plan_lector_jalisco_leo_demo_mode') === 'true';
+        } catch (e) {
+            return false;
+        }
+    },
+
+    actualizarBotonDemo() {
+        const btn = document.getElementById('btn-demo');
+        if (!btn) return;
+
+        if (this.estaEnModoDemo()) {
+            btn.innerHTML = '<i class="fas fa-times-circle"></i> Salir del modo demo';
+            btn.classList.remove('btn-secundario');
+            btn.classList.add('btn-naranja');
+        } else {
+            btn.innerHTML = '<i class="fas fa-play-circle"></i> Modo Demo';
+            btn.classList.remove('btn-naranja');
+            btn.classList.add('btn-secundario');
         }
     },
 
     /* ===== TOAST ===== */
-    mostrarToast(mensaje) {
+    /* Acepta un segundo parámetro opcional: 'exito' | 'error' | 'info' | 'warning'
+       (también funciona con 'success' y 'danger' por compatibilidad) */
+    mostrarToast(mensaje, tipo) {
         const contenedor = document.getElementById('toast-container');
-        if (!contenedor) return;
+        if (!contenedor) {
+            console.log(`[Toast ${tipo || 'info'}] ${mensaje}`);
+            return;
+        }
+
+        // Normalizar tipo
+        let tipoNorm = tipo || 'info';
+        if (tipoNorm === 'success') tipoNorm = 'exito';
+        if (tipoNorm === 'danger')  tipoNorm = 'error';
+
+        const iconos = {
+            exito:   'fa-check-circle',
+            error:   'fa-exclamation-circle',
+            info:    'fa-info-circle',
+            warning: 'fa-exclamation-triangle'
+        };
+        const icono = iconos[tipoNorm] || iconos.info;
 
         const toast = document.createElement('div');
-        toast.className = 'toast';
-        toast.textContent = mensaje;
+        toast.className = 'toast toast-' + tipoNorm;
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = `
+            <i class="fas ${icono} toast-icono"></i>
+            <span class="toast-mensaje">${this.escaparHTML(mensaje)}</span>
+        `;
+
         contenedor.appendChild(toast);
 
+        // Animación de entrada
+        requestAnimationFrame(() => {
+            toast.classList.add('visible');
+        });
+
+        // Auto-cierre
         setTimeout(() => {
-            toast.style.opacity = '0';
-            toast.style.transition = 'opacity 0.3s';
+            toast.classList.remove('visible');
             setTimeout(() => toast.remove(), 300);
-        }, 3000);
+        }, 3500);
+    },
+
+    escaparHTML(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
 };
+
+/* ============================================================
+   EXPOSICIÓN A WINDOW
+   Los módulos llaman a "APP.mostrarToast(...)" pero también
+   funcionan con "App.mostrarToast(...)". Exponemos ambos alias.
+   ============================================================ */
+if (typeof window !== 'undefined') {
+    window.App = App;
+    window.APP = App;  // alias para los módulos que usan APP (mayúsculas)
+    console.log('✅ App expuesto en window (con alias APP)');
+}
 
 /* ===== INICIALIZACIÓN ===== */
 document.addEventListener('DOMContentLoaded', () => {
