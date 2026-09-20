@@ -1495,11 +1495,13 @@ function descargarHTML(nombre) {
     /* ========================================================
        API PÚBLICA
        ======================================================== */
-    return {
+        return {
         generarHojaRuta,
         generarFichaRuta,
         generarCartaFamilias,
-        generarBitacora
+        generarBitacora,
+        generarActaAcuerdos,
+        generarInformeCierre   // ← NUEVO
     };
 
 })();
