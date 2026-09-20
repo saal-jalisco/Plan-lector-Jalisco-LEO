@@ -1,7 +1,7 @@
 /* ============================================================
    PLAN LECTOR JALISCO LEO
    app.js — Navegación por momentos y utilidades globales
-   v2.0 — Toast con tipos + Modo Demo + window.App expuesto
+   v2.1 — Modo Demo con backup/restore
    ============================================================ */
 
 const App = {
@@ -28,7 +28,6 @@ const App = {
         this.momentoActual = 0;
         this.cambiarMomento(0);
 
-        // Marcar el botón demo si ya estábamos en modo demo
         this.actualizarBotonDemo();
     },
 
@@ -186,30 +185,60 @@ const App = {
         }
     },
 
-    /* ===== MODO DEMO ===== */
+    /* ===== MODO DEMO (con backup/restore) ===== */
     manejarBotonDemo() {
         const enDemo = this.estaEnModoDemo();
 
         if (enDemo) {
-            // Salir del modo demo → limpiar
-            if (confirm('Esto va a borrar los datos de demo y dejar la app en blanco.\n\n¿Continuar?')) {
-                if (typeof DEMO !== 'undefined' && typeof DEMO.limpiar === 'function') {
-                    DEMO.limpiar();
-                } else if (typeof ESTADO !== 'undefined' && typeof ESTADO.reiniciar === 'function') {
-                    ESTADO.reiniciar();
+            // ===== SALIR DEL MODO DEMO =====
+            const hayBackup = (typeof DEMO !== 'undefined' && typeof DEMO.tieneBackup === 'function')
+                ? DEMO.tieneBackup()
+                : false;
+
+            let restaurar = false;
+
+            if (hayBackup) {
+                restaurar = confirm(
+                    'Vas a salir del modo demo.\n\n' +
+                    'Aceptar  → Restaurar los datos que tenías antes\n' +
+                    'Cancelar → Dejar la app en blanco (perder los datos previos)'
+                );
+            } else {
+                // No hay backup, no hay nada que restaurar
+                if (!confirm('Vas a salir del modo demo. La app quedará en blanco.\n\n¿Continuar?')) {
+                    return;
                 }
-                this.actualizarBotonDemo();
-                this.cambiarMomento(0);
+            }
+
+            let resultado = { ok: true, restaurado: false };
+            if (typeof DEMO !== 'undefined' && typeof DEMO.limpiar === 'function') {
+                resultado = DEMO.limpiar(restaurar);
+            } else if (typeof ESTADO !== 'undefined' && typeof ESTADO.reiniciar === 'function') {
+                ESTADO.reiniciar();
+            }
+
+            this.actualizarBotonDemo();
+            this.cambiarMomento(0);
+
+            if (resultado && resultado.restaurado) {
+                this.mostrarToast('Tus datos previos fueron restaurados.', 'exito');
+            } else {
                 this.mostrarToast('Modo demo desactivado. La app está en blanco.', 'info');
             }
+
         } else {
-            // Cargar demo
-            if (confirm('Esto va a reemplazar los datos actuales con datos de ejemplo.\n\n¿Continuar?')) {
+            // ===== ENTRAR AL MODO DEMO =====
+            const mensaje = 'Vas a activar el modo demo.\n\n' +
+                'Se guardará un respaldo de tus datos actuales antes de cargar los datos de ejemplo.\n' +
+                'Después podrás restaurarlos al salir del demo.\n\n' +
+                '¿Continuar?';
+
+            if (confirm(mensaje)) {
                 if (typeof DEMO !== 'undefined' && typeof DEMO.cargar === 'function') {
                     const ok = DEMO.cargar();
                     if (ok) {
                         this.actualizarBotonDemo();
-                        this.cambiarMomento(2); // Llévalo al termómetro, que es vistoso
+                        this.cambiarMomento(2);
                         this.mostrarToast('Modo demo activado. Explora la app con datos de ejemplo.', 'exito');
                     } else {
                         this.mostrarToast('No se pudo cargar el modo demo.', 'error');
@@ -245,8 +274,6 @@ const App = {
     },
 
     /* ===== TOAST ===== */
-    /* Acepta un segundo parámetro opcional: 'exito' | 'error' | 'info' | 'warning'
-       (también funciona con 'success' y 'danger' por compatibilidad) */
     mostrarToast(mensaje, tipo) {
         const contenedor = document.getElementById('toast-container');
         if (!contenedor) {
@@ -254,7 +281,6 @@ const App = {
             return;
         }
 
-        // Normalizar tipo
         let tipoNorm = tipo || 'info';
         if (tipoNorm === 'success') tipoNorm = 'exito';
         if (tipoNorm === 'danger')  tipoNorm = 'error';
@@ -277,12 +303,10 @@ const App = {
 
         contenedor.appendChild(toast);
 
-        // Animación de entrada
         requestAnimationFrame(() => {
             toast.classList.add('visible');
         });
 
-        // Auto-cierre
         setTimeout(() => {
             toast.classList.remove('visible');
             setTimeout(() => toast.remove(), 300);
@@ -302,13 +326,11 @@ const App = {
 
 /* ============================================================
    EXPOSICIÓN A WINDOW
-   Los módulos llaman a "APP.mostrarToast(...)" pero también
-   funcionan con "App.mostrarToast(...)". Exponemos ambos alias.
    ============================================================ */
 if (typeof window !== 'undefined') {
     window.App = App;
-    window.APP = App;  // alias para los módulos que usan APP (mayúsculas)
-    console.log('✅ App expuesto en window (con alias APP)');
+    window.APP = App;
+    console.log('✅ App expuesto en window (con alias APP) — v2.1');
 }
 
 /* ===== INICIALIZACIÓN ===== */
