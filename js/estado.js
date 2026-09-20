@@ -167,8 +167,8 @@ const ESTADO = (function() {
                 compromisos: []
             },
 
-            // ========================================================
-            // MOMENTO 5: EVALUACIÓN Y DOCUMENTACIÓN
+                        // ========================================================
+            // MOMENTO 5: EVALUACIÓN Y DOCUMENTACIÓN (v2.0)
             // ========================================================
             momento5: {
                 evaluacion: {
@@ -178,12 +178,15 @@ const ESTADO = (function() {
                     recomendaciones: ''
                 },
                 documentacion: {
-                    evidencias: [],
+                    evidencias: [],  // [{ id, tipo, descripcion, fecha, responsable, vinculo }]
                     notas: ''
+                },
+                meta: {
+                    fechaCierre: '',
+                    elaboradoPor: '',
+                    proximoTrimestre: ''
                 }
             }
-        };
-    }
 
     /* ========================================================
        ESTADO ACTUAL (en memoria)
