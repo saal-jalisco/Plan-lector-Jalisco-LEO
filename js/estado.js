@@ -753,6 +753,14 @@ const ESTADO = (function() {
 })();
 
 // ============================================================
+// EXPOSICIÓN A WINDOW (para debug y consistencia con otros módulos)
+// ============================================================
+if (typeof window !== 'undefined') {
+    window.ESTADO = ESTADO;
+    console.log('✅ ESTADO expuesto en window');
+}
+
+// ============================================================
 // AUTO-INICIALIZAR AL CARGAR
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
