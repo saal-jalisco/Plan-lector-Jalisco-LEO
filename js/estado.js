@@ -481,30 +481,47 @@ const ESTADO = (function() {
         return Math.round((completadas / 7) * 100);
     }
 
-    /* ========================================================
-       VALIDACIONES DEL MOMENTO 3
+        /* ========================================================
+       VALIDACIONES DEL MOMENTO 3 (v2.0 — 1 ruta por trimestre)
        ======================================================== */
     function momento3Completo() {
-        const m3 = estado.momento3;
-        const id = estado.identificacion;
-        const reglas = DATOS.reglasFiltradoNivel[id.nivel] || { minimoRutas: 2, maximoRutas: 5 };
+        const m3 = estado.momento3 || {};
+        const sel = m3.seleccionRutas || {};
 
-        const rutasSeleccionadas = m3.seleccionRutas.rutas.length;
-        const cumpleMinRutas = rutasSeleccionadas >= reglas.minimoRutas;
-        const cumpleMaxRutas = rutasSeleccionadas <= reglas.maximoRutas;
-        const tieneActividades = m3.calendarizacion.actividades.length > 0;
-        const tieneResponsables = m3.responsables.asignaciones.length > 0;
-        const tieneBitacora = m3.bitacora.registros.length > 0;
+        // --- 3.1: 1 ruta + 2-3 banco + cierre con mes ---
+        const tieneRuta    = !!sel.rutaId;
+        const banco        = Array.isArray(sel.bancoSeleccionado) ? sel.bancoSeleccionado : [];
+        const tieneBanco   = banco.length >= 2 && banco.length <= 3;
+        const tieneCierre  = !!sel.cierreMes;
+        const seleccionRutas = tieneRuta && tieneBanco && tieneCierre;
+
+        // --- 3.2: al menos 1 actividad calendarizada ---
+        const actividades     = (m3.calendarizacion && Array.isArray(m3.calendarizacion.actividades))
+                                    ? m3.calendarizacion.actividades
+                                    : [];
+        const tieneActividades = actividades.length > 0;
+
+        // --- 3.3: al menos 1 responsable asignado ---
+        const asignaciones     = (m3.responsables && Array.isArray(m3.responsables.asignaciones))
+                                    ? m3.responsables.asignaciones
+                                    : [];
+        const tieneResponsables = asignaciones.length > 0;
+
+        // --- 3.4: al menos 1 registro de bitácora (opcional para "completo") ---
+        const registros     = (m3.bitacora && Array.isArray(m3.bitacora.registros))
+                                ? m3.bitacora.registros
+                                : [];
+        const tieneBitacora = registros.length > 0;
 
         return {
-            seleccionRutas: cumpleMinRutas && cumpleMaxRutas,
+            seleccionRutas,
             calendarizacion: tieneActividades,
             responsables: tieneResponsables,
             bitacora: tieneBitacora,
-            completo: cumpleMinRutas && cumpleMaxRutas && tieneActividades && tieneResponsables
+            // "completo" = los 3 sub-pasos obligatorios (3.4 es en proceso, no bloquea productos)
+            completo: seleccionRutas && tieneActividades && tieneResponsables
         };
     }
-
     /* ========================================================
        HELPERS DEL MOMENTO 3
        ======================================================== */
