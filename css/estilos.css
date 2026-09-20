@@ -1468,3 +1468,83 @@ tbody tr:nth-child(even) {
     gap: 0.75rem;
     flex-wrap: wrap;
 }
+/* ============================================================
+   TOASTS CON TIPO (v2.0)
+   ============================================================ */
+#toast-container {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-width: 380px;
+    pointer-events: none;
+}
+
+#toast-container .toast {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.85rem 1.1rem;
+    border-radius: 8px;
+    background: #fff;
+    color: #2A2A2A;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+    border-left: 4px solid #999;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    opacity: 0;
+    transform: translateX(20px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    pointer-events: auto;
+}
+
+#toast-container .toast.visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+#toast-container .toast .toast-icono {
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+    font-size: 1.05rem;
+}
+
+#toast-container .toast .toast-mensaje {
+    flex: 1;
+}
+
+/* Tipo: éxito */
+#toast-container .toast.toast-exito {
+    border-left-color: #2E7D32;
+}
+#toast-container .toast.toast-exito .toast-icono {
+    color: #2E7D32;
+}
+
+/* Tipo: error */
+#toast-container .toast.toast-error {
+    border-left-color: #C62828;
+}
+#toast-container .toast.toast-error .toast-icono {
+    color: #C62828;
+}
+
+/* Tipo: info */
+#toast-container .toast.toast-info {
+    border-left-color: #A0192D;
+}
+#toast-container .toast.toast-info .toast-icono {
+    color: #A0192D;
+}
+
+/* Tipo: warning */
+#toast-container .toast.toast-warning {
+    border-left-color: #E08A3C;
+}
+#toast-container .toast.toast-warning .toast-icono {
+    color: #E08A3C;
+}
