@@ -1237,6 +1237,251 @@ function descargarHTML(nombre) {
         abrirVentana('Acta de Acuerdos · Plan Lector Jalisco LEO', cuerpo, nombre);
     }
     /* ========================================================
+       PRODUCTO 6 · INFORME DE CIERRE DEL TRIMESTRE (Momento 5)
+       ======================================================== */
+    function generarInformeCierre() {
+        const id = getIdentificacion();
+        const m3 = getM3();
+        const sel = m3.seleccionRutas || {};
+        const ruta = (sel.rutaId && typeof DATOS !== 'undefined')
+            ? DATOS.rutasLEO[sel.rutaId]
+            : null;
+
+        // Momento 4
+        let m4 = { acuerdos: [] };
+        if (typeof ESTADO !== 'undefined' && typeof ESTADO.obtenerSeccion === 'function') {
+            try {
+                const m = ESTADO.obtenerSeccion('momento4') || {};
+                if (Array.isArray(m.acuerdos)) m4.acuerdos = m.acuerdos;
+            } catch (e) { /* silencio */ }
+        }
+
+        // Momento 5
+        let m5 = {
+            evaluacion: { logros: '', dificultades: '', aprendizajes: '', recomendaciones: '' },
+            documentacion: { evidencias: [], notas: '' },
+            meta: { fechaCierre: '', elaboradoPor: '', proximoTrimestre: '' }
+        };
+        if (typeof ESTADO !== 'undefined' && typeof ESTADO.obtenerSeccion === 'function') {
+            try {
+                const m = ESTADO.obtenerSeccion('momento5') || {};
+                if (m.evaluacion) m5.evaluacion = { ...m5.evaluacion, ...m.evaluacion };
+                if (m.documentacion) {
+                    m5.documentacion = {
+                        evidencias: Array.isArray(m.documentacion.evidencias) ? m.documentacion.evidencias : [],
+                        notas: m.documentacion.notas || ''
+                    };
+                }
+                if (m.meta) m5.meta = { ...m5.meta, ...m.meta };
+            } catch (e) { /* silencio */ }
+        }
+
+        /* ===== Balance ===== */
+        const actividades = (m3.calendarizacion && m3.calendarizacion.actividades) || [];
+        const registros   = (m3.bitacora && m3.bitacora.registros) || [];
+        const acuerdos    = Array.isArray(m4.acuerdos) ? m4.acuerdos : [];
+
+        const totalAct = actividades.length;
+        const completadas = actividades.filter(a => a.estado === 'completada').length;
+        const enProceso   = actividades.filter(a => a.estado === 'en-proceso').length;
+        const noIniciadas = actividades.filter(a => a.estado === 'no-iniciada' || !a.estado).length;
+        const reprogramadas = actividades.filter(a => a.estado === 'reprogramada').length;
+        const pctAct = totalAct > 0 ? Math.round((completadas / totalAct) * 100) : 0;
+
+        const totalAcuerdos = acuerdos.length;
+        const cumplidos     = acuerdos.filter(a => a.estado === 'cumplido').length;
+        const enProcesoAc   = acuerdos.filter(a => a.estado === 'en-proceso').length;
+        const pendientes    = acuerdos.filter(a => a.estado === 'pendiente' || !a.estado).length;
+        const pctAc = totalAcuerdos > 0 ? Math.round((cumplidos / totalAcuerdos) * 100) : 0;
+
+        const estadoLabel = {
+            'pendiente':   'Pendiente',
+            'en-proceso':  'En proceso',
+            'cumplido':    'Cumplido',
+            'reprogramado':'Reprogramado'
+        };
+
+        const filasAcuerdos = acuerdos.length > 0
+            ? acuerdos.map((a, i) => `
+                <tr>
+                    <td style="text-align:center;width:5%;">${i + 1}</td>
+                    <td style="width:48%;">${escaparHTML(a.texto || '')}</td>
+                    <td style="width:22%;">${escaparHTML(a.responsables || '—')}</td>
+                    <td style="width:15%;">${escaparHTML(formatearFecha(a.fechaCompromiso))}</td>
+                    <td style="width:10%;">${escaparHTML(estadoLabel[a.estado] || a.estado || '—')}</td>
+                </tr>
+            `).join('')
+            : `<tr><td colspan="5" style="text-align:center;color:var(--tinta-suave);"><em>Sin acuerdos registrados.</em></td></tr>`;
+
+        const evidencias = m5.documentacion.evidencias || [];
+        const filasEvidencias = evidencias.length > 0
+            ? evidencias.map((ev, i) => `
+                <tr>
+                    <td style="text-align:center;width:5%;">${i + 1}</td>
+                    <td style="width:18%;">${escaparHTML(ev.tipo || '—')}</td>
+                    <td style="width:42%;">${escaparHTML(ev.descripcion || '')}</td>
+                    <td style="width:15%;">${escaparHTML(formatearFecha(ev.fecha))}</td>
+                    <td style="width:20%;">${escaparHTML(ev.responsable || '—')}</td>
+                </tr>
+            `).join('')
+            : `<tr><td colspan="5" style="text-align:center;color:var(--tinta-suave);"><em>Sin evidencias registradas.</em></td></tr>`;
+
+        const cajaEval = (titulo, contenido) => {
+            if (!contenido) return '';
+            return `
+                <div class="caja">
+                    <strong>${escaparHTML(titulo)}</strong><br>
+                    ${escaparHTML(contenido).replace(/\n/g, '<br>')}
+                </div>
+            `;
+        };
+
+        const cuerpo = `
+            ${marca()}
+            <h1 style="margin-bottom:1rem;">Informe de cierre del trimestre</h1>
+
+            ${metaIdentificacion(id)}
+
+            <div class="bloque">
+                <h2><i class="fas fa-route"></i> Ruta trabajada</h2>
+                ${ruta ? `
+                    <h3>${escaparHTML(ruta.nombre)}</h3>
+                    <p class="lema">"${escaparHTML(ruta.lema)}"</p>
+                    <div class="caja carmesi">
+                        <strong>Pregunta orientadora:</strong><br>
+                        ${escaparHTML(ruta.preguntaOrientadora)}
+                    </div>
+                ` : '<p><em>Sin ruta registrada.</em></p>'}
+            </div>
+
+            <div class="bloque">
+                <h2><i class="fas fa-chart-pie"></i> 1. Balance del trimestre</h2>
+
+                <h3>Actividades</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Total</th>
+                            <th>Completadas</th>
+                            <th>En proceso</th>
+                            <th>No iniciadas</th>
+                            <th>Reprogramadas</th>
+                            <th>% Cumplimiento</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>${totalAct}</td>
+                            <td>${completadas}</td>
+                            <td>${enProceso}</td>
+                            <td>${noIniciadas}</td>
+                            <td>${reprogramadas}</td>
+                            <td><strong>${pctAct}%</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Acuerdos del colectivo</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Total</th>
+                            <th>Cumplidos</th>
+                            <th>En proceso</th>
+                            <th>Pendientes</th>
+                            <th>% Cumplimiento</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>${totalAcuerdos}</td>
+                            <td>${cumplidos}</td>
+                            <td>${enProcesoAc}</td>
+                            <td>${pendientes}</td>
+                            <td><strong>${pctAc}%</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Registros de bitácora</h3>
+                <p>${registros.length} registro(s) documentado(s) durante el trimestre.</p>
+            </div>
+
+            <div class="bloque">
+                <h2><i class="fas fa-comments"></i> 2. Evaluación del proceso</h2>
+                ${cajaEval('Logros', m5.evaluacion.logros)}
+                ${cajaEval('Dificultades', m5.evaluacion.dificultades)}
+                ${cajaEval('Aprendizajes del colectivo', m5.evaluacion.aprendizajes)}
+                ${cajaEval('Recomendaciones para el siguiente trimestre', m5.evaluacion.recomendaciones)}
+                ${(!m5.evaluacion.logros && !m5.evaluacion.dificultades && !m5.evaluacion.aprendizajes && !m5.evaluacion.recomendaciones)
+                    ? '<p><em>Aún no se ha registrado la evaluación del colectivo.</em></p>'
+                    : ''
+                }
+            </div>
+
+            <div class="bloque">
+                <h2><i class="fas fa-handshake"></i> 3. Acuerdos y su estado</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Acuerdo</th>
+                            <th>Responsable(s)</th>
+                            <th>Fecha compromiso</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>${filasAcuerdos}</tbody>
+                </table>
+            </div>
+
+            <div class="bloque">
+                <h2><i class="fas fa-folder-open"></i> 4. Documentación · Evidencias</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Tipo</th>
+                            <th>Descripción</th>
+                            <th>Fecha</th>
+                            <th>Responsable</th>
+                        </tr>
+                    </thead>
+                    <tbody>${filasEvidencias}</tbody>
+                </table>
+            </div>
+
+            ${m5.meta.proximoTrimestre ? `
+                <div class="bloque">
+                    <h2><i class="fas fa-arrow-right"></i> 5. Foco para el siguiente trimestre</h2>
+                    <div class="caja carmesi">
+                        ${escaparHTML(m5.meta.proximoTrimestre)}
+                    </div>
+                </div>
+            ` : ''}
+
+            ${m5.documentacion.notas ? `
+                <div class="bloque">
+                    <h2><i class="fas fa-comment-dots"></i> 6. Notas generales</h2>
+                    <div class="caja">${escaparHTML(m5.documentacion.notas).replace(/\n/g, '<br>')}</div>
+                </div>
+            ` : ''}
+
+            <div class="firma" style="grid-template-columns: 1fr;">
+                <div class="firma-linea" style="text-align: left; padding-top: 1rem;">
+                    <strong>${escaparHTML(m5.meta.elaboradoPor || 'Colectivo docente')}</strong>
+                    Elaborado por
+                    ${m5.meta.fechaCierre ? `<br><em>${escaparHTML(formatearFecha(m5.meta.fechaCierre))}</em>` : ''}
+                </div>
+            </div>
+
+            ${pie()}
+        `;
+
+        const nombre = `informe-cierre-trimestre-${fechaArchivo()}`;
+        abrirVentana('Informe de cierre · Plan Lector Jalisco LEO', cuerpo, nombre);
+    }
+   /* ========================================================
        HELPERS LOCALES
        ======================================================== */
     function fechaArchivo() {
