@@ -1,6 +1,7 @@
 /* ============================================================
    PLAN LECTOR JALISCO LEO
    estado.js — Gestión de estado + localStorage
+   v2.0 — Momento 4 y 5 ampliados + window.ESTADO expuesto
    ============================================================ */
 
 const ESTADO = (function() {
@@ -138,7 +139,7 @@ const ESTADO = (function() {
                 }
             },
 
-                       // ========================================================
+            // ========================================================
             // MOMENTO 4: CIERRE Y ACUERDOS (v2.0)
             // ========================================================
             momento4: {
@@ -149,7 +150,7 @@ const ESTADO = (function() {
                 // Próximos pasos (texto libre)
                 proximosPasos: '',
 
-                // Fecha compromiso general (legacy, se mantiene por compatibilidad)
+                // Fecha compromiso general (legacy)
                 fechaCompromiso: '',
 
                 // Seguimiento
@@ -167,7 +168,7 @@ const ESTADO = (function() {
                 compromisos: []
             },
 
-                        // ========================================================
+            // ========================================================
             // MOMENTO 5: EVALUACIÓN Y DOCUMENTACIÓN (v2.0)
             // ========================================================
             momento5: {
@@ -187,6 +188,8 @@ const ESTADO = (function() {
                     proximoTrimestre: ''
                 }
             }
+        };
+    }
 
     /* ========================================================
        ESTADO ACTUAL (en memoria)
@@ -499,7 +502,7 @@ const ESTADO = (function() {
         return Math.round((completadas / 7) * 100);
     }
 
-        /* ========================================================
+    /* ========================================================
        VALIDACIONES DEL MOMENTO 3 (v2.0 — 1 ruta por trimestre)
        ======================================================== */
     function momento3Completo() {
@@ -536,10 +539,10 @@ const ESTADO = (function() {
             calendarizacion: tieneActividades,
             responsables: tieneResponsables,
             bitacora: tieneBitacora,
-            // "completo" = los 3 sub-pasos obligatorios (3.4 es en proceso, no bloquea productos)
             completo: seleccionRutas && tieneActividades && tieneResponsables
         };
     }
+
     /* ========================================================
        HELPERS DEL MOMENTO 3
        ======================================================== */
@@ -752,17 +755,17 @@ const ESTADO = (function() {
 
 })();
 
-// ============================================================
-// EXPOSICIÓN A WINDOW (para debug y consistencia con otros módulos)
-// ============================================================
+/* ============================================================
+   EXPOSICIÓN A WINDOW (para debug y consistencia con otros módulos)
+   ============================================================ */
 if (typeof window !== 'undefined') {
     window.ESTADO = ESTADO;
-    console.log('✅ ESTADO expuesto en window');
+    console.log('✅ ESTADO expuesto en window (v2.0)');
 }
 
-// ============================================================
-// AUTO-INICIALIZAR AL CARGAR
-// ============================================================
+/* ============================================================
+   AUTO-INICIALIZAR AL CARGAR
+   ============================================================ */
 document.addEventListener('DOMContentLoaded', () => {
     ESTADO.init();
 });
