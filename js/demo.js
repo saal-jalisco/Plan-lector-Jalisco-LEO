@@ -1,20 +1,24 @@
 /* ============================================================
    PLAN LECTOR JALISCO LEO
    demo.js — Modo Demo: carga datos de ejemplo en toda la app
-   v1.0 — Rellena Identificación, Línea Base, SAAL, Voces,
-          Termómetro, Momento 3, 4 y 5 con datos coherentes
+   v2.0 — Con backup/restore automático + síntesis de Voces
    ============================================================
-   Expone: window.DEMO = { cargar, limpiar, estaActivo }
+   Expone: window.DEMO = { cargar, limpiar, estaActivo, tieneBackup }
    Patrón de la casa: defensivo + window.X = X;
    ============================================================ */
 
 const DEMO = (function() {
 
-    const CLAVE_FLAG = 'plan_lector_jalisco_leo_demo_mode';
+    const CLAVE_FLAG   = 'plan_lector_jalisco_leo_demo_mode';
+    const CLAVE_BACKUP = 'plan_lector_jalisco_leo_demo_backup';
+    const CLAVE_PRINCIPAL = 'plan_lector_jalisco_leo_estado_v4';
 
     function mostrarToast(mensaje, tipo) {
         if (typeof App !== 'undefined' && typeof App.mostrarToast === 'function') {
             try { App.mostrarToast(mensaje, tipo); return; } catch (e) { /* silencio */ }
+        }
+        if (typeof APP !== 'undefined' && typeof APP.mostrarToast === 'function') {
+            try { APP.mostrarToast(mensaje, tipo); return; } catch (e) { /* silencio */ }
         }
         console.log(`[Toast ${tipo || 'info'}] ${mensaje}`);
     }
@@ -23,7 +27,6 @@ const DEMO = (function() {
        DATOS DE EJEMPLO
        ======================================================== */
 
-    // --- IDENTIFICACIÓN ---
     const DEMO_IDENTIFICACION = {
         region: 'Región 12 · Centro',
         municipio: 'Guadalajara',
@@ -39,7 +42,6 @@ const DEMO = (function() {
         modoLlenado: 'colectivo'
     };
 
-    // --- LÍNEA BASE ---
     const DEMO_LINEA_BASE = {
         datosEscuela: [
             { grado: '4°', media: 44.5, deseable: 5.2,  enProgreso: 76.9, atencionPrioritaria: 17.9 },
@@ -49,7 +51,6 @@ const DEMO = (function() {
         observaciones: 'Grupo con buena disposición. Se requiere reforzar comprensión inferencial y fluidez.'
     };
 
-    // --- SAAL ---
     const DEMO_SAAL = {
         tieneSAAL: 'si',
         otrosDiagnosticos: 'Se aplicó SAAL en 4° y 5° durante septiembre.',
@@ -62,7 +63,6 @@ const DEMO = (function() {
         observaciones: 'Los componentes con mayor oportunidad son comprensión inferencial y precisión.'
     };
 
-    // --- VOCES ---
     const DEMO_VOCES = {
         estudiantes: {
             p1: 'Algo',
@@ -83,31 +83,42 @@ const DEMO = (function() {
             p12: ['Libros de biblioteca', 'Cuentos', 'Material digital'],
             p13: ['Falta de tiempo', 'Poca participación de familias']
         },
-        sintesis: {}
+        sintesis: {
+            gusto:                 'amarillo',
+            frecuencia:            'rojo',
+            diversidad:            'amarillo',
+            espacios:              'verde',
+            lecturaCompartida:     'verde',
+            lecturaFamilia:        'rojo',
+            librosCasa:            'rojo',
+            participacionFamiliar: 'amarillo',
+            biblioteca:            'amarillo',
+            tiempoAula:            'amarillo',
+            materiales:            'verde',
+            obstaculos:            'rojo'
+        }
     };
 
-    // --- TERMÓMETRO ---
-    // 18 dimensiones con niveles coherentes (rojo = atención, amarillo = en progreso, verde = fortaleza)
     const DEMO_TERMOMETRO = {
         dimensiones: {
-            comprension:         'rojo',
-            fluidez:             'amarillo',
-            precision:           'rojo',
-            usoVoz:              'amarillo',
-            seguridad:           'verde',
-            palabrasComplejas:   'amarillo',
-            gusto:               'amarillo',
-            frecuencia:          'rojo',
-            diversidad:          'amarillo',
-            espacios:            'verde',
-            lecturaCompartida:   'verde',
-            lecturaFamilia:      'rojo',
-            librosCasa:          'rojo',
+            comprension:           'rojo',
+            fluidez:               'amarillo',
+            precision:             'rojo',
+            usoVoz:                'amarillo',
+            seguridad:             'verde',
+            palabrasComplejas:     'amarillo',
+            gusto:                 'amarillo',
+            frecuencia:            'rojo',
+            diversidad:            'amarillo',
+            espacios:              'verde',
+            lecturaCompartida:     'verde',
+            lecturaFamilia:        'rojo',
+            librosCasa:            'rojo',
             participacionFamiliar: 'amarillo',
-            biblioteca:          'amarillo',
-            tiempoAula:          'amarillo',
-            materiales:          'verde',
-            obstaculos:          'rojo'
+            biblioteca:            'amarillo',
+            tiempoAula:            'amarillo',
+            materiales:            'verde',
+            obstaculos:            'rojo'
         },
         ajustes: {},
         lecturaAutomatica: {
@@ -118,14 +129,14 @@ const DEMO = (function() {
                 { id: 'materiales',        nombre: 'Materiales disponibles' }
             ],
             enProgreso: [
-                { id: 'fluidez',            nombre: 'Fluidez lectora' },
-                { id: 'usoVoz',             nombre: 'Uso de la voz' },
-                { id: 'palabrasComplejas',  nombre: 'Atención a palabras complejas' },
-                { id: 'gusto',              nombre: 'Gusto por la lectura' },
-                { id: 'diversidad',         nombre: 'Diversidad de textos' },
+                { id: 'fluidez',               nombre: 'Fluidez lectora' },
+                { id: 'usoVoz',                nombre: 'Uso de la voz' },
+                { id: 'palabrasComplejas',     nombre: 'Atención a palabras complejas' },
+                { id: 'gusto',                 nombre: 'Gusto por la lectura' },
+                { id: 'diversidad',            nombre: 'Diversidad de textos' },
                 { id: 'participacionFamiliar', nombre: 'Participación familiar' },
-                { id: 'biblioteca',         nombre: 'Uso de biblioteca' },
-                { id: 'tiempoAula',         nombre: 'Tiempo en aula' }
+                { id: 'biblioteca',            nombre: 'Uso de biblioteca' },
+                { id: 'tiempoAula',            nombre: 'Tiempo en aula' }
             ],
             atencionPrioritaria: [
                 { id: 'comprension',    nombre: 'Comprensión lectora' },
@@ -146,8 +157,6 @@ const DEMO = (function() {
         }
     };
 
-    // --- MOMENTO 3 (Ruta 1, primaria-alta) ---
-    // IDs estables para que responsables y bitácora apunten a ellos
     const IDS = {
         ancla1: 'act_demo_ancla_1',
         ancla2: 'act_demo_ancla_2',
@@ -241,11 +250,11 @@ const DEMO = (function() {
         },
         responsables: {
             asignaciones: [
-                { actividadId: IDS.ancla1, rol: 'Docente de grupo',                 nombre: 'María López Hernández', correo: '', fechaAsignacion: new Date().toISOString() },
-                { actividadId: IDS.ancla2, rol: 'Docente de Lengua y Literatura',   nombre: 'Juan Pérez Ramírez',   correo: '', fechaAsignacion: new Date().toISOString() },
-                { actividadId: IDS.banco1, rol: 'Docente de grupo',                 nombre: 'María López Hernández', correo: '', fechaAsignacion: new Date().toISOString() },
-                { actividadId: IDS.banco2, rol: 'Docente de otra asignatura',       nombre: 'Ana Ruiz Cortés',      correo: '', fechaAsignacion: new Date().toISOString() },
-                { actividadId: IDS.cierre, rol: 'Bibliotecario(a)',                 nombre: 'Carlos Mendoza',       correo: '', fechaAsignacion: new Date().toISOString() }
+                { actividadId: IDS.ancla1, rol: 'Docente de grupo',               nombre: 'María López Hernández', correo: '', fechaAsignacion: new Date().toISOString() },
+                { actividadId: IDS.ancla2, rol: 'Docente de Lengua y Literatura', nombre: 'Juan Pérez Ramírez',   correo: '', fechaAsignacion: new Date().toISOString() },
+                { actividadId: IDS.banco1, rol: 'Docente de grupo',               nombre: 'María López Hernández', correo: '', fechaAsignacion: new Date().toISOString() },
+                { actividadId: IDS.banco2, rol: 'Docente de otra asignatura',     nombre: 'Ana Ruiz Cortés',      correo: '', fechaAsignacion: new Date().toISOString() },
+                { actividadId: IDS.cierre, rol: 'Bibliotecario(a)',               nombre: 'Carlos Mendoza',       correo: '', fechaAsignacion: new Date().toISOString() }
             ],
             notas: 'Las anclas quedan a cargo de los docentes titulares de cada grupo.'
         },
@@ -292,7 +301,6 @@ const DEMO = (function() {
         }
     };
 
-    // --- MOMENTO 4 ---
     const DEMO_M4 = {
         acuerdos: [
             {
@@ -325,15 +333,14 @@ const DEMO = (function() {
             director: 'María López Hernández',
             atp: 'Juan Pérez Ramírez',
             docentes: [
-                { nombre: 'Ana Ruiz Cortés',      rol: 'Docente de 4°A' },
-                { nombre: 'Roberto Sánchez Gil',  rol: 'Docente de 5°B' },
-                { nombre: 'Carlos Mendoza',       rol: 'Bibliotecario(a)' }
+                { nombre: 'Ana Ruiz Cortés',     rol: 'Docente de 4°A' },
+                { nombre: 'Roberto Sánchez Gil', rol: 'Docente de 5°B' },
+                { nombre: 'Carlos Mendoza',      rol: 'Bibliotecario(a)' }
             ]
         },
         compromisos: []
     };
 
-    // --- MOMENTO 5 ---
     const DEMO_M5 = {
         evaluacion: {
             logros: 'La lectura en voz alta diaria se consolidó como práctica permanente en todos los grupos. Los estudiantes participan con más confianza en los círculos de lectura.',
@@ -378,6 +385,35 @@ const DEMO = (function() {
     };
 
     /* ========================================================
+       BACKUP
+       ======================================================== */
+    function tieneBackup() {
+        try {
+            const b = localStorage.getItem(CLAVE_BACKUP);
+            return b !== null && b.length > 10;  // JSON válido no vacío
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function guardarBackup() {
+        try {
+            const actual = localStorage.getItem(CLAVE_PRINCIPAL);
+            if (actual && actual.length > 10) {
+                localStorage.setItem(CLAVE_BACKUP, actual);
+                console.log('💾 DEMO: backup guardado (' + actual.length + ' bytes)');
+                return true;
+            } else {
+                console.log('💾 DEMO: no había datos previos, backup no guardado');
+                return false;
+            }
+        } catch (e) {
+            console.warn('⚠️ DEMO: no se pudo guardar el backup:', e);
+            return false;
+        }
+    }
+
+    /* ========================================================
        CARGAR
        ======================================================== */
     function cargar() {
@@ -389,27 +425,30 @@ const DEMO = (function() {
         try {
             console.log('🎬 DEMO: cargando datos de ejemplo…');
 
-            // 1. Identificación
-            if (typeof ESTADO.actualizarSeccion === 'function') {
-                ESTADO.actualizarSeccion('identificacion', DEMO_IDENTIFICACION);
-                ESTADO.actualizarSeccion('lineaBase',      DEMO_LINEA_BASE);
-                ESTADO.actualizarSeccion('saal',           DEMO_SAAL);
-                ESTADO.actualizarSeccion('voces',          DEMO_VOCES);
-                ESTADO.actualizarSeccion('termometro',     DEMO_TERMOMETRO);
-                ESTADO.actualizarSeccion('momento3',       DEMO_M3);
-                ESTADO.actualizarSeccion('momento4',       DEMO_M4);
-                ESTADO.actualizarSeccion('momento5',       DEMO_M5);
+            // 1. GUARDAR BACKUP antes de sobreescribir
+            //    (solo si no hay uno ya — así si recargas el demo no pierdes el backup original)
+            if (!localStorage.getItem(CLAVE_BACKUP)) {
+                guardarBackup();
             } else {
-                console.warn('⚠️ DEMO: ESTADO.actualizarSeccion no disponible');
-                return false;
+                console.log('💾 DEMO: ya existe un backup previo, se conserva');
             }
 
-            // 2. Guardar todo de una vez
+            // 2. Sobreescribir con datos demo
+            ESTADO.actualizarSeccion('identificacion', DEMO_IDENTIFICACION);
+            ESTADO.actualizarSeccion('lineaBase',      DEMO_LINEA_BASE);
+            ESTADO.actualizarSeccion('saal',           DEMO_SAAL);
+            ESTADO.actualizarSeccion('voces',          DEMO_VOCES);
+            ESTADO.actualizarSeccion('termometro',     DEMO_TERMOMETRO);
+            ESTADO.actualizarSeccion('momento3',       DEMO_M3);
+            ESTADO.actualizarSeccion('momento4',       DEMO_M4);
+            ESTADO.actualizarSeccion('momento5',       DEMO_M5);
+
+            // 3. Guardar de golpe
             if (typeof ESTADO.guardar === 'function') {
                 ESTADO.guardar(true);
             }
 
-            // 3. Activar flag
+            // 4. Activar flag
             try {
                 localStorage.setItem(CLAVE_FLAG, 'true');
             } catch (e) { /* silencio */ }
@@ -424,28 +463,63 @@ const DEMO = (function() {
     }
 
     /* ========================================================
-       LIMPIAR
+       LIMPIAR (con opción de restaurar)
+       Parámetro opcional "restaurar":
+         - true  → restaurar backup si existe
+         - false → dejar la app en blanco
+         - undefined → preguntar al usuario con confirm()
        ======================================================== */
-    function limpiar() {
-        if (typeof ESTADO === 'undefined') return false;
+    function limpiar(restaurar) {
+        if (typeof ESTADO === 'undefined') return { ok: false, restaurado: false };
 
         try {
             console.log('🎬 DEMO: limpiando datos…');
 
-            if (typeof ESTADO.reiniciar === 'function') {
-                ESTADO.reiniciar();
+            const hayBackup = tieneBackup();
+            let quiereRestaurar = false;
+
+            if (restaurar === true) {
+                quiereRestaurar = hayBackup;
+            } else if (restaurar === false) {
+                quiereRestaurar = false;
+            } else {
+                // Preguntar al usuario
+                if (hayBackup) {
+                    quiereRestaurar = confirm(
+                        '¿Quieres restaurar los datos que tenías antes del modo demo?\n\n' +
+                        'Aceptar  → Restaurar tus datos previos\n' +
+                        'Cancelar → Dejar la app en blanco'
+                    );
+                }
             }
 
+            if (quiereRestaurar) {
+                const backup = localStorage.getItem(CLAVE_BACKUP);
+                if (backup && backup.length > 10) {
+                    localStorage.setItem(CLAVE_PRINCIPAL, backup);
+                    if (typeof ESTADO.cargar === 'function') {
+                        ESTADO.cargar();
+                    }
+                    console.log('✅ DEMO: datos restaurados desde backup');
+                }
+            } else {
+                if (typeof ESTADO.reiniciar === 'function') {
+                    ESTADO.reiniciar();
+                }
+                console.log('✅ DEMO: app reiniciada en blanco');
+            }
+
+            // Quitar flags y backup
             try {
                 localStorage.removeItem(CLAVE_FLAG);
+                localStorage.removeItem(CLAVE_BACKUP);
             } catch (e) { /* silencio */ }
 
-            console.log('✅ DEMO: datos limpiados');
-            return true;
+            return { ok: true, restaurado: quiereRestaurar };
 
         } catch (e) {
             console.error('❌ DEMO: error al limpiar:', e);
-            return false;
+            return { ok: false, restaurado: false };
         }
     }
 
@@ -466,15 +540,13 @@ const DEMO = (function() {
     return {
         cargar,
         limpiar,
-        estaActivo
+        estaActivo,
+        tieneBackup
     };
 
 })();
 
-/* ============================================================
-   EXPOSICIÓN A WINDOW
-   ============================================================ */
 if (typeof window !== 'undefined') {
     window.DEMO = DEMO;
-    console.log('✅ DEMO expuesto en window (v1.0)');
+    console.log('✅ DEMO expuesto en window (v2.0)');
 }
