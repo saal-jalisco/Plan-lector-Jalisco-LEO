@@ -1084,7 +1084,158 @@ function descargarHTML(nombre) {
         const nombre = `bitacora-actividades-${fechaArchivo()}`;
         abrirVentana('Bitácora de Actividades · Plan Lector Jalisco LEO', cuerpo, nombre);
     }
+    /* ========================================================
+       PRODUCTO 5 · ACTA DE ACUERDOS (Momento 4)
+       ======================================================== */
+    function generarActaAcuerdos() {
+        const id = getIdentificacion();
+        const m3 = getM3();
+        const sel = m3.seleccionRutas || {};
+        const ruta = (sel.rutaId && typeof DATOS !== 'undefined')
+            ? DATOS.rutasLEO[sel.rutaId]
+            : null;
 
+        // Momento 4
+        let m4 = { acuerdos: [], proximosPasos: '', fechaProximoSeguimiento: '', convocaProximo: '', firmas: { director: '', atp: '', docentes: [] } };
+        if (typeof ESTADO !== 'undefined' && typeof ESTADO.obtenerSeccion === 'function') {
+            try {
+                const m = ESTADO.obtenerSeccion('momento4') || {};
+                if (Array.isArray(m.acuerdos)) m4.acuerdos = m.acuerdos;
+                if (typeof m.proximosPasos === 'string') m4.proximosPasos = m.proximosPasos;
+                if (typeof m.fechaProximoSeguimiento === 'string') m4.fechaProximoSeguimiento = m.fechaProximoSeguimiento;
+                if (typeof m.convocaProximo === 'string') m4.convocaProximo = m.convocaProximo;
+                if (m.firmas && typeof m.firmas === 'object') {
+                    m4.firmas = {
+                        director: m.firmas.director || '',
+                        atp: m.firmas.atp || '',
+                        docentes: Array.isArray(m.firmas.docentes) ? m.firmas.docentes : []
+                    };
+                }
+            } catch (e) { /* silencio */ }
+        }
+
+        if (!m4.acuerdos || m4.acuerdos.length === 0) {
+            mostrarToast('Agrega al menos un acuerdo antes de generar el Acta.', 'error');
+            return;
+        }
+
+        const estadoLabel = {
+            'pendiente':   'Pendiente',
+            'en-proceso':  'En proceso',
+            'cumplido':    'Cumplido',
+            'reprogramado':'Reprogramado'
+        };
+
+        const filasAcuerdos = m4.acuerdos.map((a, i) => `
+            <tr>
+                <td style="text-align:center;width:5%;">${i + 1}</td>
+                <td style="width:45%;">${escaparHTML(a.texto || '')}</td>
+                <td style="width:22%;">${escaparHTML(a.responsables || '—')}</td>
+                <td style="width:15%;">${escaparHTML(formatearFecha(a.fechaCompromiso))}</td>
+                <td style="width:13%;">${escaparHTML(estadoLabel[a.estado] || a.estado || '—')}</td>
+            </tr>
+        `).join('');
+
+        const docentesFirmantes = Array.isArray(m4.firmas.docentes) ? m4.firmas.docentes : [];
+
+        const cuerpo = `
+            ${marca()}
+            <h1 style="margin-bottom:1rem;">Acta de Acuerdos</h1>
+
+            ${metaIdentificacion(id)}
+
+            <div class="bloque">
+                <h2><i class="fas fa-clipboard-list"></i> Contexto de la sesión</h2>
+                <p>
+                    En la sesión del Consejo Técnico Escolar de la escuela
+                    <strong>${escaparHTML(id.nombreEscuela || '—')}</strong>
+                    (CCT ${escaparHTML(id.cct || '—')}), con fecha del CTE
+                    <strong>${escaparHTML(id.fechaCTE || '—')}</strong>, el colectivo docente
+                    acordó lo siguiente en el marco del <strong>Plan Lector Jalisco LEO</strong>.
+                </p>
+
+                ${ruta ? `
+                    <div class="caja carmesi">
+                        <strong>Ruta LEO del trimestre:</strong>
+                        ${escaparHTML(ruta.nombre)}
+                        <br><em>"${escaparHTML(ruta.lema)}"</em>
+                    </div>
+                ` : ''}
+            </div>
+
+            <div class="bloque">
+                <h2><i class="fas fa-handshake"></i> Acuerdos</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Acuerdo</th>
+                            <th>Responsable(s)</th>
+                            <th>Fecha compromiso</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>${filasAcuerdos}</tbody>
+                </table>
+            </div>
+
+            ${m4.proximosPasos ? `
+                <div class="bloque">
+                    <h2><i class="fas fa-forward"></i> Próximos pasos</h2>
+                    <div class="caja">${escaparHTML(m4.proximosPasos)}</div>
+                </div>
+            ` : ''}
+
+            ${(m4.fechaProximoSeguimiento || m4.convocaProximo) ? `
+                <div class="bloque">
+                    <h2><i class="fas fa-calendar-check"></i> Próximo seguimiento</h2>
+                    <p>
+                        ${m4.fechaProximoSeguimiento
+                            ? `<strong>Fecha:</strong> ${escaparHTML(formatearFecha(m4.fechaProximoSeguimiento))}<br>`
+                            : ''
+                        }
+                        ${m4.convocaProximo
+                            ? `<strong>Convoca:</strong> ${escaparHTML(m4.convocaProximo)}`
+                            : ''
+                        }
+                    </p>
+                </div>
+            ` : ''}
+
+            <div class="bloque">
+                <h2><i class="fas fa-signature"></i> Firmas</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:50%;">Nombre</th>
+                            <th style="width:50%;">Rol / Función</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>${escaparHTML(m4.firmas.director || id.director || '__________________________')}</td>
+                            <td>Director(a) de la escuela</td>
+                        </tr>
+                        <tr>
+                            <td>${escaparHTML(m4.firmas.atp || id.atp || '__________________________')}</td>
+                            <td>ATP / Supervisor(a)</td>
+                        </tr>
+                        ${docentesFirmantes.map(d => `
+                            <tr>
+                                <td>${escaparHTML(d.nombre || '—')}</td>
+                                <td>${escaparHTML(d.rol || 'Docente')}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+
+            ${pie()}
+        `;
+
+        const nombre = `acta-acuerdos-${fechaArchivo()}`;
+        abrirVentana('Acta de Acuerdos · Plan Lector Jalisco LEO', cuerpo, nombre);
+    }
     /* ========================================================
        HELPERS LOCALES
        ======================================================== */
