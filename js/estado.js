@@ -138,18 +138,33 @@ const ESTADO = (function() {
                 }
             },
 
-            // ========================================================
-            // MOMENTO 4: CIERRE Y ACUERDOS
+                       // ========================================================
+            // MOMENTO 4: CIERRE Y ACUERDOS (v2.0)
             // ========================================================
             momento4: {
-                compromisos: [],
+                // Lista de acuerdos editables
+                // [{ id, texto, responsables, fechaCompromiso, estado }]
+                acuerdos: [],
+
+                // Próximos pasos (texto libre)
                 proximosPasos: '',
+
+                // Fecha compromiso general (legacy, se mantiene por compatibilidad)
                 fechaCompromiso: '',
+
+                // Seguimiento
+                fechaProximoSeguimiento: '',
+                convocaProximo: '',
+
+                // Firmas
                 firmas: {
                     director: '',
                     atp: '',
-                    docentes: []
-                }
+                    docentes: []   // [{ nombre, rol }]
+                },
+
+                // Legacy (por si algún módulo viejo lo lee)
+                compromisos: []
             },
 
             // ========================================================
