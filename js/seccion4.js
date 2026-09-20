@@ -1,13 +1,11 @@
 /* ============================================================
    TERMÓMETRO LECTOR · JALISCO LEO
    seccion4.js — Sección 4: Voces del Ecosistema
+   v2.0 — Auto-cálculo de síntesis faltantes
    ============================================================ */
 
 const SECCION4 = (function() {
 
-    /* ========================================================
-       REFERENCIAS
-       ======================================================== */
     let contenedor = null;
 
     /* ========================================================
@@ -75,6 +73,8 @@ const SECCION4 = (function() {
 
         suscribirEventos();
         validar();
+        // 👇 NUEVO: recalcular síntesis que falten a partir de las respuestas
+        recalcularSintesisFaltantes();
     }
 
     /* ========================================================
@@ -107,14 +107,13 @@ const SECCION4 = (function() {
         }).join('');
     }
 
-       /* ========================================================
+    /* ========================================================
        RENDERIZAR SÍNTESIS
        ======================================================== */
     function renderizarSintesis(v) {
         const sintesis = v.sintesis || {};
         const dimensionesVoces = DATOS.dimensiones.filter(d => d.grupo === 'Voces');
 
-        // Colores inline
         const coloresInline = {
             verde: '#2E9E5B',
             amarillo: '#E8B93B',
@@ -179,15 +178,69 @@ const SECCION4 = (function() {
     }
 
     /* ========================================================
+       AUTO-CÁLCULO DE SÍNTESIS FALTANTES
+       Si hay respuestas pero no hay síntesis para esa dimensión,
+       se calcula automáticamente sin disparar re-render.
+       ======================================================== */
+    function recalcularSintesisFaltantes() {
+        const v = ESTADO.obtenerSeccion('voces');
+        const sintesis = { ...(v.sintesis || {}) };
+        let cambios = false;
+
+        ['estudiantes', 'familias', 'docentes'].forEach(grupo => {
+            const preguntas = DATOS.voces[grupo] || [];
+            const respuestas = v[grupo] || {};
+
+            preguntas.forEach(p => {
+                if (!p.dimension) return;
+                if (sintesis[p.dimension]) return;  // ya tiene valor, respetar
+
+                const valor = respuestas[p.id];
+                if (!valor || (Array.isArray(valor) && valor.length === 0)) return;
+
+                const color = calcularColorDesdeRespuesta(p, valor);
+                if (color) {
+                    sintesis[p.dimension] = color;
+                    cambios = true;
+                }
+            });
+        });
+
+        if (!cambios) return;
+
+        ESTADO.actualizarSeccion('voces', { sintesis });
+
+        // Actualizar el DOM directamente (sin re-renderizar todo)
+        Object.keys(sintesis).forEach(dimId => {
+            const selector = contenedor.querySelector(`.selector-semaforo[data-dimension="${dimId}"]`);
+            if (!selector) return;
+            const color = sintesis[dimId];
+            selector.querySelectorAll('.semaforo-opcion').forEach(op => {
+                const inp = op.querySelector('input');
+                const activo = inp.value === color;
+                inp.checked = activo;
+                op.classList.toggle('seleccionada', activo);
+                op.style.border = `2px solid ${activo ? '#4A4A4A' : 'transparent'}`;
+                op.style.background = activo ? 'rgba(0,0,0,0.05)' : 'transparent';
+                const dot = op.querySelector('span');
+                if (dot) {
+                    dot.style.transform = activo ? 'scale(1.15)' : 'scale(1)';
+                    dot.style.boxShadow = activo ? '0 0 0 3px rgba(0,0,0,0.1)' : 'none';
+                }
+            });
+        });
+
+        console.log('✅ SECCION4: síntesis recalculadas automáticamente');
+    }
+
+    /* ========================================================
        SUSCRIBIR EVENTOS
        ======================================================== */
     function suscribirEventos() {
-        // Preguntas simples y múltiples
         contenedor.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(input => {
             input.addEventListener('change', manejarRespuesta);
         });
 
-        // Semáforo de síntesis
         contenedor.querySelectorAll('.selector-semaforo input[type="radio"]').forEach(radio => {
             radio.addEventListener('change', manejarSintesis);
         });
@@ -200,16 +253,13 @@ const SECCION4 = (function() {
         const input = e.target;
         const name = input.name;
 
-        // Ignorar los de síntesis (tienen su propio handler)
         if (name.startsWith('sintesis-')) return;
 
-        // Formato: grupo-pregunta (ej. estudiantes-p1)
         const [grupo, preguntaId] = name.split('-');
 
         const v = ESTADO.obtenerSeccion('voces');
         const respuestasGrupo = { ...(v[grupo] || {}) };
 
-        // Determinar si es múltiple
         const preguntaDef = DATOS.voces[grupo]?.find(p => p.id === preguntaId);
         if (!preguntaDef) return;
 
@@ -224,7 +274,6 @@ const SECCION4 = (function() {
 
         ESTADO.actualizarSeccion('voces', { [grupo]: respuestasGrupo });
 
-        // Actualizar clases visuales
         const preguntaEl = contenedor.querySelector(`[data-pregunta="${preguntaId}"][data-grupo="${grupo}"]`);
         if (preguntaEl) {
             preguntaEl.querySelectorAll('.opcion').forEach(op => {
@@ -233,7 +282,6 @@ const SECCION4 = (function() {
             });
         }
 
-        // Auto-sugerir síntesis
         sugerirSintesis(grupo, preguntaId, respuestasGrupo[preguntaId]);
         validar();
     }
@@ -249,12 +297,18 @@ const SECCION4 = (function() {
         const nuevaSintesis = { ...(v.sintesis || {}), [dimension]: color };
         ESTADO.actualizarSeccion('voces', { sintesis: nuevaSintesis });
 
-        // Actualizar clases visuales
         const selector = contenedor.querySelector(`.selector-semaforo[data-dimension="${dimension}"]`);
         if (selector) {
             selector.querySelectorAll('.semaforo-opcion').forEach(op => {
                 const inp = op.querySelector('input');
                 op.classList.toggle('seleccionada', inp.checked);
+                op.style.border = `2px solid ${inp.checked ? '#4A4A4A' : 'transparent'}`;
+                op.style.background = inp.checked ? 'rgba(0,0,0,0.05)' : 'transparent';
+                const dot = op.querySelector('span');
+                if (dot) {
+                    dot.style.transform = inp.checked ? 'scale(1.15)' : 'scale(1)';
+                    dot.style.boxShadow = inp.checked ? '0 0 0 3px rgba(0,0,0,0.1)' : 'none';
+                }
             });
         }
 
@@ -269,7 +323,6 @@ const SECCION4 = (function() {
         if (!preguntaDef || !preguntaDef.dimension) return;
 
         const v = ESTADO.obtenerSeccion('voces');
-        // Solo sugerir si el usuario no ha editado manualmente esa dimensión
         if (v.sintesis && v.sintesis[preguntaDef.dimension]) return;
 
         const color = calcularColorDesdeRespuesta(preguntaDef, valor);
@@ -277,7 +330,6 @@ const SECCION4 = (function() {
             const nuevaSintesis = { ...(v.sintesis || {}), [preguntaDef.dimension]: color };
             ESTADO.actualizarSeccion('voces', { sintesis: nuevaSintesis });
 
-            // Actualizar visualmente
             const selector = contenedor.querySelector(`.selector-semaforo[data-dimension="${preguntaDef.dimension}"]`);
             if (selector) {
                 selector.querySelectorAll('.semaforo-opcion').forEach(op => {
@@ -298,17 +350,15 @@ const SECCION4 = (function() {
         const opciones = preguntaDef.opciones;
         const numOpciones = opciones.length;
 
-        // Para respuestas simples
         if (!preguntaDef.multiple) {
             const index = opciones.indexOf(valor);
             if (index === -1) return null;
-            const ratio = index / (numOpciones - 1); // 0 = primera opción (mejor), 1 = última (peor)
+            const ratio = index / (numOpciones - 1);
             if (ratio <= 0.33) return 'verde';
             if (ratio <= 0.66) return 'amarillo';
             return 'rojo';
         }
 
-        // Para respuestas múltiples: más opciones = mejor
         const seleccionadas = valor.length;
         if (seleccionadas === 0) return null;
         const ratio = seleccionadas / numOpciones;
@@ -340,7 +390,7 @@ const SECCION4 = (function() {
             resumen.innerHTML = '<i class="fas fa-info-circle"></i> Sección opcional. Puedes continuar sin llenarla.';
         }
 
-        ESTADO.notificar('seccion4Validada', { completa: true }); // siempre válida
+        ESTADO.notificar('seccion4Validada', { completa: true });
         return true;
     }
 
@@ -363,4 +413,8 @@ const SECCION4 = (function() {
     return { init, renderizar, validar };
 
 })();
-if (typeof window !== 'undefined') { window.SECCION4 = SECCION4; }
+
+if (typeof window !== 'undefined') {
+    window.SECCION4 = SECCION4;
+    console.log('✅ SECCION4 expuesto en window (v2.0)');
+}
