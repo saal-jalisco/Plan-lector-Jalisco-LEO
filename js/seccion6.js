@@ -1,6 +1,8 @@
 /* ============================================================
    PLAN LECTOR JALISCO LEO
    seccion6.js — Sección 6: Rutas Sugeridas
+   v2.0 — Alineado a 1 ruta por trimestre + estructura nueva
+          (anclas + banco + cierre). Sin crashes.
    ============================================================ */
 
 const SECCION6 = (function() {
@@ -22,6 +24,29 @@ const SECCION6 = (function() {
     }
 
     /* ========================================================
+       HELPERS DEFENSIVOS
+       ======================================================== */
+    function escaparHTML(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function mostrarToast(mensaje, tipo) {
+        if (typeof App !== 'undefined' && typeof App.mostrarToast === 'function') {
+            try { App.mostrarToast(mensaje, tipo); return; } catch (e) { /* silencio */ }
+        }
+        if (typeof APP !== 'undefined' && typeof APP.mostrarToast === 'function') {
+            try { APP.mostrarToast(mensaje, tipo); return; } catch (e) { /* silencio */ }
+        }
+        console.log(`[Toast ${tipo || 'info'}] ${mensaje}`);
+    }
+
+    /* ========================================================
        RENDERIZAR
        ======================================================== */
     function renderizar() {
@@ -29,28 +54,24 @@ const SECCION6 = (function() {
         const t = ESTADO.obtenerSeccion('termometro');
         const id = ESTADO.obtenerSeccion('identificacion');
 
-        // Obtener reglas de filtrado según el nivel
-        const reglas = DATOS.reglasFiltradoNivel[id.nivel] || {
+        // Obtener reglas de filtrado según el nivel (nueva estructura)
+        const reglas = (DATOS.reglasFiltradoNivel && DATOS.reglasFiltradoNivel[id.nivel]) || {
             rutasSugeridas: ['ruta1', 'ruta2', 'ruta3', 'ruta4', 'ruta5'],
             rutasOpcionales: [],
-            minimoRutas: 2,
-            maximoRutas: 5,
-            nota: 'Selecciona las rutas que mejor se adapten a tu escuela.'
+            rutaUnica: true,
+            nota: 'Selecciona la ruta que mejor se adapte a tu escuela.'
         };
 
         // Calcular rutas sugeridas desde el motor (solo las que aplican al nivel)
         const sugeridas = calcularRutasSugeridas(t.dimensiones || {}, reglas, id.nivel);
 
-        // Guardar en estado
+        // Guardar en estado (si aún no hay)
         if (!r.sugeridas || r.sugeridas.length === 0) {
             ESTADO.actualizarCampo('rutas', 'sugeridas', sugeridas);
         }
 
         const rutasActuales = r.sugeridas && r.sugeridas.length > 0 ? r.sugeridas : sugeridas;
         const seleccionadas = r.seleccionadas || [];
-
-        // Validar mínimo y máximo
-        const validacion = validarCantidadRutas(seleccionadas, reglas);
 
         contenedor.innerHTML = `
             <div class="form-seccion">
@@ -59,28 +80,23 @@ const SECCION6 = (function() {
                 <div class="caja-info">
                     <i class="fas fa-info-circle"></i>
                     <strong>Nivel educativo:</strong> ${obtenerNombreNivel(id.nivel)} ·
-                    <strong>Rutas sugeridas:</strong> ${reglas.rutasSugeridas.length} ·
-                    <strong>Mínimo a seleccionar:</strong> ${reglas.minimoRutas} ·
-                    <strong>Máximo:</strong> ${reglas.maximoRutas}
-                    <br><span class="ayuda">${reglas.nota}</span>
+                    <strong>Rutas disponibles para el nivel:</strong>
+                    ${reglas.rutasSugeridas.length + reglas.rutasOpcionales.length}
+                    <br>
+                    <span class="ayuda">
+                        Esta sección es <strong>informativa</strong>: muestra las rutas que el motor
+                        de recomendación sugiere según el Termómetro. La elección definitiva
+                        (1 ruta por trimestre) se hace en el <strong>Momento 3 · Sub-paso 3.1</strong>.
+                    </span>
                 </div>
 
-                <!-- ===== ALERTA SI > MÁXIMO ===== -->
-                ${seleccionadas.length > reglas.maximoRutas ? `
-                    <div class="caja-alerta">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <strong>Atención:</strong> Han seleccionado más de ${reglas.maximoRutas} rutas para un trimestre.
-                        Consideren priorizar para no dispersar los esfuerzos.
-                    </div>
-                ` : ''}
-
-                <!-- ===== ALERTA SI < MÍNIMO ===== -->
-                ${seleccionadas.length > 0 && seleccionadas.length < reglas.minimoRutas ? `
-                    <div class="caja-alerta">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <strong>Atención:</strong> Deben seleccionar al menos ${reglas.minimoRutas} rutas para el trimestre.
-                    </div>
-                ` : ''}
+                <!-- ===== AVISO SOBRE 1 RUTA ===== -->
+                <div class="caja-alerta">
+                    <i class="fas fa-lightbulb"></i>
+                    <strong>Recuerda:</strong> el Plan Lector trabaja <strong>una ruta por trimestre</strong>.
+                    Aquí puedes marcar tu ruta favorita para tenerla presente, pero la selección
+                    oficial se hace en el Momento 3.
+                </div>
 
                 <!-- ===== MOTOR DE RECOMENDACIÓN ===== -->
                 <div class="form-bloque">
@@ -105,11 +121,11 @@ const SECCION6 = (function() {
                 <!-- ===== SELECCIÓN DEL COLECTIVO ===== -->
                 ${rutasActuales.length > 0 ? `
                     <div class="form-bloque">
-                        <h3><i class="fas fa-list-check"></i> Selección del colectivo</h3>
+                        <h3><i class="fas fa-list-check"></i> Ruta favorita del colectivo (referencia)</h3>
                         <p class="ayuda">
-                            Marca las rutas que trabajarán este trimestre.
-                            Puedes reordenarlas con las flechas.
-                            <br><strong>Seleccionadas:</strong> ${seleccionadas.length} de ${rutasActuales.length}
+                            Marca <strong>1 ruta</strong> como favorita. Se queda guardada como referencia
+                            y como valor por defecto al entrar al Momento 3.
+                            <br><strong>Marcada:</strong> ${seleccionadas.length} de 1
                         </p>
 
                         <div id="lista-seleccionadas">
@@ -121,23 +137,22 @@ const SECCION6 = (function() {
                 <!-- ===== NOTAS DEL COLECTIVO ===== -->
                 <div class="form-bloque">
                     <h3><i class="fas fa-comment-dots"></i> Notas del colectivo</h3>
-                    <p class="ayuda">Solo en la Hoja de Ruta (no en el Acta).</p>
+                    <p class="ayuda">Opcional. Observaciones sobre las rutas sugeridas.</p>
                     <div class="form-grupo">
-                        <textarea id="notas-rutas" placeholder="Escribe 3 o 4 enunciados máximo..." maxlength="600">${r.notas || ''}</textarea>
+                        <textarea id="notas-rutas" placeholder="Ej. Consideramos que la Ruta 1 responde directamente a los resultados del Termómetro..." maxlength="600">${escaparHTML(r.notas || '')}</textarea>
                     </div>
                 </div>
 
                 <!-- ===== RESUMEN ===== -->
                 <div class="caja-info" id="resumen-seccion6">
                     <i class="fas fa-info-circle"></i>
-                    Selecciona al menos ${reglas.minimoRutas} ruta(s) para continuar.
+                    Puedes continuar sin marcar ruta (la selección oficial es en el Momento 3).
                 </div>
 
             </div>
         `;
 
         suscribirEventos();
-        validar();
     }
 
     /* ========================================================
@@ -147,14 +162,12 @@ const SECCION6 = (function() {
         const resultado = [];
         const reglasMotor = DATOS.motorRecomendacion.reglas;
 
-        // Filtrar solo las rutas que aplican al nivel
         const rutasPermitidas = [
             ...reglas.rutasSugeridas,
             ...reglas.rutasOpcionales
         ];
 
         reglasMotor.forEach(regla => {
-            // Solo considerar rutas permitidas para este nivel
             if (!rutasPermitidas.includes(regla.rutaId)) return;
 
             const gatillosActivos = regla.dimensionesGatillo.filter(dim => {
@@ -166,7 +179,6 @@ const SECCION6 = (function() {
 
             const rojos = gatillosActivos.filter(dim => dimensiones[dim] === 'rojo').length;
 
-            // Prioridad
             let prioridad = 'BAJA';
             if (rojos >= 3) prioridad = 'ALTA';
             else if (rojos === 2) prioridad = 'MEDIA';
@@ -174,7 +186,7 @@ const SECCION6 = (function() {
             const rutaDef = DATOS.rutasLEO[regla.rutaId];
             if (!rutaDef) return;
 
-            // Ajustar prioridad si la ruta es sugerida (no opcional)
+            // Si la ruta está marcada como sugerida para el nivel, sube un escalón
             let prioridadAjustada = prioridad;
             if (reglas.rutasSugeridas.includes(regla.rutaId) && prioridad === 'BAJA') {
                 prioridadAjustada = 'MEDIA';
@@ -203,23 +215,10 @@ const SECCION6 = (function() {
     }
 
     /* ========================================================
-       VALIDAR CANTIDAD DE RUTAS
-       ======================================================== */
-    function validarCantidadRutas(seleccionadas, reglas) {
-        const cantidad = seleccionadas.length;
-        return {
-            cumpleMinimo: cantidad >= reglas.minimoRutas,
-            cumpleMaximo: cantidad <= reglas.maximoRutas,
-            cantidad,
-            minimo: reglas.minimoRutas,
-            maximo: reglas.maximoRutas
-        };
-    }
-
-    /* ========================================================
        OBTENER NOMBRE DEL NIVEL
        ======================================================== */
     function obtenerNombreNivel(nivelId) {
+        if (!nivelId || !DATOS.niveles) return 'No especificado';
         const nivel = DATOS.niveles.find(n => n.id === nivelId);
         return nivel ? `${nivel.nombre} (${nivel.rango})` : 'No especificado';
     }
@@ -231,25 +230,37 @@ const SECCION6 = (function() {
         const seleccionada = seleccionadas.some(sel => sel.rutaId === s.rutaId);
         const coloresPrioridad = { ALTA: 'rojo', MEDIA: 'amarillo', BAJA: 'verde' };
 
+        // Mapear color de prioridad al nombre del chip
+        const chipPrioridad = { ALTA: 'carmesi', MEDIA: 'naranja', BAJA: 'verde' };
+        const colorChip = chipPrioridad[s.prioridad] || 'gris';
+
+        // Tomar los primeros 140 caracteres del propósito (era "necesidad")
+        const propositoCorto = s.ruta.proposito
+            ? (s.ruta.proposito.length > 140
+                ? s.ruta.proposito.substring(0, 140) + '…'
+                : s.ruta.proposito)
+            : '';
+
         return `
             <div class="tarjeta tarjeta-ruta ${seleccionada ? 'seleccionada' : ''}"
-                 data-ruta="${s.rutaId}"
-                 style="border-left-color: var(--${coloresPrioridad[s.prioridad]});">
+                 data-ruta="${s.rutaId}">
 
                 <div class="flex-between mb-2">
-                    <span class="chip ${coloresPrioridad[s.prioridad]}">
-                        <i class="fas fa-flag"></i> ${s.prioridad}
-                    </span>
-                    ${s.esSugerida ? `<span class="chip carmesi"><i class="fas fa-star"></i> Sugerida</span>` : ''}
+                    <div class="flex gap-1" style="flex-wrap: wrap;">
+                        <span class="chip ${colorChip}">
+                            <i class="fas fa-flag"></i> ${s.prioridad}
+                        </span>
+                        ${s.esSugerida ? `<span class="chip carmesi"><i class="fas fa-star"></i> Sugerida</span>` : ''}
+                    </div>
                     <label class="opcion-check">
                         <input type="checkbox" class="check-ruta" data-ruta="${s.rutaId}"
                                ${seleccionada ? 'checked' : ''}>
                     </label>
                 </div>
 
-                <h4 style="margin:0 0 0.5rem;">🚂 ${s.ruta.nombre}</h4>
+                <h4 style="margin:0 0 0.5rem;">${escaparHTML(s.ruta.nombre)}</h4>
                 <p class="ayuda" style="font-style: italic; margin-bottom: 0.75rem;">
-                    "${s.ruta.lema}"
+                    "${escaparHTML(s.ruta.lema)}"
                 </p>
 
                 <div class="mb-2">
@@ -257,21 +268,21 @@ const SECCION6 = (function() {
                     <div>
                         ${s.dimensionesGatillo.map(dimId => {
                             const dimDef = DATOS.dimensiones.find(d => d.id === dimId);
-                            const color = ESTADO.obtenerSeccion('termometro').dimensiones?.[dimId];
-                            return `<span class="chip ${color || 'gris'}">${dimDef?.nombre || dimId}</span>`;
+                            const color = (ESTADO.obtenerSeccion('termometro')?.dimensiones || {})[dimId];
+                            return `<span class="chip ${color || 'gris'}">${escaparHTML(dimDef?.nombre || dimId)}</span>`;
                         }).join('')}
                     </div>
                 </div>
 
                 <div class="mb-2">
-                    <strong>Enfoque:</strong>
-                    <p class="ayuda">${s.ruta.necesidad.substring(0, 120)}...</p>
+                    <strong>Propósito:</strong>
+                    <p class="ayuda">${escaparHTML(propositoCorto)}</p>
                 </div>
 
                 <div class="mb-2">
                     <strong>Virtudes:</strong>
                     <div>
-                        ${s.ruta.virtudes.map(v => `<span class="chip">${v}</span>`).join('')}
+                        ${(s.ruta.virtudes || []).map(v => `<span class="chip">${escaparHTML(v)}</span>`).join('')}
                     </div>
                 </div>
 
@@ -283,31 +294,28 @@ const SECCION6 = (function() {
     }
 
     /* ========================================================
-       RENDERIZAR SELECCIONADAS
+       RENDERIZAR SELECCIONADAS (solo 1)
        ======================================================== */
     function renderizarSeleccionadas(rutasActuales, seleccionadas) {
         if (seleccionadas.length === 0) {
-            return `<p class="ayuda">Aún no has seleccionado rutas.</p>`;
+            return `<p class="ayuda">Aún no has marcado una ruta favorita.</p>`;
         }
 
         return seleccionadas.map((sel, i) => {
             const s = rutasActuales.find(r => r.rutaId === sel.rutaId);
             if (!s) return '';
 
+            const chipPrioridad = { ALTA: 'carmesi', MEDIA: 'naranja', BAJA: 'verde' };
+            const colorChip = chipPrioridad[s.prioridad] || 'gris';
+
             return `
                 <div class="tarjeta tarjeta-seleccionada" data-ruta="${sel.rutaId}">
                     <div class="flex-between">
                         <div>
-                            <strong>${i + 1}. ${s.ruta.nombre}</strong>
-                            <span class="chip ${s.prioridad === 'ALTA' ? 'rojo' : s.prioridad === 'MEDIA' ? 'amarillo' : 'verde'}">${s.prioridad}</span>
+                            <strong>${i + 1}. ${escaparHTML(s.ruta.nombre)}</strong>
+                            <span class="chip ${colorChip}">${s.prioridad}</span>
                         </div>
                         <div class="flex gap-1">
-                            <button type="button" class="btn btn-icono btn-secundario btn-subir" data-ruta="${sel.rutaId}" ${i === 0 ? 'disabled' : ''}>
-                                <i class="fas fa-arrow-up"></i>
-                            </button>
-                            <button type="button" class="btn btn-icono btn-secundario btn-bajar" data-ruta="${sel.rutaId}" ${i === seleccionadas.length - 1 ? 'disabled' : ''}>
-                                <i class="fas fa-arrow-down"></i>
-                            </button>
                             <button type="button" class="btn btn-icono btn-peligro btn-quitar" data-ruta="${sel.rutaId}">
                                 <i class="fas fa-times"></i>
                             </button>
@@ -322,12 +330,10 @@ const SECCION6 = (function() {
        SUSCRIBIR EVENTOS
        ======================================================== */
     function suscribirEventos() {
-        // Checkboxes de rutas
         contenedor.querySelectorAll('.check-ruta').forEach(check => {
             check.addEventListener('change', manejarSeleccionRuta);
         });
 
-        // Ver actividades
         contenedor.querySelectorAll('.btn-ver-actividades').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const rutaId = e.currentTarget.dataset.ruta;
@@ -335,18 +341,10 @@ const SECCION6 = (function() {
             });
         });
 
-        // Subir / Bajar / Quitar
-        contenedor.querySelectorAll('.btn-subir').forEach(btn => {
-            btn.addEventListener('click', (e) => moverRuta(e.currentTarget.dataset.ruta, -1));
-        });
-        contenedor.querySelectorAll('.btn-bajar').forEach(btn => {
-            btn.addEventListener('click', (e) => moverRuta(e.currentTarget.dataset.ruta, 1));
-        });
         contenedor.querySelectorAll('.btn-quitar').forEach(btn => {
             btn.addEventListener('click', (e) => quitarRuta(e.currentTarget.dataset.ruta));
         });
 
-        // Notas
         const notas = document.getElementById('notas-rutas');
         if (notas) {
             notas.addEventListener('input', (e) => {
@@ -356,40 +354,18 @@ const SECCION6 = (function() {
     }
 
     /* ========================================================
-       MANEJAR SELECCIÓN
+       MANEJAR SELECCIÓN (solo 1 ruta)
        ======================================================== */
     function manejarSeleccionRuta(e) {
         const rutaId = e.target.dataset.ruta;
-        const r = ESTADO.obtenerSeccion('rutas');
-        let seleccionadas = [...(r.seleccionadas || [])];
+        let seleccionadas = [];
 
+        // Solo permitimos 1: si marca una nueva, reemplaza la anterior
         if (e.target.checked) {
-            if (!seleccionadas.some(s => s.rutaId === rutaId)) {
-                seleccionadas.push({ rutaId, orden: seleccionadas.length });
-            }
+            seleccionadas = [{ rutaId, orden: 0 }];
         } else {
-            seleccionadas = seleccionadas.filter(s => s.rutaId !== rutaId);
-            seleccionadas.forEach((s, i) => s.orden = i);
+            seleccionadas = [];
         }
-
-        ESTADO.actualizarCampo('rutas', 'seleccionadas', seleccionadas);
-        renderizar();
-    }
-
-    /* ========================================================
-       MOVER RUTA
-       ======================================================== */
-    function moverRuta(rutaId, direccion) {
-        const r = ESTADO.obtenerSeccion('rutas');
-        const seleccionadas = [...(r.seleccionadas || [])];
-        const index = seleccionadas.findIndex(s => s.rutaId === rutaId);
-        if (index === -1) return;
-
-        const nuevoIndex = index + direccion;
-        if (nuevoIndex < 0 || nuevoIndex >= seleccionadas.length) return;
-
-        [seleccionadas[index], seleccionadas[nuevoIndex]] = [seleccionadas[nuevoIndex], seleccionadas[index]];
-        seleccionadas.forEach((s, i) => s.orden = i);
 
         ESTADO.actualizarCampo('rutas', 'seleccionadas', seleccionadas);
         renderizar();
@@ -399,19 +375,21 @@ const SECCION6 = (function() {
        QUITAR RUTA
        ======================================================== */
     function quitarRuta(rutaId) {
-        const r = ESTADO.obtenerSeccion('rutas');
-        const seleccionadas = (r.seleccionadas || []).filter(s => s.rutaId !== rutaId);
-        seleccionadas.forEach((s, i) => s.orden = i);
-        ESTADO.actualizarCampo('rutas', 'seleccionadas', seleccionadas);
+        ESTADO.actualizarCampo('rutas', 'seleccionadas', []);
         renderizar();
     }
 
     /* ========================================================
-       MODAL DE ACTIVIDADES
+       MODAL DE ACTIVIDADES (nueva estructura)
        ======================================================== */
     function abrirModalActividades(rutaId) {
         const ruta = DATOS.rutasLEO[rutaId];
         if (!ruta) return;
+
+        const id = ESTADO.obtenerSeccion('identificacion');
+        const nivelId = id.nivel;
+        const nivelData = ruta.niveles && ruta.niveles[nivelId];
+        const nivelNombre = obtenerNombreNivel(nivelId);
 
         const modal = document.getElementById('modal-confirmacion');
         const titulo = document.getElementById('modal-titulo');
@@ -419,30 +397,78 @@ const SECCION6 = (function() {
         const btnAceptar = document.getElementById('modal-aceptar');
         const btnCancelar = document.getElementById('modal-cancelar');
 
-        titulo.textContent = `🚂 ${ruta.nombre}`;
-        mensaje.innerHTML = `
-            <p style="font-style: italic; margin-bottom: 1rem;">"${ruta.lema}"</p>
+        if (!modal || !titulo || !mensaje || !btnAceptar || !btnCancelar) {
+            mostrarToast('No se pudo abrir el detalle.', 'error');
+            return;
+        }
 
-            <h4 style="color: var(--carmesi); margin-bottom: 0.5rem;">Actividades esenciales</h4>
-            <ul style="margin-bottom: 1rem;">
-                ${ruta.actividadesEsenciales.map(a => `
-                    <li><strong>${a.nombre}</strong> · <span class="chip">${a.nivel}</span> <span class="chip naranja">${a.frecuencia}</span></li>
-                `).join('')}
-            </ul>
+        titulo.textContent = ruta.nombre;
 
-            ${ruta.actividadesOpcionales && ruta.actividadesOpcionales.length > 0 ? `
-                <h4 style="color: var(--carmesi); margin-bottom: 0.5rem;">Actividades opcionales</h4>
+        // Si el nivel no está disponible para esta ruta
+        if (!nivelData || nivelData.disponible === false) {
+            const razon = nivelData?.razonNoDisponible || 'Esta ruta no tiene actividades propias para el nivel seleccionado.';
+            mensaje.innerHTML = `
+                <p style="font-style: italic; margin-bottom: 1rem;">"${escaparHTML(ruta.lema)}"</p>
+                <div class="caja-alerta">
+                    <i class="fas fa-info-circle"></i>
+                    ${escaparHTML(razon)}
+                </div>
+            `;
+        } else {
+            const anclas = Array.isArray(nivelData.anclas) ? nivelData.anclas : [];
+            const banco  = Array.isArray(nivelData.banco)  ? nivelData.banco  : [];
+            const cierre = nivelData.cierre;
+
+            mensaje.innerHTML = `
+                <p style="font-style: italic; margin-bottom: 1rem;">"${escaparHTML(ruta.lema)}"</p>
+
+                <div class="caja-info" style="margin-bottom: 1rem;">
+                    <strong>Nivel:</strong> ${escaparHTML(nivelNombre)}
+                </div>
+
+                <h4 style="color: var(--carmesi); margin-bottom: 0.5rem;">
+                    <i class="fas fa-anchor"></i> Anclas (${anclas.length})
+                </h4>
                 <ul style="margin-bottom: 1rem;">
-                    ${ruta.actividadesOpcionales.map(a => `
-                        <li><strong>${a.nombre}</strong> · <span class="chip">${a.nivel}</span> <span class="chip naranja">${a.frecuencia}</span></li>
+                    ${anclas.map(a => `
+                        <li style="margin-bottom: 0.5rem;">
+                            <strong>${escaparHTML(a.nombre)}</strong>
+                            <span class="chip carmesi">${escaparHTML(a.frecuencia || '')}</span>
+                            <br>
+                            <span class="ayuda">${escaparHTML(a.descripcion || '')}</span>
+                        </li>
                     `).join('')}
                 </ul>
-            ` : ''}
 
-            <h4 style="color: var(--carmesi); margin-bottom: 0.5rem;">Indicadores</h4>
-            <p><strong>Cuantitativo:</strong> ${ruta.indicadores.cuanti}</p>
-            <p><strong>Cualitativo:</strong> ${ruta.indicadores.cuali}</p>
-        `;
+                <h4 style="color: var(--carmesi); margin-bottom: 0.5rem;">
+                    <i class="fas fa-layer-group"></i> Banco de actividades (${banco.length})
+                </h4>
+                <ul style="margin-bottom: 1rem;">
+                    ${banco.map(a => `
+                        <li style="margin-bottom: 0.5rem;">
+                            <strong>${escaparHTML(a.nombre)}</strong>
+                            <span class="chip naranja">${escaparHTML(a.frecuencia || '')}</span>
+                            <br>
+                            <span class="ayuda">${escaparHTML(a.descripcion || '')}</span>
+                        </li>
+                    `).join('')}
+                </ul>
+
+                ${cierre ? `
+                    <h4 style="color: var(--carmesi); margin-bottom: 0.5rem;">
+                        <i class="fas fa-flag-checkered"></i> Cierre del trimestre
+                    </h4>
+                    <ul style="margin-bottom: 1rem;">
+                        <li style="margin-bottom: 0.5rem;">
+                            <strong>${escaparHTML(cierre.nombre)}</strong>
+                            <span class="chip verde">${escaparHTML(cierre.frecuencia || '')}</span>
+                            <br>
+                            <span class="ayuda">${escaparHTML(cierre.descripcion || '')}</span>
+                        </li>
+                    </ul>
+                ` : ''}
+            `;
+        }
 
         btnAceptar.textContent = 'Cerrar';
         btnCancelar.textContent = 'Cerrar';
@@ -460,39 +486,10 @@ const SECCION6 = (function() {
     }
 
     /* ========================================================
-       VALIDAR SECCIÓN
+       VALIDAR (ya no bloquea: es informativa)
        ======================================================== */
     function validar() {
-        const r = ESTADO.obtenerSeccion('rutas');
-        const id = ESTADO.obtenerSeccion('identificacion');
-        const resumen = document.getElementById('resumen-seccion6');
-        if (!resumen) return false;
-
-        const reglas = DATOS.reglasFiltradoNivel[id.nivel] || {
-            minimoRutas: 2,
-            maximoRutas: 5
-        };
-
-        const seleccionadas = r.seleccionadas || [];
-        const cumpleMinimo = seleccionadas.length >= reglas.minimoRutas;
-        const cumpleMaximo = seleccionadas.length <= reglas.maximoRutas;
-
-        if (cumpleMinimo && cumpleMaximo) {
-            resumen.className = 'caja-exito';
-            resumen.innerHTML = `<i class="fas fa-check-circle"></i> ${seleccionadas.length} ruta(s) seleccionada(s). Puedes continuar.`;
-            ESTADO.notificar('seccion6Validada', { completa: true });
-            return true;
-        } else if (!cumpleMinimo) {
-            resumen.className = 'caja-info';
-            resumen.innerHTML = `<i class="fas fa-info-circle"></i> Selecciona al menos ${reglas.minimoRutas} ruta(s) para continuar.`;
-            ESTADO.notificar('seccion6Validada', { completa: false });
-            return false;
-        } else {
-            resumen.className = 'caja-alerta';
-            resumen.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Has seleccionado más de ${reglas.maximoRutas} rutas. Considera priorizar.`;
-            ESTADO.notificar('seccion6Validada', { completa: false });
-            return false;
-        }
+        return true;
     }
 
     /* ========================================================
@@ -501,9 +498,6 @@ const SECCION6 = (function() {
     function suscribirCambios() {
         ESTADO.suscribir((evento) => {
             if (evento === 'reiniciado' || evento === 'borradorCargado' || evento === 'importado') {
-                renderizar();
-            }
-            if (evento === 'seccionActualizada') {
                 renderizar();
             }
         });
@@ -517,4 +511,8 @@ const SECCION6 = (function() {
     return { init, renderizar, validar };
 
 })();
-if (typeof window !== 'undefined') { window.SECCION6 = SECCION6; }
+
+if (typeof window !== 'undefined') {
+    window.SECCION6 = SECCION6;
+    console.log('✅ SECCION6 expuesto en window (v2.0)');
+}
