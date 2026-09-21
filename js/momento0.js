@@ -133,8 +133,7 @@ window.Momento0 = {
             <div class="caja-info momento0-nota">
                 <h3><i class="fas fa-thumbtack"></i> Nota orientadora</h3>
                 <p>
-                    Esta lista está basada en las guías de elaboración de Planes de Fomento de la
-                    Lectura (Primaria y Secundaria) y en la Estrategia Jalisco LEO. No es necesario
+                    No es necesario
                     tener todos los insumos para comenzar, pero sí es importante identificarlos
                     para saber qué priorizar.
                 </p>
