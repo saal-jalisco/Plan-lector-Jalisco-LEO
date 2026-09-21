@@ -1,15 +1,19 @@
 /* ============================================================
    PLAN LECTOR JALISCO LEO
    momento0.js — Preparación (Insumos para el diagnóstico)
+   v2.0 — PEI → PMC + guardado/carga funcional en localStorage
    ============================================================ */
 
 window.Momento0 = {
+
+    /* ===== CLAVE DE ALMACENAMIENTO ===== */
+    CLAVE_LS: 'plan_lector_jalisco_leo_momento0',
 
     /* ===== ESTADO LOCAL ===== */
     insumos: {
         documentales: [
             { id: 'ja2025', texto: 'Resultados de Jalisco Avanza 2025 (por grado y UA)', listo: false },
-            { id: 'pei', texto: 'Proyecto Educativo de Centro (PEI)', listo: false },
+            { id: 'pmc', texto: 'Programa de Mejora Continua (PMC)', listo: false },
             { id: 'convivencia', texto: 'Plan de Convivencia', listo: false },
             { id: 'curriculum', texto: 'Currículum vigente (Bases Curriculares)', listo: false },
             { id: 'estrategia', texto: 'Estrategia Jalisco LEO (documento estatal)', listo: false }
@@ -158,69 +162,118 @@ window.Momento0 = {
     },
 
     /* ===== EVENTOS ===== */
-    /* ===== EVENTOS ===== */
-attachEventos() {
-    // Checkboxes
-    document.querySelectorAll('.momento0-item input[type="checkbox"]').forEach(cb => {
-        cb.addEventListener('change', (e) => {
-            const id = e.target.dataset.id;
-            const categoria = e.target.dataset.categoria;
-            const item = this.insumos[categoria].find(i => i.id === id);
-            if (item) {
-                item.listo = e.target.checked;
-                e.target.closest('.momento0-item').classList.toggle('listo', item.listo);
-            }
-        });
-    });
-
-    // Guardar
-    const btnGuardar = document.getElementById('btn-guardar-momento0');
-    if (btnGuardar) {
-        btnGuardar.addEventListener('click', () => {
-            this.guardarEstado();
-            if (window.App) App.mostrarToast('Estado de preparación guardado');
-        });
-    }
-
-    // Marcar todo
-    const btnMarcarTodo = document.getElementById('btn-marcar-todo-momento0');
-    if (btnMarcarTodo) {
-        btnMarcarTodo.addEventListener('click', () => {
-            Object.keys(this.insumos).forEach(cat => {
-                this.insumos[cat].forEach(item => item.listo = true);
+    attachEventos() {
+        // Checkboxes
+        document.querySelectorAll('.momento0-item input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', (e) => {
+                const id = e.target.dataset.id;
+                const categoria = e.target.dataset.categoria;
+                const item = this.insumos[categoria].find(i => i.id === id);
+                if (item) {
+                    item.listo = e.target.checked;
+                    e.target.closest('.momento0-item').classList.toggle('listo', item.listo);
+                }
             });
-            this.render();
-            if (window.App) App.mostrarToast('Todos los insumos marcados como listos');
         });
-    }
 
-    // Siguiente (con verificación robusta)
-    const btnSiguiente = document.getElementById('btn-siguiente-momento');
-    if (btnSiguiente) {
-        btnSiguiente.addEventListener('click', () => {
-            console.log('👉 Clic en Siguiente desde Momento 0');
-            if (window.App && typeof window.App.cambiarMomento === 'function') {
-                window.App.cambiarMomento(1);
-            } else {
-                console.error('❌ App.cambiarMomento no está disponible');
-            }
-        });
-    }
-},
-    /* ===== GUARDAR ESTADO ===== */
-    guardarEstado() {
-        if (window.Estado && Estado.setDatos) {
-            Estado.setDatos('momento0', this.insumos);
+        // Guardar
+        const btnGuardar = document.getElementById('btn-guardar-momento0');
+        if (btnGuardar) {
+            btnGuardar.addEventListener('click', () => {
+                this.guardarEstado();
+                if (window.App) App.mostrarToast('Estado de preparación guardado.', 'exito');
+            });
+        }
+
+        // Marcar todo
+        const btnMarcarTodo = document.getElementById('btn-marcar-todo-momento0');
+        if (btnMarcarTodo) {
+            btnMarcarTodo.addEventListener('click', () => {
+                Object.keys(this.insumos).forEach(cat => {
+                    this.insumos[cat].forEach(item => item.listo = true);
+                });
+                this.guardarEstado();
+                this.render();
+                if (window.App) App.mostrarToast('Todos los insumos marcados como listos.', 'exito');
+            });
+        }
+
+        // Siguiente (con verificación robusta)
+        const btnSiguiente = document.getElementById('btn-siguiente-momento');
+        if (btnSiguiente) {
+            btnSiguiente.addEventListener('click', () => {
+                console.log('👉 Clic en Siguiente desde Momento 0');
+                if (window.App && typeof window.App.cambiarMomento === 'function') {
+                    window.App.cambiarMomento(1);
+                } else {
+                    console.error('❌ App.cambiarMomento no está disponible');
+                }
+            });
         }
     },
 
-    /* ===== CARGAR ESTADO ===== */
+    /* ========================================================
+       GUARDAR ESTADO (en localStorage, clave propia)
+       ======================================================== */
+    guardarEstado() {
+        try {
+            localStorage.setItem(this.CLAVE_LS, JSON.stringify({
+                insumos: this.insumos,
+                fechaGuardado: new Date().toISOString()
+            }));
+            console.log('💾 MOMENTO0: estado guardado');
+            return true;
+        } catch (e) {
+            console.error('⚠️ MOMENTO0: no se pudo guardar:', e);
+            return false;
+        }
+    },
+
+    /* ========================================================
+       CARGAR ESTADO (desde localStorage)
+       Fusiona lo guardado sobre la estructura base,
+       para que si agregamos insumos nuevos no se pierdan.
+       ======================================================== */
     cargarEstado() {
-        if (window.Estado && Estado.getDatos) {
-            const datos = Estado.getDatos('momento0');
-            if (datos) {
-                this.insumos = datos;
+        try {
+            const crudo = localStorage.getItem(this.CLAVE_LS);
+            if (!crudo) {
+                console.log('ℹ️ MOMENTO0: sin datos previos, estado en blanco');
+                return false;
             }
+
+            const guardado = JSON.parse(crudo);
+            const insumosGuardados = guardado && guardado.insumos;
+            if (!insumosGuardados || typeof insumosGuardados !== 'object') {
+                return false;
+            }
+
+            // Merge: mantener la estructura base, sobreescribir solo "listo"
+            Object.keys(this.insumos).forEach(cat => {
+                const base = this.insumos[cat];
+                const previo = Array.isArray(insumosGuardados[cat]) ? insumosGuardados[cat] : [];
+                base.forEach(item => {
+                    const match = previo.find(p => p && p.id === item.id);
+                    if (match) {
+                        item.listo = !!match.listo;
+                    }
+                });
+            });
+
+            console.log('✅ MOMENTO0: estado cargado desde localStorage');
+            return true;
+
+        } catch (e) {
+            console.error('⚠️ MOMENTO0: no se pudo cargar:', e);
+            return false;
         }
     }
 };
+
+/* ============================================================
+   EXPOSICIÓN A WINDOW (ya se hace al inicio con window.Momento0,
+   este bloque es solo por consistencia y log)
+   ============================================================ */
+if (typeof window !== 'undefined') {
+    console.log('✅ MOMENTO0 expuesto en window (v2.0)');
+}
